@@ -2,8 +2,14 @@ import { Router, Request, Response } from 'express';
 import { AgentOrchestrator } from '../agents/orchestrator';
 import { prisma } from '../services/prisma';
 import { sarvamClient } from '../services/sarvam';
+import multer from 'multer';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
+interface MulterRequest extends Request {
+  file?: Express.Multer.File;
+}
 
 router.post('/research', async (req: Request, res: Response) => {
   try {
@@ -131,19 +137,22 @@ router.get('/knowledge-graph', async (req: Request, res: Response) => {
 });
 
 // Sarvam AI Integration Routes
-router.post('/sarvam/ocr', async (req: Request, res: Response) => {
-  try {
-    const { imageUrl, imageBase64, language = 'en' } = req.body;
+// Note: Sarvam AI does not provide OCR service. This is a placeholder.
+// For OCR, consider using Google Cloud Vision, AWS Textract, or Tesseract.js
 
-    if (!imageUrl && !imageBase64) {
-      return res.status(400).json({ error: 'imageUrl or imageBase64 is required' });
+router.post('/sarvam/ocr', upload.single('image'), async (req: MulterRequest, res: Response) => {
+  try {
+    const { imageUrl, language = 'en' } = req.body;
+    const imageFile = req.file;
+
+    if (!imageUrl && !imageFile) {
+      return res.status(400).json({ error: 'imageUrl or image file is required' });
     }
 
     let result;
-    if (imageBase64) {
-      // Convert base64 to blob for processing
-      result = await sarvamClient.performOCR(imageBase64, language);
-    } else {
+    if (imageFile) {
+      result = await sarvamClient.performOCR(imageFile, language);
+    } else if (imageUrl) {
       result = await sarvamClient.performOCR(imageUrl, language);
     }
 
@@ -156,7 +165,7 @@ router.post('/sarvam/ocr', async (req: Request, res: Response) => {
 
 router.post('/sarvam/tts', async (req: Request, res: Response) => {
   try {
-    const { text, language = 'en', voice = 'female', speed = 1.0, pitch = 1.0 } = req.body;
+    const { text, language = 'en', voice = 'female' } = req.body;
 
     if (!text) {
       return res.status(400).json({ error: 'text is required' });
@@ -166,8 +175,6 @@ router.post('/sarvam/tts', async (req: Request, res: Response) => {
       text,
       language,
       voice,
-      speed,
-      pitch,
     });
 
     res.json(result);
@@ -177,18 +184,19 @@ router.post('/sarvam/tts', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/sarvam/stt', async (req: Request, res: Response) => {
+router.post('/sarvam/stt', upload.single('audio'), async (req: MulterRequest, res: Response) => {
   try {
-    const { audioUrl, audioBase64, language = 'en' } = req.body;
+    const { audioUrl, language = 'en' } = req.body;
+    const audioFile = req.file;
 
-    if (!audioUrl && !audioBase64) {
-      return res.status(400).json({ error: 'audioUrl or audioBase64 is required' });
+    if (!audioUrl && !audioFile) {
+      return res.status(400).json({ error: 'audioUrl or audio file is required' });
     }
 
     let result;
-    if (audioBase64) {
-      result = await sarvamClient.speechToText(audioBase64, language);
-    } else {
+    if (audioFile) {
+      result = await sarvamClient.speechToText(audioFile, language);
+    } else if (audioUrl) {
       result = await sarvamClient.speechToText(audioUrl, language);
     }
 

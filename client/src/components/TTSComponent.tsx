@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Volume2, Play, Pause, Download, Copy } from 'lucide-react';
-import { Button, Card, Badge, Spinner } from './ui';
+import { Volume2, Play, Pause, Download } from 'lucide-react';
+import { Button, Card, Spinner } from './ui';
 import { sarvamApi } from '../services/api';
 import type { SarvamTTSResult } from '../types';
 
@@ -9,30 +9,15 @@ interface TTSComponentProps {
   onClose?: () => void;
 }
 
-export function TTSComponent({ onClose }: TTSComponentProps) {
+export function TTSComponent({ onClose: _onClose }: TTSComponentProps) {
   const [text, setText] = useState('');
-  const [language, setLanguage] = useState('en');
-  const [voice, setVoice] = useState('female');
-  const [speed, setSpeed] = useState(1.0);
-  const [pitch, setPitch] = useState(1.0);
+  const [language, setLanguage] = useState('en-IN');
+  const [voice, setVoice] = useState('anushka');
   const [ttsResult, setTTSResult] = useState<SarvamTTSResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [availableVoices, setAvailableVoices] = useState<string[]>(['male', 'female']);
   const audioRef = React.useRef<HTMLAudioElement>(null);
-
-  useEffect(() => {
-    const loadVoices = async () => {
-      try {
-        const voices = await sarvamApi.getAvailableVoices();
-        setAvailableVoices(voices);
-      } catch (err) {
-        console.error('Failed to load voices:', err);
-      }
-    };
-    loadVoices();
-  }, []);
 
   const handleConvertToSpeech = async () => {
     if (!text.trim()) {
@@ -48,8 +33,6 @@ export function TTSComponent({ onClose }: TTSComponentProps) {
         text,
         language,
         voice,
-        speed,
-        pitch,
       });
       setTTSResult(result);
     } catch (err) {
@@ -81,10 +64,6 @@ export function TTSComponent({ onClose }: TTSComponentProps) {
       element.click();
       document.body.removeChild(element);
     }
-  };
-
-  const copyTextToClipboard = () => {
-    navigator.clipboard.writeText(text);
   };
 
   return (
@@ -129,12 +108,15 @@ export function TTSComponent({ onClose }: TTSComponentProps) {
                   onChange={(e) => setLanguage(e.target.value)}
                   className="w-full px-3 py-2 bg-slate border border-smoke rounded-lg text-chalk focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame-10 transition-all"
                 >
-                  <option value="en">English</option>
-                  <option value="hi">Hindi</option>
-                  <option value="ta">Tamil</option>
-                  <option value="te">Telugu</option>
-                  <option value="kn">Kannada</option>
-                  <option value="ml">Malayalam</option>
+                  <option value="en-IN">English</option>
+                  <option value="hi-IN">Hindi</option>
+                  <option value="ta-IN">Tamil</option>
+                  <option value="te-IN">Telugu</option>
+                  <option value="kn-IN">Kannada</option>
+                  <option value="ml-IN">Malayalam</option>
+                  <option value="bn-IN">Bengali</option>
+                  <option value="gu-IN">Gujarati</option>
+                  <option value="mr-IN">Marathi</option>
                 </select>
               </div>
 
@@ -146,44 +128,14 @@ export function TTSComponent({ onClose }: TTSComponentProps) {
                   onChange={(e) => setVoice(e.target.value)}
                   className="w-full px-3 py-2 bg-slate border border-smoke rounded-lg text-chalk focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame-10 transition-all"
                 >
-                  {availableVoices.map((v) => (
-                    <option key={v} value={v}>
-                      {v.charAt(0).toUpperCase() + v.slice(1)}
-                    </option>
-                  ))}
+                  <option value="anushka">Anushka (Female)</option>
+                  <option value="arvind">Arvind (Male)</option>
+                  <option value="divya">Divya (Female)</option>
+                  <option value="hari">Hari (Male)</option>
+                  <option value="kajal">Kajal (Female)</option>
+                  <option value="ravi">Ravi (Male)</option>
+                  <option value="sanjay">Sanjay (Male)</option>
                 </select>
-              </div>
-            </div>
-
-            {/* Speed and Pitch Sliders */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-silver mb-2">
-                  Speed: {speed.toFixed(1)}x
-                </label>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="2"
-                  step="0.1"
-                  value={speed}
-                  onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-silver mb-2">
-                  Pitch: {pitch.toFixed(1)}x
-                </label>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="2"
-                  step="0.1"
-                  value={pitch}
-                  onChange={(e) => setPitch(parseFloat(e.target.value))}
-                  className="w-full"
-                />
               </div>
             </div>
 

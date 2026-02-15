@@ -51,13 +51,13 @@ export const memoryApi = {
 
 // Sarvam AI API
 export const sarvamApi = {
-  // OCR - Optical Character Recognition
-  performOCR: async (imageUrl: string, language: string = 'en'): Promise<SarvamOCRResult> => {
+  // Document Intelligence - Extract text from PDFs and images
+  performOCR: async (imageUrl: string, language: string = 'en-IN'): Promise<SarvamOCRResult> => {
     const response = await api.post('/sarvam/ocr', { imageUrl, language });
     return response.data;
   },
 
-  performOCRWithFile: async (file: File, language: string = 'en'): Promise<SarvamOCRResult> => {
+  performOCRWithFile: async (file: File, language: string = 'en-IN'): Promise<SarvamOCRResult> => {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('language', language);

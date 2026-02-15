@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import multer from 'multer';
 import { createServer } from 'http';
 import { connectDatabase, disconnectDatabase } from './services/prisma';
 import { cacheService } from './services/cache';
@@ -16,6 +17,11 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 const port = process.env.PORT || 3001;
+
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));

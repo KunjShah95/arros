@@ -9,14 +9,14 @@ interface STTComponentProps {
   onClose?: () => void;
 }
 
-export function STTComponent({ onClose }: STTComponentProps) {
+export function STTComponent({ onClose: _onClose }: STTComponentProps) {
   const [audio, setAudio] = useState<File | null>(null);
   const [audioPreview, setAudioPreview] = useState<string | null>(null);
   const [sttResult, setSTTResult] = useState<SarvamSTTResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState('en-IN');
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -154,12 +154,15 @@ export function STTComponent({ onClose }: STTComponentProps) {
                 onChange={(e) => setLanguage(e.target.value)}
                 className="w-full px-4 py-2 bg-slate border border-smoke rounded-lg text-chalk focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame-10 transition-all"
               >
-                <option value="en">English</option>
-                <option value="hi">Hindi</option>
-                <option value="ta">Tamil</option>
-                <option value="te">Telugu</option>
-                <option value="kn">Kannada</option>
-                <option value="ml">Malayalam</option>
+                <option value="en-IN">English</option>
+                <option value="hi-IN">Hindi</option>
+                <option value="ta-IN">Tamil</option>
+                <option value="te-IN">Telugu</option>
+                <option value="kn-IN">Kannada</option>
+                <option value="ml-IN">Malayalam</option>
+                <option value="bn-IN">Bengali</option>
+                <option value="gu-IN">Gujarati</option>
+                <option value="mr-IN">Marathi</option>
               </select>
             </div>
 

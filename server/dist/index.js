@@ -49,6 +49,7 @@ exports.httpServer = exports.app = void 0;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const multer_1 = __importDefault(require("multer"));
 const http_1 = require("http");
 const prisma_1 = require("./services/prisma");
 const cache_1 = require("./services/cache");
@@ -64,6 +65,10 @@ exports.app = app;
 const httpServer = (0, http_1.createServer)(app);
 exports.httpServer = httpServer;
 const port = process.env.PORT || 3001;
+const upload = (0, multer_1.default)({
+    storage: multer_1.default.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }
+});
 app.use((0, cors_1.default)());
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(rateLimiter_1.generalLimiter);

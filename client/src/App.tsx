@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
-import { ResearchWorkspace } from './components/ResearchWorkspace';
 import { KnowledgeGraph } from './components/KnowledgeGraph';
 import { OCRComponent } from './components/OCRComponent';
 import { TTSComponent } from './components/TTSComponent';
 import { STTComponent } from './components/STTComponent';
-import { LandingPage } from './pages/LandingPage';
+import { LandingPage, LandingPage as OldLandingPage } from './pages/LandingPage';
 import { PricingPage } from './pages/PricingPage';
 import { SourcesPage } from './pages/SourcesPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -93,7 +92,7 @@ function AppLayout() {
     switch (activeView) {
       case 'workspace':
         return (
-          <ResearchWorkspace
+          <LandingPage
             query={query}
             setQuery={setQuery}
             onSubmit={handleSubmit}
@@ -116,6 +115,12 @@ function AppLayout() {
         return <HistoryPage />;
       case 'analytics':
         return <AnalyticsPage />;
+      case 'ocr':
+        return <OCRComponent />;
+      case 'tts':
+        return <TTSComponent />;
+      case 'stt':
+        return <STTComponent />;
       case 'settings':
         return <SettingsPage />;
       default:
@@ -130,7 +135,7 @@ function AppLayout() {
         onViewChange={setActiveView}
         onNewResearch={handleNewResearch}
       />
-      <main className="flex-1 p-6 overflow-hidden">
+      <main className="flex-1 overflow-hidden">
         {renderContent()}
       </main>
     </div>
@@ -141,11 +146,12 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<Navigate to="/app" replace />} />
+        <Route path="/landing" element={<OldLandingPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/app" element={<AppLayout />} />
         <Route path="/login" element={<Navigate to="/app" replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/app" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, FileText, Download, Copy, Eye } from 'lucide-react';
+import { Upload, FileText, Download, Copy } from 'lucide-react';
 import { Button, Card, Badge, Spinner } from './ui';
 import { sarvamApi } from '../services/api';
 import type { SarvamOCRResult } from '../types';
@@ -9,13 +9,13 @@ interface OCRComponentProps {
   onClose?: () => void;
 }
 
-export function OCRComponent({ onClose }: OCRComponentProps) {
+export function OCRComponent({ onClose: _onClose }: OCRComponentProps) {
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [ocrResult, setOCRResult] = useState<SarvamOCRResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState('en-IN');
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -94,8 +94,8 @@ export function OCRComponent({ onClose }: OCRComponentProps) {
     >
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-display font-bold text-chalk mb-2">Optical Character Recognition</h2>
-        <p className="text-silver">Extract text from images using Sarvam AI OCR</p>
+        <h2 className="text-2xl font-display font-bold text-chalk mb-2">Document Intelligence</h2>
+        <p className="text-silver">Extract text from PDFs and images using Sarvam AI Document Intelligence</p>
       </div>
 
       {/* Main Content */}
@@ -103,7 +103,7 @@ export function OCRComponent({ onClose }: OCRComponentProps) {
         {/* Upload Section */}
         <Card variant="elevated">
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-chalk">Upload Image</h3>
+            <h3 className="text-lg font-semibold text-chalk">Upload Document</h3>
 
             {/* Language Select */}
             <div>
@@ -113,12 +113,15 @@ export function OCRComponent({ onClose }: OCRComponentProps) {
                 onChange={(e) => setLanguage(e.target.value)}
                 className="w-full px-4 py-2 bg-slate border border-smoke rounded-lg text-chalk focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame-10 transition-all"
               >
-                <option value="en">English</option>
-                <option value="hi">Hindi</option>
-                <option value="ta">Tamil</option>
-                <option value="te">Telugu</option>
-                <option value="kn">Kannada</option>
-                <option value="ml">Malayalam</option>
+                <option value="en-IN">English</option>
+                <option value="hi-IN">Hindi</option>
+                <option value="ta-IN">Tamil</option>
+                <option value="te-IN">Telugu</option>
+                <option value="kn-IN">Kannada</option>
+                <option value="ml-IN">Malayalam</option>
+                <option value="bn-IN">Bengali</option>
+                <option value="gu-IN">Gujarati</option>
+                <option value="mr-IN">Marathi</option>
               </select>
             </div>
 
@@ -131,12 +134,12 @@ export function OCRComponent({ onClose }: OCRComponentProps) {
                 className="border-2 border-dashed border-smoke rounded-xl p-8 text-center cursor-pointer hover:border-flame hover:bg-flame-10/5 transition-all"
               >
                 <Upload className="w-10 h-10 text-ash mx-auto mb-3" />
-                <p className="text-silver mb-1">Drag and drop your image here</p>
+                <p className="text-silver mb-1">Drag and drop your document here (PDF, PNG, JPEG)</p>
                 <p className="text-xs text-ash">or click to browse</p>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,.pdf"
                   onChange={handleImageSelect}
                   className="hidden"
                 />
@@ -162,7 +165,7 @@ export function OCRComponent({ onClose }: OCRComponentProps) {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept="image/*,.pdf"
                     onChange={handleImageSelect}
                     className="hidden"
                   />
