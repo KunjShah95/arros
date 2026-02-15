@@ -1,0 +1,171 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessions  Session[]
+  memories  UserMemory[]
+  interests UserInterest[]
+}
+
+model Session {
+  id          String      @id @default(uuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  title       String?
+  query       String?
+  status      String      @default("active") // active, completed, failed
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  tasks       AgentTask[]
+  sources     Source[]
+  citations   Citation[]
+  outputs     AgentOutput[]
+  evaluations Evaluation[]
+}
+
+model AgentTask {
+  id          String   @id @default(uuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id])
+  type        String   // planner, research, critic, synthesizer, memory, action, meta
+  agentName   String?
+  status      String   @default("pending") // pending, running, completed, failed
+  input       Json?
+  output      Json?
+  cost        Float?
+  tokens      Int?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  outputs     AgentOutput[]
+}
+
+model Source {
+  id          String   @id @default(uuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id])
+  type        String   // web, paper, github, blog, document
+  title       String?
+  url         String?
+  content     String?
+  metadata    Json?
+  reliability Float?   // 0-1 reliability score
+  bias        Float?   // -1 to 1 bias indicator
+  createdAt   DateTime @default(now())
+  citations   Citation[]
+}
+
+model Citation {
+  id        String   @id @default(uuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  sourceId  String
+  source    Source   @relation(fields: [sourceId], references: [id])
+  claim     String?
+  context   String?
+  position  Int?     // position in output
+  createdAt DateTime @default(now())
+}
+
+model AgentOutput {
+  id        String   @id @default(uuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  taskId    String?
+  task      AgentTask? @relation(fields: [taskId], references: [id])
+  type      String   // plan, research_result, critique, synthesis, action
+  content   Json     // structured output
+  confidence Float?  // 0-1 confidence score
+  createdAt DateTime @default(now())
+}
+
+model Evaluation {
+  id              String   @id @default(uuid())
+  sessionId       String
+  session         Session  @relation(fields: [sessionId], references: [id])
+  type            String   // hallucination, completeness, agreement, bias
+  score           Float    // 0-1 evaluation score
+  details         Json?
+  passed          Boolean?
+  createdAt       DateTime @default(now())
+}
+
+model UserMemory {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        String   // preference, interest, strategy, fact
+  content     String
+  embedding   Unsupported("vector(1536)")? // for vector similarity search
+  importance  Float    @default(0.5)
+  lastUsedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, type])
+}
+
+model UserInterest {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  topic       String
+  depth       Int      @default(1) // 1-5 depth level
+  lastResearchedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, topic])
+}
+
+model KnowledgeNode {
+  id          String   @id @default(uuid())
+  type        String   // entity, concept, fact, claim
+  name        String
+  description String?
+  properties  Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  edgesFrom   KnowledgeEdge[] @relation("EdgeFrom")
+  edgesTo     KnowledgeEdge[] @relation("EdgeTo")
+}
+
+model KnowledgeEdge {
+  id          String   @id @default(uuid())
+  fromNodeId  String
+  fromNode    KnowledgeNode @relation("EdgeFrom", fields: [fromNodeId], references: [id])
+  toNodeId    String
+  toNode      KnowledgeNode @relation("EdgeTo", fields: [toNodeId], references: [id])
+  relation    String   // relates_to, supports, contradicts, part_of, causes
+  strength    Float    @default(1.0)
+  createdAt   DateTime @default(now())
+
+  @@unique([fromNodeId, toNodeId, relation])
+}
+
+model ToolExecution {
+  id          String   @id @default(uuid())
+  taskId      String?
+  toolName    String
+  input       Json
+  output      Json?
+  status      String   // success, failed, timeout
+  error       String?
+  duration    Int?     // milliseconds
+  cost        Float?
+  createdAt   DateTime @default(now())
+}
