@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
+import {
   Clock,
   Search,
   CheckCircle2,
@@ -13,7 +13,7 @@ import {
   Target,
   Database,
 } from 'lucide-react';
-import { Card, Button } from '../components/ui';
+import { Card, Button, Badge } from '../components/ui';
 
 const stats = [
   {
@@ -95,13 +95,13 @@ export function AnalyticsPage() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="cut-card cut-border bg-graphite/60 p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-display font-bold text-chalk mb-1">Analytics</h2>
-          <p className="text-silver">Track your research performance and insights</p>
+          <Badge variant="electric" className="mb-2">Analytics</Badge>
+          <h2 className="text-2xl font-display text-chalk">Performance Studio</h2>
+          <p className="text-sm text-ash">Track velocity, accuracy, and agent efficiency.</p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {timeRanges.map((range) => (
             <Button
@@ -116,7 +116,6 @@ export function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((stat, index) => (
           <motion.div
@@ -125,9 +124,9 @@ export function AnalyticsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card className="p-4">
+            <Card className="p-4 cut-card cut-border">
               <div className="flex items-start justify-between mb-3">
-                <div className={`w-10 h-10 rounded-lg bg-${stat.color}/10 flex items-center justify-center`}>
+                <div className={`w-10 h-10 cut-card bg-${stat.color}/10 flex items-center justify-center`}>
                   <stat.icon className={`w-5 h-5 text-${stat.color}`} />
                 </div>
                 <div className={`flex items-center gap-1 text-xs ${
@@ -141,17 +140,15 @@ export function AnalyticsPage() {
                   {stat.change}
                 </div>
               </div>
-              <p className="text-2xl font-display font-bold text-chalk mb-1">{stat.value}</p>
+              <p className="text-2xl font-display text-chalk mb-1">{stat.value}</p>
               <p className="text-sm text-ash">{stat.label}</p>
             </Card>
           </motion.div>
         ))}
       </div>
 
-      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        {/* Research Activity Chart */}
-        <Card className="lg:col-span-2 p-6">
+        <Card className="lg:col-span-2 p-6 cut-card cut-border">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Activity className="w-5 h-5 text-flame" />
@@ -168,7 +165,7 @@ export function AnalyticsPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="h-48 flex items-end gap-2">
             {weeklyData.map((day, index) => (
               <div key={day.day} className="flex-1 flex flex-col items-center gap-2">
@@ -176,7 +173,7 @@ export function AnalyticsPage() {
                   initial={{ height: 0 }}
                   animate={{ height: `${(day.research / 30) * 100}%` }}
                   transition={{ delay: index * 0.1, duration: 0.5 }}
-                  className="w-full bg-gradient-to-t from-flame to-flame-glow rounded-t-lg relative group"
+                  className="w-full bg-gradient-to-t from-flame to-flame-glow cut-card relative group"
                   style={{ minHeight: '20px' }}
                 >
                   <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-graphite rounded text-xs text-chalk opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -189,13 +186,12 @@ export function AnalyticsPage() {
           </div>
         </Card>
 
-        {/* Topic Distribution */}
-        <Card className="p-6">
+        <Card className="p-6 cut-card cut-border">
           <div className="flex items-center gap-2 mb-6">
             <PieChart className="w-5 h-5 text-electric" />
             <h3 className="font-semibold text-chalk">Top Topics</h3>
           </div>
-          
+
           <div className="space-y-3">
             {topTopics.map((topic, index) => (
               <div key={topic.topic} className="flex items-center gap-3">
@@ -220,26 +216,24 @@ export function AnalyticsPage() {
         </Card>
       </div>
 
-      {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Agent Performance */}
-        <Card className="p-6">
+        <Card className="p-6 cut-card cut-border">
           <div className="flex items-center gap-2 mb-4">
             <Brain className="w-5 h-5 text-mint" />
             <h3 className="font-semibold text-chalk">Agent Performance</h3>
           </div>
-          
+
           <div className="space-y-3">
             {agentPerformance.map((agent) => (
-              <div key={agent.agent} className="flex items-center gap-4 p-3 rounded-lg bg-slate/50">
+              <div key={agent.agent} className="flex items-center gap-4 p-3 cut-card bg-slate/60">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-chalk">{agent.agent}</span>
                     <span className="text-xs text-mint">{agent.success}%</span>
                   </div>
                   <div className="h-1.5 bg-graphite rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-mint rounded-full" 
+                    <div
+                      className="h-full bg-mint rounded-full"
                       style={{ width: `${agent.success}%` }}
                     />
                   </div>
@@ -253,22 +247,21 @@ export function AnalyticsPage() {
           </div>
         </Card>
 
-        {/* Recent Activity */}
-        <Card className="p-6">
+        <Card className="p-6 cut-card cut-border">
           <div className="flex items-center gap-2 mb-4">
             <Activity className="w-5 h-5 text-flame" />
             <h3 className="font-semibold text-chalk">Recent Activity</h3>
           </div>
-          
+
           <div className="space-y-3">
             {recentActivity.map((activity, index) => (
-              <div 
-                key={index} 
-                className="flex items-center gap-3 p-3 rounded-lg bg-slate/50"
+              <div
+                key={index}
+                className="flex items-center gap-3 p-3 cut-card bg-slate/60"
               >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                  activity.status === 'completed' 
-                    ? 'bg-mint/10' 
+                <div className={`w-8 h-8 cut-card flex items-center justify-center ${
+                  activity.status === 'completed'
+                    ? 'bg-mint/10'
                     : activity.status === 'warning'
                     ? 'bg-warning/10'
                     : 'bg-electric/10'

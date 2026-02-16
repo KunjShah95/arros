@@ -38,8 +38,8 @@ export function KnowledgeGraph({ nodes, edges }: KnowledgeGraphProps) {
   if (nodes.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-graphite flex items-center justify-center mx-auto mb-4">
+        <div className="text-center cut-card cut-border bg-slate/60 p-8">
+          <div className="w-16 h-16 cut-card bg-graphite flex items-center justify-center mx-auto mb-4">
             <Network className="w-8 h-8 text-ash" />
           </div>
           <p className="text-ash mb-1">No knowledge graph data yet</p>
@@ -56,13 +56,13 @@ export function KnowledgeGraph({ nodes, edges }: KnowledgeGraphProps) {
   const radius = Math.min(200, nodes.length * 30);
 
   return (
-    <Card className="h-full p-4 flex flex-col">
+    <Card className="h-full p-4 flex flex-col cut-card cut-border">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-flame/10 flex items-center justify-center">
+          <div className="w-8 h-8 cut-card bg-flame/10 flex items-center justify-center">
             <Network className="w-4 h-4 text-flame" />
           </div>
-          <h3 className="text-sm font-medium text-silver">Knowledge Graph</h3>
+          <h3 className="text-sm font-medium text-silver uppercase tracking-[0.2em]">Knowledge Graph</h3>
           <span className="text-xs text-ash">• {nodes.length} nodes</span>
         </div>
         
@@ -84,10 +84,10 @@ export function KnowledgeGraph({ nodes, edges }: KnowledgeGraphProps) {
 
       <div 
         ref={containerRef}
-        className="flex-1 relative overflow-hidden bg-void rounded-xl border border-smoke"
+        className="flex-1 relative overflow-hidden bg-void border border-smoke cut-card"
         style={{ 
-          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0)',
-          backgroundSize: '24px 24px'
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(83, 242, 201, 0.12) 1px, transparent 0)',
+          backgroundSize: '26px 26px'
         }}
       >
         <svg
@@ -116,7 +116,7 @@ export function KnowledgeGraph({ nodes, edges }: KnowledgeGraphProps) {
                 y1={y1}
                 x2={x2}
                 y2={y2}
-                stroke="rgba(255, 61, 0, 0.2)"
+                stroke="rgba(255, 91, 46, 0.25)"
                 strokeWidth={edge.strength * 2}
               />
             );
@@ -150,7 +150,7 @@ export function KnowledgeGraph({ nodes, edges }: KnowledgeGraphProps) {
                   transform: 'translate(-50%, -50%)',
                 }}
               >
-                <div className={`px-4 py-3 rounded-xl border shadow-lg backdrop-blur-sm ${colorClass}`}>
+                <div className={`px-4 py-3 border shadow-lg backdrop-blur-sm cut-card ${colorClass}`}>
                   <div className="flex items-center gap-2">
                     <Icon className="w-4 h-4" />
                     <p className="text-sm font-medium text-chalk whitespace-nowrap max-w-[150px] truncate">

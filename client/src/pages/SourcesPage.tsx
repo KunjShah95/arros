@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  ExternalLink, 
-  Copy, 
-  CheckCircle2, 
+import {
+  ExternalLink,
+  Copy,
+  CheckCircle2,
   AlertTriangle,
   FileText,
   Github,
@@ -11,7 +11,8 @@ import {
   Globe,
   Search,
   Star,
-  TrendingUp
+  TrendingUp,
+  Filter,
 } from 'lucide-react';
 import { Card, Button, Badge, Input } from '../components/ui';
 import type { Source } from '../types';
@@ -24,10 +25,10 @@ const sourceTypeIcons: Record<string, React.ElementType> = {
 };
 
 const sourceTypeColors: Record<string, string> = {
-  web: 'bg-blue-500/20 text-blue-400',
-  paper: 'bg-purple-500/20 text-purple-400',
-  github: 'bg-gray-500/20 text-gray-400',
-  blog: 'bg-green-500/20 text-green-400',
+  web: 'bg-electric/10 text-electric',
+  paper: 'bg-flame/10 text-flame',
+  github: 'bg-graphite text-chalk',
+  blog: 'bg-mint/10 text-mint',
 };
 
 export function SourcesPage() {
@@ -98,7 +99,7 @@ export function SourcesPage() {
   };
 
   const filteredSources = sources
-    .filter(source => {
+    .filter((source) => {
       const matchesSearch = source.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         source.content?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = filterType === 'all' || source.type === filterType;
@@ -125,80 +126,93 @@ export function SourcesPage() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between mb-6">
+      <div className="cut-card cut-border bg-graphite/60 p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-text-primary">Sources</h2>
-          <p className="text-text-muted">{sources.length} sources across all research</p>
+          <Badge variant="flame" className="mb-2">Sources</Badge>
+          <h2 className="text-2xl font-display text-chalk">Evidence Ledger</h2>
+          <p className="text-sm text-ash">{sources.length} sources across verified sessions</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="cut-card bg-slate/70 px-4 py-3 text-xs text-ash uppercase tracking-[0.2em]">
+            Avg reliability
+            <span className="block text-chalk text-sm tracking-normal mt-1">{(avgReliability * 100).toFixed(0)}%</span>
+          </div>
+          <div className="cut-card bg-slate/70 px-4 py-3 text-xs text-ash uppercase tracking-[0.2em]">
+            Bias alerts
+            <span className="block text-chalk text-sm tracking-normal mt-1">{biasDistribution.positive + biasDistribution.negative}</span>
+          </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4">
+        <Card className="p-4 cut-card cut-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Search className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 cut-card bg-electric/10 flex items-center justify-center">
+              <Search className="w-5 h-5 text-electric" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-text-primary">{sources.length}</p>
-              <p className="text-sm text-text-muted">Total Sources</p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-success" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-text-primary">{(avgReliability * 100).toFixed(0)}%</p>
-              <p className="text-sm text-text-muted">Avg Reliability</p>
+              <p className="text-2xl font-display text-chalk">{sources.length}</p>
+              <p className="text-sm text-ash">Total sources</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 cut-card cut-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-warning/20 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-warning" />
+            <div className="w-10 h-10 cut-card bg-mint/10 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-mint" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-text-primary">{biasDistribution.neutral}</p>
-              <p className="text-sm text-text-muted">Neutral Sources</p>
+              <p className="text-2xl font-display text-chalk">{(avgReliability * 100).toFixed(0)}%</p>
+              <p className="text-sm text-ash">Avg reliability</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 cut-card cut-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-error/20 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-error" />
+            <div className="w-10 h-10 cut-card bg-flame/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-flame" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-text-primary">{biasDistribution.positive + biasDistribution.negative}</p>
-              <p className="text-sm text-text-muted">Biased Sources</p>
+              <p className="text-2xl font-display text-chalk">{biasDistribution.neutral}</p>
+              <p className="text-sm text-ash">Neutral sources</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4 cut-card cut-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 cut-card bg-warning/10 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+            </div>
+            <div>
+              <p className="text-2xl font-display text-chalk">{biasDistribution.positive + biasDistribution.negative}</p>
+              <p className="text-sm text-ash">Bias flags</p>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="cut-card cut-border bg-slate/70 p-4 mb-6 flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           <Input
-            placeholder="Search sources..."
+            placeholder="Search sources or summaries..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex items-center gap-2 text-xs text-ash uppercase tracking-[0.2em]">
+            <Filter className="w-4 h-4" />
+            Filters
+          </div>
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2 bg-surface border border-border rounded-lg text-text-primary"
+            className="px-4 py-2 bg-graphite border border-smoke rounded-lg text-chalk text-sm"
           >
-            <option value="all">All Types</option>
+            <option value="all">All types</option>
             <option value="web">Web</option>
             <option value="paper">Papers</option>
             <option value="github">GitHub</option>
@@ -207,24 +221,23 @@ export function SourcesPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'recent' | 'reliability')}
-            className="px-4 py-2 bg-surface border border-border rounded-lg text-text-primary"
+            className="px-4 py-2 bg-graphite border border-smoke rounded-lg text-chalk text-sm"
           >
-            <option value="recent">Most Recent</option>
-            <option value="reliability">Highest Reliability</option>
+            <option value="recent">Most recent</option>
+            <option value="reliability">Highest reliability</option>
           </select>
         </div>
       </div>
 
-      {/* Sources List */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+            <div className="animate-spin w-8 h-8 border-2 border-flame border-t-transparent rounded-full" />
           </div>
         ) : filteredSources.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <FileText className="w-12 h-12 text-text-muted mb-4" />
-            <p className="text-text-muted">No sources found</p>
+          <div className="flex flex-col items-center justify-center h-64 text-center cut-card cut-border bg-slate/60">
+            <FileText className="w-12 h-12 text-ash mb-4" />
+            <p className="text-ash">No sources found</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -241,7 +254,7 @@ export function SourcesPage() {
 function SourceCard({ source, index }: { source: Source; index: number }) {
   const [copied, setCopied] = useState(false);
   const Icon = sourceTypeIcons[source.type] || Globe;
-  const typeColor = sourceTypeColors[source.type] || 'bg-gray-500/20 text-gray-400';
+  const typeColor = sourceTypeColors[source.type] || 'bg-graphite text-chalk';
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(source.url);
@@ -255,17 +268,17 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Card className="p-4 hover:border-primary/30 transition-colors">
+      <Card className="p-4 cut-card cut-border hover:border-flame/30 transition-colors">
         <div className="flex items-start gap-4">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${typeColor}`}>
+          <div className={`w-10 h-10 cut-card flex items-center justify-center flex-shrink-0 ${typeColor}`}>
             <Icon className="w-5 h-5" />
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-medium text-text-primary line-clamp-1">{source.title}</h3>
-                <p className="text-sm text-text-muted truncate">{source.url}</p>
+                <h3 className="font-medium text-chalk line-clamp-1">{source.title}</h3>
+                <p className="text-sm text-ash truncate">{source.url}</p>
               </div>
               <div className="flex items-center gap-2">
                 <ReliabilityBadge score={source.reliability || 0} />
@@ -274,13 +287,13 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
                 )}
               </div>
             </div>
-            
+
             {source.content && (
-              <p className="mt-2 text-sm text-text-secondary line-clamp-2">
+              <p className="mt-2 text-sm text-silver line-clamp-2">
                 {source.content}
               </p>
             )}
-            
+
             <div className="mt-3 flex items-center gap-2">
               <Button variant="ghost" size="sm" onClick={copyToClipboard}>
                 {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -290,7 +303,7 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
                 href={source.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-sm text-electric hover:underline"
               >
                 Open <ExternalLink className="w-3 h-3" />
               </a>

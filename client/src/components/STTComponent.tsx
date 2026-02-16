@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Mic, Upload, Copy, Download, Square } from 'lucide-react';
+import { Mic, Upload, Copy, Download, Square, Sparkles } from 'lucide-react';
 import { Button, Card, Badge, Spinner } from './ui';
 import { sarvamApi } from '../services/api';
 import type { SarvamSTTResult } from '../types';
@@ -68,7 +68,6 @@ export function STTComponent({ onClose: _onClose }: STTComponentProps) {
         setError(null);
         setSTTResult(null);
 
-        // Stop all tracks
         stream.getTracks().forEach((track) => track.stop());
       };
 
@@ -133,26 +132,23 @@ export function STTComponent({ onClose: _onClose }: STTComponentProps) {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-display font-bold text-chalk mb-2">Speech-to-Text</h2>
-        <p className="text-silver">Convert speech or audio to text using Sarvam AI</p>
+      <div className="cut-card cut-border bg-graphite/60 p-5">
+        <Badge variant="electric" className="mb-2">Audio Intake</Badge>
+        <h2 className="text-2xl font-display text-chalk mb-2">Speech-to-Text Studio</h2>
+        <p className="text-silver">Convert speech or audio to text using Sarvam AI.</p>
       </div>
 
-      {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Input Section */}
-        <Card variant="elevated">
+        <Card variant="elevated" className="cut-card cut-border">
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-chalk">Audio Input</h3>
 
-            {/* Language Select */}
             <div>
               <label className="block text-sm font-medium text-silver mb-2">Language</label>
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="w-full px-4 py-2 bg-slate border border-smoke rounded-lg text-chalk focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame-10 transition-all"
+                className="w-full px-4 py-2 bg-graphite border border-smoke rounded-lg text-chalk"
               >
                 <option value="en-IN">English</option>
                 <option value="hi-IN">Hindi</option>
@@ -166,9 +162,8 @@ export function STTComponent({ onClose: _onClose }: STTComponentProps) {
               </select>
             </div>
 
-            {/* Recording Section */}
             {!audioPreview && (
-              <div className="p-4 rounded-lg bg-slate border border-smoke">
+              <div className="p-4 cut-card bg-slate border border-smoke">
                 <p className="text-sm text-silver mb-3">Record audio directly</p>
                 {!isRecording ? (
                   <Button
@@ -192,7 +187,6 @@ export function STTComponent({ onClose: _onClose }: STTComponentProps) {
               </div>
             )}
 
-            {/* OR Divider */}
             {!audioPreview && (
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-smoke" />
@@ -201,13 +195,12 @@ export function STTComponent({ onClose: _onClose }: STTComponentProps) {
               </div>
             )}
 
-            {/* Drag and Drop Area */}
             {!audioPreview ? (
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDragDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-smoke rounded-xl p-8 text-center cursor-pointer hover:border-flame hover:bg-flame-10/5 transition-all"
+                className="border-2 border-dashed border-smoke cut-card p-8 text-center cursor-pointer hover:border-flame hover:bg-flame/5 transition-all"
               >
                 <Upload className="w-10 h-10 text-ash mx-auto mb-3" />
                 <p className="text-silver mb-1">Drag and drop your audio here</p>
@@ -222,7 +215,7 @@ export function STTComponent({ onClose: _onClose }: STTComponentProps) {
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="p-4 bg-slate rounded-lg border border-smoke">
+                <div className="p-4 cut-card bg-slate border border-smoke">
                   <p className="text-sm text-ash mb-2">Audio File</p>
                   <p className="text-sm text-chalk truncate">{audio?.name || 'Recording'}</p>
                   <p className="text-xs text-ash mt-1">
@@ -257,12 +250,11 @@ export function STTComponent({ onClose: _onClose }: STTComponentProps) {
             )}
 
             {error && (
-              <div className="p-3 rounded-lg bg-error/10 border border-error/20">
+              <div className="p-3 cut-card bg-error/10 border border-error/20">
                 <p className="text-sm text-error">{error}</p>
               </div>
             )}
 
-            {/* Action Buttons */}
             <div className="flex gap-2 pt-4">
               <Button
                 onClick={performSTT}
@@ -285,9 +277,8 @@ export function STTComponent({ onClose: _onClose }: STTComponentProps) {
           </div>
         </Card>
 
-        {/* Results Section */}
         {sttResult && (
-          <Card variant="glass">
+          <Card variant="glass" className="cut-card cut-border">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-chalk flex items-center gap-2">
@@ -299,32 +290,29 @@ export function STTComponent({ onClose: _onClose }: STTComponentProps) {
                 </Badge>
               </div>
 
-              {/* Text Output */}
               <div className="bg-slate rounded-lg p-4 max-h-96 overflow-y-auto">
                 <p className="text-silver text-sm leading-relaxed">
                   {sttResult.text}
                 </p>
               </div>
 
-              {/* Metadata */}
               <div className="grid grid-cols-2 gap-2">
                 {sttResult.language && (
-                  <div className="p-3 bg-graphite rounded-lg">
+                  <div className="p-3 cut-card bg-graphite">
                     <p className="text-xs text-ash mb-1">Language</p>
                     <p className="text-sm text-chalk">{sttResult.language}</p>
                   </div>
                 )}
-                <div className="p-3 bg-graphite rounded-lg">
+                <div className="p-3 cut-card bg-graphite">
                   <p className="text-xs text-ash mb-1">Duration</p>
                   <p className="text-sm text-chalk">{sttResult.duration.toFixed(2)}s</p>
                 </div>
-                <div className="p-3 bg-graphite rounded-lg col-span-2">
+                <div className="p-3 cut-card bg-graphite col-span-2">
                   <p className="text-xs text-ash mb-1">Confidence</p>
                   <p className="text-sm text-chalk">{Math.round(sttResult.confidence * 100)}%</p>
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-2 pt-2">
                 <Button
                   variant="secondary"
@@ -358,12 +346,20 @@ export function STTComponent({ onClose: _onClose }: STTComponentProps) {
           </Card>
         )}
 
-        {/* Loading State */}
         {isLoading && (
-          <Card variant="glass">
+          <Card variant="glass" className="cut-card cut-border">
             <div className="flex flex-col items-center justify-center h-full gap-4 py-12">
               <Spinner size="lg" />
               <p className="text-silver">Converting speech to text...</p>
+            </div>
+          </Card>
+        )}
+
+        {!sttResult && !isLoading && !audioPreview && (
+          <Card variant="glass" className="cut-card cut-border">
+            <div className="flex flex-col items-center justify-center h-full gap-3 py-12 text-center">
+              <Sparkles className="w-8 h-8 text-electric" />
+              <p className="text-sm text-ash">Record or upload audio to begin transcription.</p>
             </div>
           </Card>
         )}

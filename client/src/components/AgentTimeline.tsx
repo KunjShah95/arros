@@ -38,7 +38,7 @@ export function AgentTimeline({ tasks, currentProgress: _currentProgress }: Agen
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-flame animate-pulse" />
-          <h3 className="text-sm font-medium text-silver">Agent Progress</h3>
+          <h3 className="text-sm font-medium text-silver uppercase tracking-[0.2em]">Agent Progress</h3>
         </div>
         <span className="text-xs text-ash">
           {completedTasks}/{totalTasks}
@@ -70,7 +70,7 @@ function TaskItem({ task, index }: { task: AgentTask; index: number }) {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.1 }}
       className={cn(
-        'flex items-center gap-3 p-3 rounded-xl border transition-all duration-300',
+        'flex items-center gap-3 p-3 border transition-all duration-300 cut-card',
         task.status === 'completed' && 'border-mint/20 bg-mint/5',
         task.status === 'running' && 'border-flame/30 bg-flame/5',
         task.status === 'failed' && 'border-error/30 bg-error/5',
@@ -79,7 +79,7 @@ function TaskItem({ task, index }: { task: AgentTask; index: number }) {
     >
       {/* Icon */}
       <div className={cn(
-        'w-9 h-9 rounded-lg flex items-center justify-center',
+        'w-9 h-9 cut-card flex items-center justify-center',
         config.bgColor,
         task.status === 'running' && 'animate-pulse'
       )}>
@@ -147,8 +147,8 @@ function getTaskSummary(task: AgentTask): string {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="w-14 h-14 rounded-xl bg-graphite flex items-center justify-center mb-4">
+    <div className="flex flex-col items-center justify-center py-12 text-center cut-card cut-border bg-slate/60">
+      <div className="w-14 h-14 cut-card bg-graphite flex items-center justify-center mb-4">
         <Brain className="w-7 h-7 text-ash" />
       </div>
       <p className="text-sm text-ash mb-1">No research in progress</p>

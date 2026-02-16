@@ -5,7 +5,11 @@ import { KnowledgeGraph } from './components/KnowledgeGraph';
 import { OCRComponent } from './components/OCRComponent';
 import { TTSComponent } from './components/TTSComponent';
 import { STTComponent } from './components/STTComponent';
-import { LandingPage, LandingPage as OldLandingPage } from './pages/LandingPage';
+import { ResearchWorkspace } from './components/ResearchWorkspace';
+import { LandingPage } from './pages/LandingPage.tsx';
+import { SignInPage } from './pages/SignInPage.tsx';
+import { SignUpPage } from './pages/SignUpPage.tsx';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage.tsx';
 import { PricingPage } from './pages/PricingPage';
 import { SourcesPage } from './pages/SourcesPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -92,7 +96,7 @@ function AppLayout() {
     switch (activeView) {
       case 'workspace':
         return (
-          <LandingPage
+          <ResearchWorkspace
             query={query}
             setQuery={setQuery}
             onSubmit={handleSubmit}
@@ -146,11 +150,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/app" replace />} />
-        <Route path="/landing" element={<OldLandingPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/landing" element={<Navigate to="/" replace />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/signin" element={<SignInPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/app" element={<AppLayout />} />
-        <Route path="/login" element={<Navigate to="/app" replace />} />
+        <Route path="/login" element={<Navigate to="/signin" replace />} />
         <Route path="*" element={<Navigate to="/app" replace />} />
       </Routes>
     </BrowserRouter>

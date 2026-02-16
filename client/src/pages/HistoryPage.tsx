@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Clock, 
-  Search, 
-  CheckCircle2, 
+import {
+  Clock,
+  Search,
+  CheckCircle2,
   AlertCircle,
   Trash2,
   ExternalLink,
-  Calendar
+  Calendar,
 } from 'lucide-react';
 import { Card, Button, Badge, Input } from '../components/ui';
 import type { Session } from '../types';
@@ -80,7 +80,7 @@ export function HistoryPage() {
   };
 
   const filteredSessions = sessions
-    .filter(session => {
+    .filter((session) => {
       const matchesSearch = (session.title || session.query || '').toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = filterStatus === 'all' || session.status === filterStatus;
       return matchesSearch && matchesStatus;
@@ -89,8 +89,8 @@ export function HistoryPage() {
 
   const stats = {
     total: sessions.length,
-    completed: sessions.filter(s => s.status === 'completed').length,
-    failed: sessions.filter(s => s.status === 'failed').length,
+    completed: sessions.filter((s) => s.status === 'completed').length,
+    failed: sessions.filter((s) => s.status === 'failed').length,
   };
 
   const groupedByDate = filteredSessions.reduce((groups, session) => {
@@ -98,7 +98,7 @@ export function HistoryPage() {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     let key: string;
     if (date.toDateString() === today.toDateString()) {
       key = 'Today';
@@ -107,7 +107,7 @@ export function HistoryPage() {
     } else {
       key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
-    
+
     if (!groups[key]) groups[key] = [];
     groups[key].push(session);
     return groups;
@@ -115,57 +115,66 @@ export function HistoryPage() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between mb-6">
+      <div className="cut-card cut-border bg-graphite/60 p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-text-primary">History</h2>
-          <p className="text-text-muted">Your past research sessions</p>
+          <Badge variant="flame" className="mb-2">History</Badge>
+          <h2 className="text-2xl font-display text-chalk">Session Ledger</h2>
+          <p className="text-sm text-ash">Review past research and re-open any brief.</p>
+        </div>
+        <div className="flex gap-3">
+          <div className="cut-card bg-slate/70 px-4 py-3 text-xs text-ash uppercase tracking-[0.2em]">
+            Completed
+            <span className="block text-chalk text-sm tracking-normal mt-1">{stats.completed}</span>
+          </div>
+          <div className="cut-card bg-slate/70 px-4 py-3 text-xs text-ash uppercase tracking-[0.2em]">
+            Failed
+            <span className="block text-chalk text-sm tracking-normal mt-1">{stats.failed}</span>
+          </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="p-4">
+        <Card className="p-4 cut-card cut-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 cut-card bg-electric/10 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-electric" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-text-primary">{stats.total}</p>
-              <p className="text-sm text-text-muted">Total Research</p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-success" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-text-primary">{stats.completed}</p>
-              <p className="text-sm text-text-muted">Completed</p>
+              <p className="text-2xl font-display text-chalk">{stats.total}</p>
+              <p className="text-sm text-ash">Total research</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 cut-card cut-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-error/20 flex items-center justify-center">
+            <div className="w-10 h-10 cut-card bg-mint/10 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-mint" />
+            </div>
+            <div>
+              <p className="text-2xl font-display text-chalk">{stats.completed}</p>
+              <p className="text-sm text-ash">Completed</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4 cut-card cut-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 cut-card bg-error/10 flex items-center justify-center">
               <AlertCircle className="w-5 h-5 text-error" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-text-primary">{stats.failed}</p>
-              <p className="text-sm text-text-muted">Failed</p>
+              <p className="text-2xl font-display text-chalk">{stats.failed}</p>
+              <p className="text-sm text-ash">Failed</p>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="cut-card cut-border bg-slate/70 p-4 mb-6 flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           <Input
-            placeholder="Search history..."
+            placeholder="Search session titles..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -184,24 +193,23 @@ export function HistoryPage() {
         </div>
       </div>
 
-      {/* Sessions List */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+            <div className="animate-spin w-8 h-8 border-2 border-flame border-t-transparent rounded-full" />
           </div>
         ) : filteredSessions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <Search className="w-12 h-12 text-text-muted mb-4" />
-            <p className="text-text-muted">No research sessions found</p>
+          <div className="flex flex-col items-center justify-center h-64 text-center cut-card cut-border bg-slate/60">
+            <Search className="w-12 h-12 text-ash mb-4" />
+            <p className="text-ash">No research sessions found</p>
           </div>
         ) : (
           <div className="space-y-6">
             {Object.entries(groupedByDate).map(([dateGroup, groupSessions]) => (
               <div key={dateGroup}>
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="w-4 h-4 text-text-muted" />
-                  <h3 className="text-sm font-medium text-text-muted">{dateGroup}</h3>
+                <div className="flex items-center gap-2 mb-3 text-xs text-ash uppercase tracking-[0.2em]">
+                  <Calendar className="w-4 h-4" />
+                  {dateGroup}
                 </div>
                 <div className="space-y-2">
                   {groupSessions.map((session, index) => (
@@ -226,22 +234,22 @@ function SessionCard({ session, index }: { session: Session; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Card className="p-4 hover:border-primary/30 transition-colors group">
+      <Card className="p-4 cut-card cut-border hover:border-flame/30 transition-colors group">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               {session.status === 'completed' ? (
-                <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-mint flex-shrink-0" />
               ) : (
                 <AlertCircle className="w-4 h-4 text-error flex-shrink-0" />
               )}
-              <h3 className="font-medium text-text-primary truncate group-hover:text-primary transition-colors">
+              <h3 className="font-medium text-chalk truncate group-hover:text-flame transition-colors">
                 {session.title || session.query}
               </h3>
             </div>
-            <p className="text-sm text-text-muted">{timeAgo}</p>
+            <p className="text-sm text-ash">{timeAgo}</p>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Badge variant={session.status === 'completed' ? 'success' : 'error'}>
               {session.status}

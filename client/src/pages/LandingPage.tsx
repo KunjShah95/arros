@@ -1,220 +1,166 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { 
-  Brain, 
-  Search, 
-  Shield, 
-  Zap, 
-  Database, 
-  Network,
-  ArrowRight,
-  CheckCircle2,
+import { Link, useNavigate } from 'react-router-dom';
+import {
   Sparkles,
-  BarChart3,
-  GitBranch,
-  Layers,
-  MessageSquare,
-  ChevronRight
+  ArrowRight,
+  Shield,
+  Network,
+  Brain,
+  Zap,
+  BadgeCheck,
+  Star,
 } from 'lucide-react';
 import { Button, Card, Badge } from '../components/ui';
 
-const features = [
+const featureRail = [
   {
-    icon: Brain,
-    title: 'Multi-Agent Intelligence',
-    description: '7 specialized AI agents work together - Planner, Research, Critic, Synthesizer, Memory, Action, and Meta Evaluator.',
-    color: 'flame',
-  },
-  {
+    title: 'Proof-first research',
+    description: 'Every claim is traced to evidence with confidence weighting and contradiction flags.',
     icon: Shield,
-    title: 'Truth Verification',
-    description: 'Automatic fact-checking, hallucination detection, and contradiction identification with confidence scores.',
-    color: 'electric',
+    tone: 'flame',
   },
   {
-    icon: Database,
-    title: 'Persistent Memory',
-    description: 'Build your personal knowledge graph over time. Remember everything you research with vector embeddings.',
-    color: 'mint',
-  },
-  {
-    icon: Zap,
-    title: 'Real-Time Updates',
-    description: 'Watch agents work in real-time. WebSocket-powered progress tracking for every research task.',
-    color: 'flame',
-  },
-  {
+    title: 'Living knowledge graph',
+    description: 'Connect insights automatically and watch your thinking compound over time.',
     icon: Network,
-    title: 'Knowledge Graph',
-    description: 'Visualize connections between concepts. See how your research builds a connected knowledge base.',
-    color: 'electric',
+    tone: 'electric',
   },
   {
-    icon: BarChart3,
-    title: 'Actionable Outputs',
-    description: 'Generate PRDs, architecture plans, decision matrices, and code scaffolds from your research.',
-    color: 'mint',
+    title: 'Agent orchestration',
+    description: 'Seven specialist agents coordinate planning, searching, critique, and synthesis.',
+    icon: Brain,
+    tone: 'mint',
   },
 ];
 
-const howItWorks = [
-  {
-    step: 1,
-    title: 'Ask a Question',
-    description: 'Enter any research query - from simple facts to complex comparisons.',
-    icon: MessageSquare,
-  },
-  {
-    step: 2,
-    title: 'Agents Research',
-    description: 'Multiple AI agents search, verify, and analyze sources in parallel.',
-    icon: Search,
-  },
-  {
-    step: 3,
-    title: 'Verify & Synthesize',
-    description: 'Claims are verified, contradictions detected, and findings synthesized.',
-    icon: GitBranch,
-  },
-  {
-    step: 4,
-    title: 'Knowledge Stored',
-    description: 'Results are stored in your personal knowledge graph for future reference.',
-    icon: Layers,
-  },
+const proofSignals = [
+  { label: 'Evidence depth', value: 'L4', detail: 'Multi-source verification' },
+  { label: 'Signal clarity', value: '92%', detail: 'Contradiction sweep' },
+  { label: 'Synthesis time', value: '3m', detail: 'Parallel agent run' },
 ];
 
-const stats = [
-  { value: '7', label: 'AI Agents', color: 'flame' },
-  { value: '99%', label: 'Accuracy', color: 'mint' },
-  { value: '10x', label: 'Faster Research', color: 'electric' },
-  { value: '∞', label: 'Knowledge Growth', color: 'flame' },
+const testimonials = [
+  {
+    quote: 'Nexus feels like having a research lab on call — it shows the receipts, not just the summary.',
+    name: 'Riya Patel',
+    role: 'Product Strategy, Helix Labs',
+  },
+  {
+    quote: 'We cut our discovery time by 60% because the system surfaces contradictions before we ship.',
+    name: 'Marcus Lee',
+    role: 'Founder, Synthline',
+  },
 ];
 
 export function LandingPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-void relative overflow-hidden">
-      {/* Grain overlay */}
       <div className="noise-overlay" />
-      
-      {/* Background patterns */}
       <div className="absolute inset-0 grid-pattern opacity-30" />
-      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-flame/5 rounded-full blur-[150px]" />
-      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-electric/5 rounded-full blur-[120px]" />
+      <div className="absolute -top-32 right-10 w-[540px] h-[540px] bg-flame/12 rounded-full blur-[180px]" />
+      <div className="absolute bottom-0 left-0 w-[520px] h-[520px] bg-electric/12 rounded-full blur-[180px]" />
 
-      {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-smoke/50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-flame flex items-center justify-center relative overflow-hidden">
+            <div className="w-10 h-10 rounded-none bg-flame flex items-center justify-center relative overflow-hidden cut-card">
               <div className="absolute inset-0 bg-gradient-to-br from-flame-glow to-flame opacity-0 group-hover:opacity-100 transition-opacity" />
-              <Sparkles className="w-5 h-5 text-white relative z-10" />
+              <Sparkles className="w-5 h-5 text-void relative z-10" />
             </div>
             <span className="font-display font-bold text-xl text-chalk tracking-tight">NEXUS</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <Link to="/app" className="text-sm text-silver hover:text-chalk transition-colors">
-              Launch App
+          <div className="hidden md:flex items-center gap-6 text-sm text-silver">
+            <a href="#proof" className="hover:text-chalk transition-colors">Proof</a>
+            <a href="#system" className="hover:text-chalk transition-colors">System</a>
+            <a href="#clients" className="hover:text-chalk transition-colors">Clients</a>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link to="/signin" className="text-sm text-silver hover:text-chalk transition-colors hidden sm:block">
+              Sign in
             </Link>
-            <Link to="/app">
-              <Button variant="primary" size="sm">
-                Get Started
-              </Button>
+            <Link to="/signup">
+              <Button variant="primary" size="sm">Create account</Button>
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-40 pb-24 px-6 relative">
-        <div className="max-w-6xl mx-auto">
+      <section className="pt-36 pb-24 px-6 relative">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-[1.05fr_0.95fr] gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="text-center relative"
           >
-            {/* Floating badge */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate border border-smoke mb-8"
-            >
-              <span className="w-2 h-2 rounded-full bg-mint animate-pulse" />
-              <span className="text-sm text-silver">Powered by GPT-4 & Claude</span>
-            </motion.div>
-            
-            {/* Main headline */}
-            <h1 className="display-xl font-display font-bold text-chalk mb-6 text-balance">
-              Research at the{' '}
-              <span className="gradient-text">speed of thought</span>
+            <Badge variant="flame" className="mb-5">Proof-native research OS</Badge>
+            <h1 className="display-xl font-display font-bold text-chalk text-balance">
+              Evidence-first research for teams that move fast.
             </h1>
-            
-            <p className="text-xl text-silver max-w-2xl mx-auto mb-10 leading-relaxed">
-              An autonomous research platform that plans, verifies, remembers, and evolves. 
-              Build your personal knowledge OS with AI agents that think, verify, and synthesize.
+            <p className="text-lg text-silver mt-6 max-w-xl">
+              Nexus delivers verified synthesis, transparent sources, and an evolving memory system. Spend time deciding — not hunting for proof.
             </p>
-            
-            {/* CTA buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/app">
-                <Button variant="electric" size="lg" className="gap-2 group">
-                  Start Researching
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <Button variant="secondary" size="lg" className="gap-2">
-                <Sparkles className="w-5 h-5" />
-                Watch Demo
+            <div className="mt-10 flex flex-col sm:flex-row gap-4">
+              <Button
+                variant="electric"
+                size="lg"
+                className="gap-2"
+                onClick={() => navigate('/signup')}
+              >
+                Start free
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => navigate('/signin')}
+              >
+                Sign in
               </Button>
             </div>
+            <div className="mt-10 flex flex-wrap gap-3 text-xs text-ash uppercase tracking-[0.24em]">
+              <span className="cut-card cut-border bg-slate/60 px-4 py-2">No credit card</span>
+              <span className="cut-card cut-border bg-slate/60 px-4 py-2">Proof ledger</span>
+              <span className="cut-card cut-border bg-slate/60 px-4 py-2">Agent orchestration</span>
+            </div>
           </motion.div>
 
-          {/* Demo preview card */}
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-20 relative"
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="relative"
           >
-            {/* Glow behind */}
-            <div className="absolute inset-0 bg-gradient-to-t from-flame/10 via-transparent to-electric/10 rounded-3xl blur-2xl" />
-            
-            <div className="relative rounded-2xl border border-smoke bg-slate/80 backdrop-blur-xl overflow-hidden shadow-2xl">
-              {/* Window controls */}
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-smoke/50 bg-graphite">
-                <div className="w-3 h-3 rounded-full bg-error/80" />
-                <div className="w-3 h-3 rounded-full bg-warning/80" />
-                <div className="w-3 h-3 rounded-full bg-mint/80" />
-                <span className="ml-4 text-xs text-ash">nexus.research</span>
-              </div>
-              
-              {/* Content */}
-              <div className="p-6 space-y-4">
-                {/* Agent cards */}
-                <div className="space-y-3">
-                  <AgentStatus 
-                    icon={Brain} 
-                    title="Planning research strategy..." 
-                    subtext="Planner Agent"
-                    color="flame"
-                    delay={0}
-                  />
-                  <AgentStatus 
-                    icon={Search} 
-                    title="Found 15 relevant sources" 
-                    subtext="Research Agent"
-                    color="electric"
-                    delay={0.1}
-                  />
-                  <AgentStatus 
-                    icon={CheckCircle2} 
-                    title="12 claims verified, 3 flagged" 
-                    subtext="Critic Agent"
-                    color="mint"
-                    delay={0.2}
-                  />
+            <div className="prism-frame p-6 bg-graphite/80 backdrop-blur-xl">
+              <div className="prism-beam" />
+              <div className="relative">
+                <div className="flex items-center justify-between text-xs text-ash uppercase tracking-[0.3em]">
+                  <span>Proof console</span>
+                  <span>Live</span>
+                </div>
+
+                <div className="mt-6 space-y-4">
+                  {proofSignals.map((signal) => (
+                    <div key={signal.label} className="cut-card cut-border bg-slate/70 p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-ash uppercase tracking-[0.2em]">{signal.label}</span>
+                        <span className="text-lg font-display text-chalk">{signal.value}</span>
+                      </div>
+                      <p className="text-sm text-silver mt-2">{signal.detail}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 cut-card bg-graphite/70 p-4">
+                  <div className="flex items-center gap-2 text-sm text-chalk">
+                    <BadgeCheck className="w-4 h-4 text-electric" />
+                    Verified synthesis — 17 sources, 3 contradictions surfaced.
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs text-ash uppercase tracking-[0.2em]">
+                    <span>Cycle time</span>
+                    <span className="text-chalk tracking-normal">2m 48s</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -222,191 +168,148 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-16 border-y border-smoke/50 bg-slate/30">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className={`text-5xl font-display font-bold text-${stat.color} mb-2`}>
-                  {stat.value}
+      <section className="py-20 px-6 border-y border-smoke/50 bg-slate/30" id="proof">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
+          {featureRail.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              viewport={{ once: true }}
+            >
+              <Card className="h-full cut-card cut-border">
+                <div className={`w-12 h-12 cut-card bg-${feature.tone}/10 flex items-center justify-center mb-4`}>
+                  <feature.icon className={`w-6 h-6 text-${feature.tone}`} />
                 </div>
-                <div className="text-silver">{stat.label}</div>
-              </motion.div>
-            ))}
+                <h3 className="text-lg font-semibold text-chalk mb-2">{feature.title}</h3>
+                <p className="text-sm text-silver leading-relaxed">{feature.description}</p>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      <section className="py-24 px-6" id="system">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-[1fr_1fr] gap-10">
+          <div>
+            <Badge variant="electric" className="mb-4">System clarity</Badge>
+            <h2 className="display-lg font-display text-chalk">
+              The research stack that never loses the thread.
+            </h2>
+            <p className="text-lg text-silver mt-5 max-w-xl">
+              Each session captures hypothesis, sources, contradictions, and outputs in a single traceable flow. When you return, the system resumes with context.
+            </p>
+            <div className="mt-8 grid gap-4">
+              {[
+                { label: 'Autonomous planning', detail: 'Multi-step research plans with adaptive prompts.' },
+                { label: 'Source verification', detail: 'Confidence scoring for every claim and link.' },
+                { label: 'Operational handoff', detail: 'Actionable outputs ready for docs, teams, or tooling.' },
+              ].map((item) => (
+                <div key={item.label} className="cut-card cut-border bg-slate/60 p-4">
+                  <div className="text-xs text-ash uppercase tracking-[0.2em]">{item.label}</div>
+                  <p className="text-sm text-silver mt-2">{item.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="cut-card cut-border bg-graphite/70 p-5">
+              <div className="flex items-center justify-between text-xs text-ash uppercase tracking-[0.2em]">
+                <span>Agent cadence</span>
+                <span className="text-chalk tracking-normal">7 active</span>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                <div className="cut-card bg-slate/70 p-3">
+                  <div className="text-ash">Planner</div>
+                  <div className="text-chalk mt-1">Evidence map built</div>
+                </div>
+                <div className="cut-card bg-slate/70 p-3">
+                  <div className="text-ash">Critic</div>
+                  <div className="text-chalk mt-1">3 contradictions flagged</div>
+                </div>
+                <div className="cut-card bg-slate/70 p-3">
+                  <div className="text-ash">Synthesizer</div>
+                  <div className="text-chalk mt-1">Decision brief ready</div>
+                </div>
+                <div className="cut-card bg-slate/70 p-3">
+                  <div className="text-ash">Memory</div>
+                  <div className="text-chalk mt-1">Graph updated</div>
+                </div>
+              </div>
+            </div>
+            <div className="cut-card cut-border bg-slate/60 p-5">
+              <div className="flex items-center gap-3 text-sm text-chalk">
+                <Zap className="w-4 h-4 text-flame" />
+                Ship-ready output in minutes, with proof attached.
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-24 px-6 relative">
+      <section className="py-20 px-6 bg-slate/30" id="clients">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge variant="flame" className="mb-4">Beyond Traditional Search</Badge>
-            <h2 className="display-lg font-display font-bold text-chalk mb-4">
-              Your Personal Knowledge OS
-            </h2>
-            <p className="text-lg text-silver max-w-2xl mx-auto">
-              Unlike Perplexity or ChatGPT, Nexus builds persistent knowledge that grows with every query.
-            </p>
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <Badge variant="flame">Client signals</Badge>
+              <h2 className="display-md font-display text-chalk mt-3">Teams choosing verified intelligence.</h2>
+            </div>
+            <div className="hidden md:flex items-center gap-2 text-ash text-xs uppercase tracking-[0.2em]">
+              <Star className="w-4 h-4 text-electric" />
+              4.9/5 operator score
+            </div>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <Card hover className="h-full group">
-                  <div className={`w-14 h-14 rounded-xl bg-${feature.color}/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                    <feature.icon className={`w-7 h-7 text-${feature.color}`} />
-                  </div>
-                  <h3 className="text-lg font-semibold text-chalk mb-2">{feature.title}</h3>
-                  <p className="text-silver text-sm leading-relaxed">{feature.description}</p>
-                </Card>
-              </motion.div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {testimonials.map((item) => (
+              <Card key={item.name} className="cut-card cut-border">
+                <p className="text-silver text-base leading-relaxed">“{item.quote}”</p>
+                <div className="mt-4 text-xs text-ash uppercase tracking-[0.2em]">
+                  {item.name}
+                  <span className="block text-silver tracking-normal mt-1">{item.role}</span>
+                </div>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-24 px-6 bg-slate/30 relative">
-        <div className="absolute inset-0 dot-pattern opacity-30" />
-        
-        <div className="max-w-6xl mx-auto relative">
-          <div className="text-center mb-16">
-            <Badge variant="electric" className="mb-4">The Process</Badge>
-            <h2 className="display-lg font-display font-bold text-chalk mb-4">
-              How Nexus Works
-            </h2>
-            <p className="text-lg text-silver max-w-2xl mx-auto">
-              A society of AI agents working in harmony to answer your questions
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {howItWorks.map((step, index) => (
-              <motion.div
-                key={step.step}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.15 }}
-                viewport={{ once: true }}
-                className="relative"
-              >
-                <Card className="h-full text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-flame/10 flex items-center justify-center mx-auto mb-4 relative">
-                    <step.icon className="w-8 h-8 text-flame" />
-                    <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-flame text-white text-sm font-bold flex items-center justify-center">
-                      {step.step}
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold text-chalk mb-2">{step.title}</h3>
-                  <p className="text-silver text-sm">{step.description}</p>
-                </Card>
-                
-                {index < howItWorks.length - 1 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2">
-                    <ChevronRight className="w-6 h-6 text-ash" />
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
       <section className="py-24 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-t from-flame/5 to-transparent" />
-        
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="max-w-3xl mx-auto text-center relative"
-        >
-          <Card variant="elevated" className="p-12 relative overflow-hidden">
-            {/* Background glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-flame/10 rounded-full blur-[100px]" />
-            
-            <div className="relative">
-              <h2 className="display-md font-display font-bold text-chalk mb-4">
-                Ready to build your second brain?
-              </h2>
-              <p className="text-lg text-silver mb-8 max-w-xl mx-auto">
-                Start researching smarter with autonomous AI agents that remember everything.
-              </p>
-              <Link to="/app">
-                <Button variant="electric" size="lg" className="gap-2">
-                  Start Free Research
+        <div className="absolute inset-0 bg-gradient-to-t from-flame/10 to-transparent" />
+        <div className="max-w-5xl mx-auto">
+          <Card variant="elevated" className="p-12 cut-card cut-border">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+              <div>
+                <h2 className="display-md font-display text-chalk">Ready to launch your proof stack?</h2>
+                <p className="text-lg text-silver mt-4 max-w-xl">
+                  Create an account and jump straight into the Nexus workspace. Everything routes to the main app the moment you authenticate.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <Button variant="electric" size="lg" className="gap-2" onClick={() => navigate('/signup')}>
+                  Create account
                   <ArrowRight className="w-5 h-5" />
                 </Button>
-              </Link>
+                <Button variant="secondary" size="lg" onClick={() => navigate('/signin')}>
+                  Sign in
+                </Button>
+              </div>
             </div>
           </Card>
-        </motion.div>
+        </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 px-6 border-t border-smoke/50">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-flame flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-display font-bold text-chalk">NEXUS</span>
+      <footer className="py-10 px-6 border-t border-smoke/50">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 cut-card bg-flame flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-void" />
             </div>
-            <p className="text-sm text-ash">
-              © 2026 Nexus Research OS. Built with AI agents.
-            </p>
+            <span className="font-display font-bold text-chalk">NEXUS</span>
           </div>
+          <div className="text-sm text-ash">© 2026 Nexus Research OS. Verified intelligence at speed.</div>
         </div>
       </footer>
     </div>
-  );
-}
-
-function AgentStatus({ 
-  icon: Icon, 
-  title, 
-  subtext, 
-  color,
-  delay 
-}: { 
-  icon: React.ElementType; 
-  title: string; 
-  subtext: string;
-  color: string;
-  delay: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay, duration: 0.5 }}
-      className="flex items-center gap-3 p-3 rounded-xl bg-graphite/50 border border-smoke/50"
-    >
-      <div className={`w-10 h-10 rounded-lg bg-${color}/10 flex items-center justify-center`}>
-        <Icon className={`w-5 h-5 text-${color}`} />
-      </div>
-      <div className="flex-1">
-        <p className="text-sm font-medium text-chalk">{title}</p>
-        <p className="text-xs text-ash">{subtext}</p>
-      </div>
-    </motion.div>
   );
 }

@@ -125,8 +125,8 @@ export function PricingPage() {
       {/* Background */}
       <div className="noise-overlay" />
       <div className="absolute inset-0 grid-pattern opacity-20" />
-      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-flame/5 rounded-full blur-[150px]" />
-      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-electric/5 rounded-full blur-[120px]" />
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-flame/10 rounded-full blur-[150px]" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-electric/10 rounded-full blur-[120px]" />
 
       {/* Header */}
       <div className="relative z-10 pt-24 pb-12 px-6">
@@ -145,12 +145,12 @@ export function PricingPage() {
             </p>
 
             {/* Billing toggle */}
-            <div className="inline-flex items-center gap-4 p-1.5 rounded-xl bg-slate border border-smoke">
+            <div className="inline-flex items-center gap-4 p-1.5 cut-card bg-slate border border-smoke">
               <button
                 onClick={() => setBillingCycle('monthly')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   billingCycle === 'monthly' 
-                    ? 'bg-flame text-white' 
+                    ? 'bg-flame text-void' 
                     : 'text-silver hover:text-chalk'
                 }`}
               >
@@ -160,7 +160,7 @@ export function PricingPage() {
                 onClick={() => setBillingCycle('yearly')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
                   billingCycle === 'yearly' 
-                    ? 'bg-flame text-white' 
+                    ? 'bg-flame text-void' 
                     : 'text-silver hover:text-chalk'
                 }`}
               >
@@ -199,7 +199,7 @@ export function PricingPage() {
             </h2>
           </div>
 
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden cut-card cut-border">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -305,7 +305,7 @@ export function PricingPage() {
       {/* CTA */}
       <div className="relative z-10 px-6 pb-24">
         <div className="max-w-3xl mx-auto text-center">
-          <Card variant="elevated" className="p-12 relative overflow-hidden">
+          <Card variant="elevated" className="p-12 relative overflow-hidden cut-card cut-border">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-flame/10 rounded-full blur-[100px]" />
             <div className="relative">
               <h2 className="display-md font-display font-bold text-chalk mb-4">
@@ -344,7 +344,7 @@ function PricingCard({
 
   return (
     <Card 
-      className={`h-full flex flex-col relative ${plan.popular ? 'border-flame shadow-lg shadow-flame/10' : ''}`}
+      className={`h-full flex flex-col relative cut-card cut-border ${plan.popular ? 'border-flame shadow-lg shadow-flame/10' : ''}`}
     >
       {plan.popular && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -399,7 +399,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Card className="p-0 overflow-hidden">
+    <Card className="p-0 overflow-hidden cut-card cut-border">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full p-4 flex items-center justify-between text-left"

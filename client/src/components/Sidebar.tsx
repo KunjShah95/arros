@@ -40,7 +40,7 @@ export function Sidebar({ activeView, onViewChange, onNewResearch }: SidebarProp
       <div className="mb-4">
         <Link 
           to="/" 
-          className="w-10 h-10 bg-chalk text-void flex items-center justify-center font-bold text-sm hover:bg-white transition-colors"
+          className="w-11 h-11 bg-chalk text-void flex items-center justify-center font-bold text-sm hover:bg-white transition-colors cut-card"
         >
           NX
         </Link>
@@ -49,7 +49,7 @@ export function Sidebar({ activeView, onViewChange, onNewResearch }: SidebarProp
       {/* New Button */}
       <button
         onClick={onNewResearch}
-        className="w-10 h-10 bg-flame text-white flex items-center justify-center hover:bg-orange-600 transition-colors mb-4"
+        className="w-11 h-11 bg-flame text-void flex items-center justify-center hover:bg-flame-glow transition-colors mb-4 cut-card"
         title="New Research"
       >
         <Plus className="w-4 h-4" />
@@ -65,10 +65,10 @@ export function Sidebar({ activeView, onViewChange, onNewResearch }: SidebarProp
             key={item.id}
             onClick={() => onViewChange(item.id)}
             className={cn(
-              'w-10 h-10 flex items-center justify-center transition-all relative group',
+              'w-11 h-11 flex items-center justify-center transition-all relative group',
               activeView === item.id
-                ? 'bg-graphite text-chalk'
-                : 'text-ash hover:text-silver hover:bg-graphite/50'
+                ? 'bg-graphite text-chalk cut-card'
+                : 'text-ash hover:text-silver hover:bg-graphite/50 cut-card'
             )}
             title={item.label}
           >
@@ -90,10 +90,10 @@ export function Sidebar({ activeView, onViewChange, onNewResearch }: SidebarProp
             key={item.id}
             onClick={() => onViewChange(item.id)}
             className={cn(
-              'w-10 h-10 flex items-center justify-center transition-all relative group',
+              'w-11 h-11 flex items-center justify-center transition-all relative group',
               activeView === item.id
-                ? 'bg-graphite text-chalk'
-                : 'text-ash hover:text-silver hover:bg-graphite/50'
+                ? 'bg-graphite text-chalk cut-card'
+                : 'text-ash hover:text-silver hover:bg-graphite/50 cut-card'
             )}
             title={item.label}
           >
@@ -109,10 +109,10 @@ export function Sidebar({ activeView, onViewChange, onNewResearch }: SidebarProp
       <button
         onClick={() => onViewChange('settings')}
         className={cn(
-          'w-10 h-10 flex items-center justify-center transition-all relative group',
+          'w-11 h-11 flex items-center justify-center transition-all relative group',
           activeView === 'settings'
-            ? 'bg-graphite text-chalk'
-            : 'text-ash hover:text-silver hover:bg-graphite/50'
+            ? 'bg-graphite text-chalk cut-card'
+            : 'text-ash hover:text-silver hover:bg-graphite/50 cut-card'
         )}
         title="Settings"
       >

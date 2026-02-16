@@ -34,31 +34,56 @@ export function ResearchWorkspace({
   const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
 
   return (
-    <div className="flex h-full gap-6">
+    <div className="flex h-full gap-6 flex-col lg:flex-row">
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Workspace header */}
+        <div className="mb-6 cut-card cut-border bg-graphite/60 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <Badge variant="flame" className="mb-3">Workspace</Badge>
+            <h1 className="text-xl font-display text-chalk">Active Research Console</h1>
+            <p className="text-sm text-ash">Build a verifiable knowledge trail in real-time.</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="cut-card bg-slate/70 px-4 py-3 text-xs text-ash uppercase tracking-[0.2em]">
+              Proof Mode
+              <span className="block text-chalk text-sm tracking-normal mt-1">Strict verification</span>
+            </div>
+            <div className="cut-card bg-slate/70 px-4 py-3 text-xs text-ash uppercase tracking-[0.2em]">
+              Agents
+              <span className="block text-chalk text-sm tracking-normal mt-1">{tasks.length || 7} active</span>
+            </div>
+          </div>
+        </div>
+
         {/* Search bar */}
         <div className="mb-6">
-          <form onSubmit={handleSubmit} className="relative">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ash" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="What would you like to research?"
-                className="w-full pl-12 pr-24 py-4 bg-slate border border-smoke rounded-2xl text-chalk placeholder:text-ash text-base focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame-10 transition-all"
-                disabled={isResearching}
-              />
+          <form onSubmit={handleSubmit} className="relative cut-card cut-border bg-slate/70 p-4">
+            <div className="flex flex-col md:flex-row gap-4 items-stretch">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ash" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="What should the agents verify next?"
+                  className="w-full pl-12 pr-4 py-4 bg-graphite/80 border border-smoke rounded-xl text-chalk placeholder:text-ash text-base focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame-10 transition-all"
+                  disabled={isResearching}
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant="electric" className="hidden sm:inline-flex">Live</Badge>
+                <Button
+                  type="submit"
+                  variant="electric"
+                  className="h-full"
+                  loading={isResearching}
+                  disabled={!query.trim()}
+                >
+                  <Send className="w-4 h-4" />
+                  <span className="hidden sm:inline">Dispatch</span>
+                </Button>
+              </div>
             </div>
-            <Button
-              type="submit"
-              variant="electric"
-              className="absolute right-2 top-1/2 -translate-y-1/2"
-              loading={isResearching}
-              disabled={!query.trim()}
-            >
-              <Send className="w-4 h-4" />
-            </Button>
           </form>
         </div>
 
@@ -69,9 +94,9 @@ export function ResearchWorkspace({
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <Card variant="glass" className="p-5">
+            <Card variant="glass" className="p-5 cut-card cut-border">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-flame/20 flex items-center justify-center animate-pulse">
+                <div className="w-10 h-10 cut-card bg-flame/20 flex items-center justify-center animate-pulse">
                   <Sparkles className="w-5 h-5 text-flame" />
                 </div>
                 <div className="flex-1">
@@ -101,8 +126,8 @@ export function ResearchWorkspace({
       </div>
 
       {/* Agent Timeline Sidebar */}
-      <div className="w-80 flex-shrink-0">
-        <Card className="h-full p-4 overflow-hidden flex flex-col border-smoke/50">
+      <div className="w-full lg:w-80 flex-shrink-0">
+        <Card className="h-full p-4 overflow-hidden flex flex-col border-smoke/50 cut-card cut-border">
           <AgentTimeline tasks={tasks} />
         </Card>
       </div>
@@ -120,7 +145,7 @@ function ResearchResults({ result }: { result: ResearchResponse }) {
       className="space-y-6"
     >
       {/* Summary Card */}
-      <Card variant="elevated" className="p-6">
+      <Card variant="elevated" className="p-6 cut-card cut-border">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-2">
             <Hexagon className="w-5 h-5 text-flame" />
@@ -133,7 +158,7 @@ function ResearchResults({ result }: { result: ResearchResponse }) {
 
       {/* Key Findings */}
       {result.synthesis.keyFindings.length > 0 && (
-        <Card className="p-6">
+        <Card className="p-6 cut-card cut-border">
           <div className="flex items-center gap-2 mb-4">
             <Lightbulb className="w-5 h-5 text-warning" />
             <h2 className="text-lg font-display font-semibold text-chalk">Key Findings</h2>
@@ -157,7 +182,7 @@ function ResearchResults({ result }: { result: ResearchResponse }) {
 
       {/* Actionable Outputs */}
       {result.synthesis.actionableOutputs && result.synthesis.actionableOutputs.length > 0 && (
-        <Card className="p-6">
+        <Card className="p-6 cut-card cut-border">
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-5 h-5 text-flame" />
             <h2 className="text-lg font-display font-semibold text-chalk">Actionable Outputs</h2>
@@ -166,7 +191,7 @@ function ResearchResults({ result }: { result: ResearchResponse }) {
             {result.synthesis.actionableOutputs.map((action, index) => (
               <div
                 key={index}
-                className="p-4 rounded-xl bg-graphite border border-smoke hover:border-flame/30 transition-colors"
+                className="p-4 cut-card bg-graphite border border-smoke hover:border-flame/30 transition-colors"
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-chalk">{action.title}</span>
@@ -181,14 +206,14 @@ function ResearchResults({ result }: { result: ResearchResponse }) {
 
       {/* Deep Dive */}
       {result.synthesis.deepDive && (
-        <Card className="p-6">
+        <Card className="p-6 cut-card cut-border">
           <h2 className="text-lg font-display font-semibold text-chalk mb-4">Deep Dive</h2>
           <div className="text-silver whitespace-pre-wrap text-sm leading-relaxed">{result.synthesis.deepDive}</div>
         </Card>
       )}
 
       {/* Meta info */}
-      <Card className="p-4">
+      <Card className="p-4 cut-card cut-border">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-4">
             <span className="text-ash">
@@ -243,15 +268,15 @@ function EmptyWorkspace({ onSubmit }: { onSubmit: (q: string) => void }) {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center py-12">
-      <div className="text-center max-w-md">
+      <div className="text-center max-w-md cut-card cut-border bg-slate/60 p-8">
         {/* Animated icon */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="w-20 h-20 rounded-2xl bg-gradient-to-br from-flame to-flame-glow flex items-center justify-center mx-auto mb-6 shadow-lg shadow-flame-20"
+          className="w-20 h-20 cut-card bg-gradient-to-br from-flame to-flame-glow flex items-center justify-center mx-auto mb-6 shadow-lg shadow-flame-20"
         >
-          <Sparkles className="w-10 h-10 text-white" />
+          <Sparkles className="w-10 h-10 text-void" />
         </motion.div>
         
         <motion.h2
@@ -285,7 +310,7 @@ function EmptyWorkspace({ onSubmit }: { onSubmit: (q: string) => void }) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 + index * 0.1 }}
               onClick={() => onSubmit(suggestion)}
-              className="p-4 text-left rounded-xl border border-smoke bg-slate/50 hover:bg-graphite hover:border-flame/30 transition-all group"
+              className="p-4 text-left cut-card border border-smoke bg-slate/50 hover:bg-graphite hover:border-flame/30 transition-all group"
             >
               <span className="text-sm text-silver group-hover:text-chalk transition-colors">
                 {suggestion}

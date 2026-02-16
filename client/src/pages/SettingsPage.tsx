@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Key, 
-  Eye, 
-  EyeOff, 
-  CheckCircle2, 
+import {
+  Key,
+  Eye,
+  EyeOff,
+  CheckCircle2,
   Save,
   Bell,
   Palette,
   Database,
-  Code
+  Code,
 } from 'lucide-react';
 import { Card, Button, Input, Badge } from '../components/ui';
 
@@ -60,40 +60,40 @@ export function SettingsPage() {
   const [saved, setSaved] = useState(false);
 
   const toggleShowKey = (key: string) => {
-    setShowKeys(prev => ({ ...prev, [key]: !prev[key] }));
+    setShowKeys((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
 
-  const configuredKeys = apiKeys.filter(k => savedKeys[k.key]).length;
+  const configuredKeys = apiKeys.filter((k) => savedKeys[k.key]).length;
 
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-text-primary mb-2">Settings</h2>
-          <p className="text-text-muted">Configure your Nexus Research OS</p>
+        <div className="cut-card cut-border bg-graphite/60 p-5 mb-8">
+          <Badge variant="flame" className="mb-2">Settings</Badge>
+          <h2 className="text-2xl font-display text-chalk">System Configuration</h2>
+          <p className="text-sm text-ash">Tune your research engine and platform preferences.</p>
         </div>
 
-        {/* API Keys Section */}
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <Key className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-text-primary">API Keys</h3>
+            <Key className="w-5 h-5 text-flame" />
+            <h3 className="text-lg font-semibold text-chalk">API Keys</h3>
             <Badge variant={configuredKeys === apiKeys.length ? 'success' : 'warning'}>
               {configuredKeys}/{apiKeys.length} configured
             </Badge>
           </div>
-          
-          <Card className="p-6">
-            <p className="text-sm text-text-secondary mb-6">
-              Configure your API keys to enable AI-powered research. Keys are stored locally in your browser and sent only to the backend when making requests.
+
+          <Card className="p-6 cut-card cut-border">
+            <p className="text-sm text-ash mb-6">
+              Keys are stored locally in your browser and only sent to the backend when required.
             </p>
 
             <div className="space-y-4">
@@ -104,18 +104,18 @@ export function SettingsPage() {
                   isVisible={showKeys[apiKey.key] || false}
                   value={savedKeys[apiKey.key] || ''}
                   onToggle={() => toggleShowKey(apiKey.key)}
-                  onChange={(value) => setSavedKeys(prev => ({ ...prev, [apiKey.key]: value }))}
+                  onChange={(value) => setSavedKeys((prev) => ({ ...prev, [apiKey.key]: value }))}
                 />
               ))}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-border flex items-center justify-between">
+            <div className="mt-6 pt-6 border-t border-smoke flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {saved && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-1 text-success"
+                    className="flex items-center gap-1 text-mint"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span className="text-sm">Saved successfully</span>
@@ -124,26 +124,23 @@ export function SettingsPage() {
               </div>
               <Button onClick={handleSave} loading={saving}>
                 <Save className="w-4 h-4 mr-2" />
-                Save Configuration
+                Save configuration
               </Button>
             </div>
           </Card>
         </section>
 
-        {/* Model Settings */}
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <Code className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-text-primary">Model Settings</h3>
+            <Code className="w-5 h-5 text-electric" />
+            <h3 className="text-lg font-semibold text-chalk">Model Settings</h3>
           </div>
-          
-          <Card className="p-6">
+
+          <Card className="p-6 cut-card cut-border">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Default Research Model
-                </label>
-                <select className="w-full px-4 py-2.5 bg-surface-elevated border border-border rounded-lg text-text-primary">
+                <label className="block text-sm font-medium text-silver mb-2">Default Research Model</label>
+                <select className="w-full px-4 py-2.5 bg-graphite border border-smoke rounded-lg text-chalk">
                   <option value="gpt-4o">GPT-4o (Best Quality)</option>
                   <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
                   <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
@@ -152,16 +149,14 @@ export function SettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Max Sources per Research
-                </label>
+                <label className="block text-sm font-medium text-silver mb-2">Max Sources per Research</label>
                 <Input type="number" defaultValue={10} min={1} max={50} />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Auto-retry on Low Confidence</p>
-                  <p className="text-xs text-text-muted">Automatically retry research if confidence is below threshold</p>
+                  <p className="text-sm font-medium text-chalk">Auto-retry on Low Confidence</p>
+                  <p className="text-xs text-ash">Automatically retry research if confidence is below threshold</p>
                 </div>
                 <Toggle defaultChecked />
               </div>
@@ -169,35 +164,34 @@ export function SettingsPage() {
           </Card>
         </section>
 
-        {/* Preferences */}
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <Palette className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-text-primary">Preferences</h3>
+            <Palette className="w-5 h-5 text-mint" />
+            <h3 className="text-lg font-semibold text-chalk">Preferences</h3>
           </div>
-          
-          <Card className="p-6">
+
+          <Card className="p-6 cut-card cut-border">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Dark Mode</p>
-                  <p className="text-xs text-text-muted">Use dark theme</p>
+                  <p className="text-sm font-medium text-chalk">Dark Mode</p>
+                  <p className="text-xs text-ash">Use the Nexus dark palette</p>
                 </div>
                 <Toggle defaultChecked />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Animations</p>
-                  <p className="text-xs text-text-muted">Enable UI animations</p>
+                  <p className="text-sm font-medium text-chalk">Animations</p>
+                  <p className="text-xs text-ash">Enable UI motion and transitions</p>
                 </div>
                 <Toggle defaultChecked />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Sound Effects</p>
-                  <p className="text-xs text-text-muted">Play sounds on completion</p>
+                  <p className="text-sm font-medium text-chalk">Sound Effects</p>
+                  <p className="text-xs text-ash">Play sounds on completion</p>
                 </div>
                 <Toggle />
               </div>
@@ -205,27 +199,26 @@ export function SettingsPage() {
           </Card>
         </section>
 
-        {/* Notifications */}
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <Bell className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-text-primary">Notifications</h3>
+            <Bell className="w-5 h-5 text-flame" />
+            <h3 className="text-lg font-semibold text-chalk">Notifications</h3>
           </div>
-          
-          <Card className="p-6">
+
+          <Card className="p-6 cut-card cut-border">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Research Complete</p>
-                  <p className="text-xs text-text-muted">Notify when research finishes</p>
+                  <p className="text-sm font-medium text-chalk">Research Complete</p>
+                  <p className="text-xs text-ash">Notify when research finishes</p>
                 </div>
                 <Toggle defaultChecked />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Agent Updates</p>
-                  <p className="text-xs text-text-muted">Real-time agent progress notifications</p>
+                  <p className="text-sm font-medium text-chalk">Agent Updates</p>
+                  <p className="text-xs text-ash">Real-time agent progress notifications</p>
                 </div>
                 <Toggle defaultChecked />
               </div>
@@ -233,19 +226,18 @@ export function SettingsPage() {
           </Card>
         </section>
 
-        {/* Data Management */}
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <Database className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-text-primary">Data Management</h3>
+            <Database className="w-5 h-5 text-electric" />
+            <h3 className="text-lg font-semibold text-chalk">Data Management</h3>
           </div>
-          
-          <Card className="p-6">
+
+          <Card className="p-6 cut-card cut-border">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Clear All Memories</p>
-                  <p className="text-xs text-text-muted">Remove all stored memories and knowledge</p>
+                  <p className="text-sm font-medium text-chalk">Clear All Memories</p>
+                  <p className="text-xs text-ash">Remove all stored memories and knowledge</p>
                 </div>
                 <Button variant="danger" size="sm">
                   Clear
@@ -254,8 +246,8 @@ export function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Reset Knowledge Graph</p>
-                  <p className="text-xs text-text-muted">Remove all knowledge graph data</p>
+                  <p className="text-sm font-medium text-chalk">Reset Knowledge Graph</p>
+                  <p className="text-xs text-ash">Remove all knowledge graph data</p>
                 </div>
                 <Button variant="danger" size="sm">
                   Reset
@@ -264,8 +256,8 @@ export function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Export Data</p>
-                  <p className="text-xs text-text-muted">Download all your research data</p>
+                  <p className="text-sm font-medium text-chalk">Export Data</p>
+                  <p className="text-xs text-ash">Download all your research data</p>
                 </div>
                 <Button variant="secondary" size="sm">
                   Export
@@ -295,9 +287,9 @@ function ApiKeyInput({
   const isConfigured = value.length > 0;
 
   return (
-    <div>
+    <div className="cut-card cut-border bg-slate/60 p-4">
       <div className="flex items-center justify-between mb-1">
-        <label className="text-sm font-medium text-text-primary">
+        <label className="text-sm font-medium text-chalk">
           {config.name}
           {config.required && <span className="text-error ml-1">*</span>}
         </label>
@@ -305,7 +297,7 @@ function ApiKeyInput({
           {isConfigured ? 'Configured' : 'Required'}
         </Badge>
       </div>
-      <p className="text-xs text-text-muted mb-2">{config.description}</p>
+      <p className="text-xs text-ash mb-2">{config.description}</p>
       <div className="relative">
         <Input
           type={isVisible ? 'text' : 'password'}
@@ -317,7 +309,7 @@ function ApiKeyInput({
         <button
           type="button"
           onClick={onToggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-ash hover:text-chalk"
         >
           {isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
@@ -333,13 +325,13 @@ function Toggle({ defaultChecked = false }: { defaultChecked?: boolean }) {
     <button
       type="button"
       onClick={() => setChecked(!checked)}
-      className={`relative w-11 h-6 rounded-full transition-colors ${
-        checked ? 'bg-primary' : 'bg-border'
+      className={`relative w-12 h-6 rounded-full transition-colors ${
+        checked ? 'bg-flame' : 'bg-smoke'
       }`}
     >
       <span
-        className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
-          checked ? 'translate-x-5' : 'translate-x-0'
+        className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-chalk transition-transform ${
+          checked ? 'translate-x-6' : 'translate-x-0'
         }`}
       />
     </button>

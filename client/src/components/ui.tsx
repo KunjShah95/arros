@@ -28,11 +28,12 @@ export function Button({
     transition-all duration-200 ease-out
     focus:outline-none focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-void
     disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
+    cut-card
   `;
   
   const variants = {
     primary: `
-      bg-flame text-white hover:bg-flame-glow 
+      bg-flame text-void hover:bg-flame-glow 
       shadow-lg shadow-flame-20 hover:shadow-flame-30
       active:scale-[0.98]
     `,
@@ -55,9 +56,9 @@ export function Button({
   };
   
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm rounded-lg gap-1.5',
-    md: 'px-5 py-2.5 text-sm rounded-xl gap-2',
-    lg: 'px-8 py-3.5 text-base rounded-xl gap-2.5',
+    sm: 'px-3 py-2 text-sm rounded-lg gap-1.5',
+    md: 'px-5 py-3 text-sm rounded-xl gap-2',
+    lg: 'px-8 py-4 text-base rounded-xl gap-2.5',
   };
 
   return (
