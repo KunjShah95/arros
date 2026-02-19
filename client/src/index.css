@@ -1,34 +1,73 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Serif+Devanagari:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  /* CORE PALETTE - Industrial Night */
-  --color-void: #0a0b0f;
-  --color-obsidian: #0f1117;
-  --color-slate: #141723;
-  --color-graphite: #1c2230;
-  --color-smoke: #2a3242;
+  /* ═══════════════════════════════════════════════════════════════
+     ARROS - Indian Heritage Edition
+     Inspired by Sarvam AI + Ancient Indian Wisdom
+  ═══════════════════════════════════════════════════════════════ */
 
-  /* ACCENTS - Oxide + Signal */
-  --color-flame: #ff5b2e;
-  --color-flame-glow: #ff8a5b;
-  --color-electric: #53f2c9;
-  --color-mint: #b8ff6a;
+  /* CORE PALETTE - Vedic Night (Void) */
+  --color-void: #090a0f;
+  --color-obsidian: #0d0e14;
+  --color-slate: #13151c;
+  --color-graphite: #1a1d26;
+  --color-smoke: #262936;
 
-  /* Neutrals */
-  --color-chalk: #f2f0ea;
-  --color-silver: #b7b3a9;
-  --color-ash: #7a7f89;
-  --color-coal: #3a4252;
+  /* INDIAN HERITAGE COLORS - Vedic Spectrum */
+  /* Saffron (Bhakra) - Courage & Sacrifice */
+  --color-saffron: #ff6b35;
+  --color-saffron-light: #ff8c5a;
+  --color-saffron-dark: #e5501a;
+  
+  /* Marigold (Genda) - Prosperity & Auspiciousness */
+  --color-marigold: #ffc857;
+  --color-marigold-light: #ffd87a;
+  --color-marigold-dark: #e6a82e;
+  
+  /* Peacock (Mayur) - Grace & Pride */
+  --color-peacock: #00a86b;
+  --color-peacock-light: #2dd4a0;
+  --color-peacock-dark: #007a4d;
+  
+  /* Temple Gold (Sonali) - Wealth & Wisdom */
+  --color-gold: #d4a84b;
+  --color-gold-light: #e8c470;
+  --color-gold-dark: #b8923d;
+  
+  /* Sandal (Chandan) - Purity */
+  --color-sandal: #f5e6d3;
+  --color-sandal-light: #fff8f0;
+  --color-sandal-dark: #e8d4be;
+  
+  /* Indus (Neel) - Depth & Infinity */
+  --color-indus: #6c5ce7;
+  --color-indus-light: #8b7cf0;
+  --color-indus-dark: #5549c7;
 
-  /* Functional */
-  --color-success: #b8ff6a;
-  --color-warning: #ffd65a;
-  --color-error: #ff5b2e;
+  /* TRADITIONAL TEXTILES - KALAMKARI */
+  --color-crimson: #dc143c;
+  --color-rose: #e75480;
+  --color-jade: #00a878;
+  --color-teal: #008080;
 
-  /* Brand */
-  --color-primary: #ff5b2e;
-  --color-accent: #53f2c9;
+  /* NEUTRALS - Smoke & Ash */
+  --color-chalk: #f0ece4;
+  --color-cream: #faf8f5;
+  --color-silver: #b8b2a4;
+  --color-ash: #7a7870;
+  --color-coal: #3a3a3a;
+
+  /* FUNCTIONAL */
+  --color-success: #00a878;
+  --color-warning: #ffc857;
+  --color-error: #ff6b35;
+  --color-info: #6c5ce7;
+
+  /* BRAND - Fusion of Heritage + Modern */
+  --color-primary: #ff6b35;
+  --color-accent: #00a86b;
+  --color-divine: #d4a84b;
 }
 
 * {
@@ -41,7 +80,7 @@ html, body, #root {
   padding: 0;
 }
 
-/* TYPOGRAPHY - Editorial Industrial */
+/* TYPOGRAPHY - Sanskrit + Modern */
 body {
   font-family: 'Hanken Grotesk', sans-serif;
   background-color: var(--color-void);
@@ -51,9 +90,14 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Archivo Expanded', sans-serif;
+  font-family: 'Noto Sans Devanagari', 'Hanken Grotesk', sans-serif;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+}
+
+/* Sanskrit Text Support */
+.sanskrit {
+  font-family: 'Noto Serif Devanagari', serif;
 }
 
 /* Custom scrollbar - minimal */
@@ -71,25 +115,25 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ash);
+  background: var(--color-saffron);
 }
 
 /* Selection */
 ::selection {
-  background: var(--color-electric);
+  background: var(--color-peacock);
   color: var(--color-void);
 }
 
 /* Focus states */
 *:focus-visible {
-  outline: 2px solid var(--color-electric);
+  outline: 2px solid var(--color-peacock);
   outline-offset: 2px;
 }
 
 /* Input focus */
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: var(--color-flame);
+  border-color: var(--color-saffron);
 }
 
 /* Hide scrollbar utility */
@@ -104,7 +148,7 @@ input:focus, textarea:focus, select:focus {
 
 /* Glass effect - subtle */
 .glass {
-  background: rgba(20, 23, 35, 0.78);
+  background: rgba(19, 21, 28, 0.78);
   backdrop-filter: blur(14px);
 }
 
@@ -120,7 +164,7 @@ input:focus, textarea:focus, select:focus {
 
 /* Display utility */
 .font-display {
-  font-family: 'Archivo Expanded', sans-serif;
+  font-family: 'Noto Sans Devanagari', 'Hanken Grotesk', sans-serif;
   letter-spacing: -0.01em;
 }
 
@@ -164,42 +208,68 @@ input:focus, textarea:focus, select:focus {
   line-height: 1.1;
 }
 
-/* Atmospheric textures */
+/* ═══════════════════════════════════════════════════════════════
+   ATMOSPHERIC TEXTURES - Inspired by Kalamkari & Madhubani
+   ═══════════════════════════════════════════════════════════════ */
+
 .noise-overlay {
   position: absolute;
   inset: 0;
-  opacity: 0.18;
+  opacity: 0.08;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   mix-blend-mode: soft-light;
   pointer-events: none;
 }
 
+/* Grid pattern - subtle Vedic geometry */
 .grid-pattern {
-  background-image: linear-gradient(to right, rgba(83, 242, 201, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(83, 242, 201, 0.08) 1px, transparent 1px);
+  background-image: linear-gradient(to right, rgba(0, 168, 107, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 168, 107, 0.06) 1px, transparent 1px);
   background-size: 64px 64px;
 }
 
+/* Dot pattern - Diya lights */
 .dot-pattern {
-  background-image: radial-gradient(rgba(255, 91, 46, 0.18) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(255, 107, 53, 0.15) 1px, transparent 1px);
   background-size: 18px 18px;
 }
 
-/* Signature primitives */
+/* Saffron gradient glow */
+.saffron-glow {
+  background: radial-gradient(ellipse at center, rgba(255, 107, 53, 0.15) 0%, transparent 70%);
+}
+
+/* Peacock feather gradient */
+.peacock-glow {
+  background: radial-gradient(ellipse at center, rgba(0, 168, 107, 0.15) 0%, transparent 70%);
+}
+
+/* Gold temple shimmer */
+.gold-glow {
+  background: radial-gradient(ellipse at center, rgba(212, 168, 75, 0.12) 0%, transparent 70%);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIGNATURE PRIMITIVES - Indian Geometric Patterns
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Diya-inspired card (cut corners like diya flame) */
 .cut-card {
   position: relative;
   clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
 }
 
+/* Border with subtle saffron glow */
 .cut-border::before {
   content: "";
   position: absolute;
   inset: 0;
-  border: 1px solid rgba(255, 91, 46, 0.25);
+  border: 1px solid rgba(255, 107, 53, 0.2);
   clip-path: inherit;
   pointer-events: none;
 }
 
+/* Card hover effect - subtle lift */
 .card-hover {
   transition: transform 200ms ease, box-shadow 200ms ease;
 }
@@ -209,19 +279,21 @@ input:focus, textarea:focus, select:focus {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 
+/* Temple frame - ornate border */
 .prism-frame {
   position: relative;
-  background: linear-gradient(145deg, rgba(255, 91, 46, 0.18), rgba(83, 242, 201, 0.12));
-  border: 1px solid rgba(255, 91, 46, 0.35);
+  background: linear-gradient(145deg, rgba(255, 107, 53, 0.12), rgba(0, 168, 107, 0.08));
+  border: 1px solid rgba(255, 107, 53, 0.25);
   clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
 }
 
+/* Light beam animation - divya prakash */
 .prism-beam {
   position: absolute;
   inset: -30% 40% auto -30%;
   height: 160%;
   transform: rotate(-12deg);
-  background: linear-gradient(90deg, transparent, rgba(83, 242, 201, 0.35), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 168, 107, 0.3), transparent);
   animation: prismSweep 5s ease-in-out infinite;
   pointer-events: none;
 }
@@ -232,6 +304,7 @@ input:focus, textarea:focus, select:focus {
   100% { transform: translateX(80%) rotate(-12deg); opacity: 0.2; }
 }
 
+/* Signal rail - timeline indicator */
 .signal-rail {
   position: relative;
   padding-left: 1.5rem;
@@ -244,7 +317,7 @@ input:focus, textarea:focus, select:focus {
   top: 0;
   bottom: 0;
   width: 2px;
-  background: linear-gradient(180deg, rgba(255, 91, 46, 0.6), rgba(83, 242, 201, 0.3));
+  background: linear-gradient(180deg, rgba(255, 107, 53, 0.6), rgba(0, 168, 107, 0.3));
 }
 
 .signal-node {
@@ -253,6 +326,80 @@ input:focus, textarea:focus, select:focus {
   width: 12px;
   height: 12px;
   border-radius: 999px;
-  background: var(--color-electric);
-  box-shadow: 0 0 12px rgba(83, 242, 201, 0.6);
+  background: var(--color-peacock);
+  box-shadow: 0 0 12px rgba(0, 168, 107, 0.6);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MANDALA PATTERNS - Decorative Elements
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Subtle mandala background */
+.mandala-bg {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='80' fill='none' stroke='%23ff6b35' stroke-width='0.5' opacity='0.1'/%3E%3Ccircle cx='100' cy='100' r='60' fill='none' stroke='%2300a86b' stroke-width='0.5' opacity='0.1'/%3E%3Ccircle cx='100' cy='100' r='40' fill='none' stroke='%23d4a84b' stroke-width='0.5' opacity='0.1'/%3E%3Cpath d='M100 20 L100 180 M20 100 L180 100' stroke='%23ff6b35' stroke-width='0.3' opacity='0.1'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* rangoli-border - decorative border */
+.rangoli-border {
+  border-image: linear-gradient(90deg, var(--color-saffron), var(--color-peacock), var(--color-gold), var(--color-saffron)) 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SANSKRIT MANTRA DECORATIONS
+   ═══════════════════════════════════════════════════════════════ */
+
+.mantra-text {
+  font-family: 'Noto Serif Devanagari', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITY CLASSES FOR INDIAN COLORS
+   ═══════════════════════════════════════════════════════════════ */
+
+.text-saffron { color: var(--color-saffron); }
+.text-marigold { color: var(--color-marigold); }
+.text-peacock { color: var(--color-peacock); }
+.text-gold { color: var(--color-gold); }
+.text-indus { color: var(--color-indus); }
+
+.bg-saffron { background-color: var(--color-saffron); }
+.bg-marigold { background-color: var(--color-marigold); }
+.bg-peacock { background-color: var(--color-peacock); }
+.bg-gold { background-color: var(--color-gold); }
+.bg-indus { background-color: var(--color-indus); }
+
+.border-saffron { border-color: var(--color-saffron); }
+.border-peacock { border-color: var(--color-peacock); }
+.border-gold { border-color: var(--color-gold); }
+
+/* Saffron to Peacock gradient */
+.gradient-saffron-peacock {
+  background: linear-gradient(135deg, var(--color-saffron), var(--color-peacock));
+}
+
+/* Temple gold shimmer */
+.gradient-temple {
+  background: linear-gradient(135deg, var(--color-gold), var(--color-marigold), var(--color-saffron));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE TYPOGRAPHY
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .display-xl {
+    font-size: 2rem;
+  }
+  
+  .display-lg {
+    font-size: 1.5rem;
+  }
+  
+  .display-md {
+    font-size: 1.25rem;
+  }
 }

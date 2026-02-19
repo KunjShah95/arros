@@ -1,7 +1,7 @@
 import { prisma } from '../services/prisma';
 import type { SourceResult } from '../types';
 import { Prisma } from '@prisma/client';
-import { serperClient, tavilyClient, firecrawlClient } from '../services';
+import { serperClient, tavilyClient, firecrawlClient, semanticScholarClient } from '../services';
 
 export interface ToolResult {
   success: boolean;
@@ -25,7 +25,7 @@ class WebSearchTool implements Tool {
     const startTime = Date.now();
     try {
       const { query, numResults = 10 } = input;
-      
+
       const [serperResults, tavilyResults] = await Promise.all([
         serperClient.search(query as string, Math.ceil((numResults as number) / 2)),
         tavilyClient.search(query as string, Math.ceil((numResults as number) / 2)),
@@ -81,7 +81,7 @@ class WebFetchTool implements Tool {
     const startTime = Date.now();
     try {
       const { url } = input;
-      
+
       const firecrawlResult = await firecrawlClient.scrape(url as string);
 
       let content = '';
@@ -116,34 +116,89 @@ class WebFetchTool implements Tool {
 
 class PaperSearchTool implements Tool {
   name = 'paper_search';
-  description = 'Search academic papers using Tavily';
+  description = 'Search academic papers using Semantic Scholar API';
 
   async execute(input: Record<string, unknown>): Promise<ToolResult> {
     const startTime = Date.now();
     try {
-      const { query, maxResults = 10 } = input;
-      
-      const academicQuery = `${query} academic paper research`;
-      const results = await tavilyClient.search(academicQuery, maxResults as number);
+      const { query, maxResults = 8 } = input;
 
-      const papers = results.map((result, idx) => ({
-        title: result.title,
-        url: result.url,
-        snippet: result.content,
-        reliability: result.score,
+      // Search Semantic Scholar for real academic papers
+      const papers = await semanticScholarClient.searchPapers(query as string, maxResults as number);
+
+      const results = papers.map((paper) => ({
+        title: paper.title,
+        url: paper.url || (paper.externalIds?.ArXiv ? `https://arxiv.org/abs/${paper.externalIds.ArXiv}` : ''),
+        snippet: paper.tldr?.text || paper.abstract?.substring(0, 300) || '',
+        reliability: Math.min(0.98, 0.75 + (paper.citationCount || 0) / 1000),
         bias: 0,
         type: 'paper',
         metadata: {
-          published_date: result.published_date,
-          score: result.score,
+          paperId: paper.paperId,
+          year: paper.year,
+          citationCount: paper.citationCount,
+          authors: paper.authors?.map(a => a.name).join(', '),
+          venue: paper.venue,
+          doi: paper.externalIds?.DOI,
+          arxivId: paper.externalIds?.ArXiv,
+          openAccessUrl: paper.openAccessPdf?.url,
+          fieldsOfStudy: paper.fieldsOfStudy,
+          publicationDate: paper.publicationDate,
         },
       }));
 
       return {
         success: true,
-        data: papers,
+        data: results,
         duration: Date.now() - startTime,
-        cost: 0.002,
+        cost: 0.001,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        duration: Date.now() - startTime,
+        cost: 0,
+      };
+    }
+  }
+}
+
+class ArXivSearchTool implements Tool {
+  name = 'arxiv_search';
+  description = 'Search specifically for arXiv preprints and open-access papers';
+
+  async execute(input: Record<string, unknown>): Promise<ToolResult> {
+    const startTime = Date.now();
+    try {
+      const { query, maxResults = 5 } = input;
+
+      const papers = await semanticScholarClient.searchArXiv(query as string, maxResults as number);
+
+      const results = papers.map((paper) => ({
+        title: paper.title,
+        url: paper.openAccessPdf?.url || paper.url || `https://arxiv.org/abs/${paper.externalIds?.ArXiv || ''}`,
+        snippet: paper.tldr?.text || paper.abstract?.substring(0, 300) || '',
+        reliability: Math.min(0.95, 0.80 + (paper.citationCount || 0) / 800),
+        bias: 0,
+        type: 'paper',
+        metadata: {
+          paperId: paper.paperId,
+          year: paper.year,
+          citationCount: paper.citationCount,
+          authors: paper.authors?.map(a => a.name).join(', '),
+          venue: paper.venue || 'arXiv preprint',
+          arxivId: paper.externalIds?.ArXiv,
+          openAccessUrl: paper.openAccessPdf?.url,
+          isOpenAccess: true,
+        },
+      }));
+
+      return {
+        success: true,
+        data: results,
+        duration: Date.now() - startTime,
+        cost: 0.001,
       };
     } catch (error) {
       return {
@@ -164,7 +219,7 @@ class GitHubSearchTool implements Tool {
     const startTime = Date.now();
     try {
       const { query, type = 'repositories' } = input;
-      
+
       const githubQuery = `${query} site:github.com`;
       const results = await serperClient.search(githubQuery, 10);
 
@@ -205,7 +260,7 @@ class BlogSearchTool implements Tool {
     const startTime = Date.now();
     try {
       const { query, maxResults = 10 } = input;
-      
+
       const blogQuery = `${query} blog post`;
       const results = await serperClient.search(blogQuery, maxResults as number);
 
@@ -244,7 +299,7 @@ class VectorStoreTool implements Tool {
     const startTime = Date.now();
     try {
       const { action, query, embedding, topK = 5 } = input;
-      
+
       if (action === 'store') {
         console.log('Vector store: storing embedding for', query);
         return {
@@ -262,7 +317,7 @@ class VectorStoreTool implements Tool {
           cost: 0.0002,
         };
       }
-      
+
       return { success: false, error: 'Unknown action', duration: 0, cost: 0 };
     } catch (error) {
       return {
@@ -283,7 +338,7 @@ class KnowledgeGraphTool implements Tool {
     const startTime = Date.now();
     try {
       const { action, nodes, edges, query, userId } = input;
-      
+
       if (action === 'add_nodes' && nodes) {
         const createdNodes = await Promise.all(
           (nodes as Array<{ name: string; type: string; description?: string }>).map(async (node) => {
@@ -345,7 +400,7 @@ class KnowledgeGraphTool implements Tool {
           cost: 0.0003,
         };
       }
-      
+
       return { success: false, error: 'Unknown action or missing parameters', duration: 0, cost: 0 };
     } catch (error) {
       return {
@@ -366,6 +421,7 @@ class ToolExecutor {
     this.registerTool(new WebSearchTool());
     this.registerTool(new WebFetchTool());
     this.registerTool(new PaperSearchTool());
+    this.registerTool(new ArXivSearchTool());
     this.registerTool(new GitHubSearchTool());
     this.registerTool(new BlogSearchTool());
     this.registerTool(new VectorStoreTool());
@@ -388,7 +444,7 @@ class ToolExecutor {
     }
 
     const result = await tool.execute(input);
-    
+
     if (taskId) {
       await prisma.toolExecution.create({
         data: {

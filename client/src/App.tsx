@@ -1,10 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
-import { KnowledgeGraph } from './components/KnowledgeGraph';
-import { OCRComponent } from './components/OCRComponent';
-import { TTSComponent } from './components/TTSComponent';
-import { STTComponent } from './components/STTComponent';
 import { ResearchWorkspace } from './components/ResearchWorkspace';
 import { LandingPage } from './pages/LandingPage.tsx';
 import { SignInPage } from './pages/SignInPage.tsx';
@@ -14,18 +10,19 @@ import { PricingPage } from './pages/PricingPage';
 import { SourcesPage } from './pages/SourcesPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
-import { AnalyticsPage } from './pages/AnalyticsPage';
-import { researchApi, memoryApi } from './services/api';
-import type { ResearchResponse, AgentTask, Source, KnowledgeNode } from './types';
+import { DashboardPage } from './pages/DashboardPage';
+import { VoiceStudio } from './pages/VoiceStudioPage';
+import { DocumentScanner } from './pages/DocumentScannerPage';
+import { researchApi } from './services/api';
+import type { ResearchResponse, AgentTask, Source } from './types';
 
 function AppLayout() {
-  const [activeView, setActiveView] = useState('workspace');
+  const [activeView, setActiveView] = useState('dashboard');
   const [query, setQuery] = useState('');
   const [isResearching, setIsResearching] = useState(false);
   const [result, setResult] = useState<ResearchResponse | null>(null);
   const [tasks, setTasks] = useState<AgentTask[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
-  const [knowledgeNodes, setKnowledgeNodes] = useState<KnowledgeNode[]>([]);
 
   const handleSubmit = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
@@ -35,6 +32,7 @@ function AppLayout() {
     setResult(null);
     setTasks([]);
     setSources([]);
+    setActiveView('workspace');
 
     try {
       const response = await researchApi.createResearch(searchQuery);
@@ -51,6 +49,7 @@ function AppLayout() {
   const handleNewResearch = () => {
     setActiveView('workspace');
     setResult(null);
+    setQuery('');
     setTasks([]);
     setSources([]);
   };
@@ -77,23 +76,15 @@ function AppLayout() {
     }
   }, [result?.sessionId]);
 
-  useEffect(() => {
-    const loadKnowledgeGraph = async () => {
-      try {
-        const nodes = await memoryApi.getKnowledgeGraph('default');
-        setKnowledgeNodes(nodes);
-      } catch (error) {
-        console.error('Failed to load knowledge graph:', error);
-      }
-    };
-
-    if (activeView === 'graph') {
-      loadKnowledgeGraph();
-    }
-  }, [activeView]);
-
   const renderContent = () => {
     switch (activeView) {
+      case 'dashboard':
+        return (
+          <DashboardPage
+            onStartResearch={handleSubmit}
+            onViewChange={setActiveView}
+          />
+        );
       case 'workspace':
         return (
           <ResearchWorkspace
@@ -106,27 +97,16 @@ function AppLayout() {
             sources={sources}
           />
         );
-      case 'graph':
-        return (
-          <KnowledgeGraph
-            nodes={knowledgeNodes}
-            edges={[]}
-          />
-        );
       case 'sources':
         return <SourcesPage />;
       case 'history':
         return <HistoryPage />;
-      case 'analytics':
-        return <AnalyticsPage />;
-      case 'ocr':
-        return <OCRComponent />;
-      case 'tts':
-        return <TTSComponent />;
-      case 'stt':
-        return <STTComponent />;
       case 'settings':
         return <SettingsPage />;
+      case 'voice':
+        return <VoiceStudio />;
+      case 'scanner':
+        return <DocumentScanner />;
       default:
         return null;
     }
@@ -139,7 +119,7 @@ function AppLayout() {
         onViewChange={setActiveView}
         onNewResearch={handleNewResearch}
       />
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-hidden p-6">
         {renderContent()}
       </main>
     </div>

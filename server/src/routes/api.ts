@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { AgentOrchestrator } from '../agents/orchestrator';
 import { prisma } from '../services/prisma';
 import { sarvamClient } from '../services/sarvam';
+import { authenticate } from '../middleware/auth';
 import multer from 'multer';
 
 const router = Router();
@@ -11,12 +12,13 @@ interface MulterRequest extends Request {
   file?: Express.Multer.File;
 }
 
-router.post('/research', async (req: Request, res: Response) => {
+router.post('/research', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
-    const { query, userId } = req.body;
+    const { query } = req.body;
+    const userId = req.userId || 'guest';
 
-    if (!query || !userId) {
-      return res.status(400).json({ error: 'Query and userId are required' });
+    if (!query) {
+      return res.status(400).json({ error: 'Query is required' });
     }
 
     const orchestrator = new AgentOrchestrator(userId);
@@ -29,10 +31,10 @@ router.post('/research', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/session/:sessionId', async (req: Request, res: Response) => {
+router.get('/session/:sessionId', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
     const sessionId = req.params.sessionId as string;
-    const orchestrator = new AgentOrchestrator('');
+    const orchestrator = new AgentOrchestrator(req.userId || 'guest');
     const session = await orchestrator.getSession(sessionId);
 
     if (!session) {
@@ -45,13 +47,9 @@ router.get('/session/:sessionId', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/sessions', async (req: Request, res: Response) => {
+router.get('/sessions', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
-    const userId = req.query.userId as string;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
+    const userId = req.userId || 'guest';
 
     const orchestrator = new AgentOrchestrator(userId);
     const sessions = await orchestrator.getUserSessions();
@@ -62,7 +60,7 @@ router.get('/sessions', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/sources/:sessionId', async (req: Request, res: Response) => {
+router.get('/sources/:sessionId', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
     const sessionId = req.params.sessionId as string;
     const sources = await prisma.source.findMany({
@@ -76,13 +74,9 @@ router.get('/sources/:sessionId', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/memory', async (req: Request, res: Response) => {
+router.get('/memory', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
-    const userId = req.query.userId as string;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
+    const userId = req.userId || 'guest';
 
     const memories = await prisma.userMemory.findMany({
       where: { userId },
@@ -96,13 +90,9 @@ router.get('/memory', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/interests', async (req: Request, res: Response) => {
+router.get('/interests', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
-    const userId = req.query.userId as string;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
+    const userId = req.userId || 'guest';
 
     const interests = await prisma.userInterest.findMany({
       where: { userId },
@@ -115,13 +105,9 @@ router.get('/interests', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/knowledge-graph', async (req: Request, res: Response) => {
+router.get('/knowledge-graph', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
-    const userId = req.query.userId as string;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
+    const userId = req.userId || 'guest';
 
     const nodes = await prisma.knowledgeNode.findMany({
       include: {

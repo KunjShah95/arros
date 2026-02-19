@@ -101,32 +101,93 @@ class WebFetchTool {
 class PaperSearchTool {
     constructor() {
         this.name = 'paper_search';
-        this.description = 'Search academic papers using Tavily';
+        this.description = 'Search academic papers using Semantic Scholar API';
     }
     execute(input) {
         return __awaiter(this, void 0, void 0, function* () {
             const startTime = Date.now();
             try {
-                const { query, maxResults = 10 } = input;
-                const academicQuery = `${query} academic paper research`;
-                const results = yield services_1.tavilyClient.search(academicQuery, maxResults);
-                const papers = results.map((result, idx) => ({
-                    title: result.title,
-                    url: result.url,
-                    snippet: result.content,
-                    reliability: result.score,
-                    bias: 0,
-                    type: 'paper',
-                    metadata: {
-                        published_date: result.published_date,
-                        score: result.score,
-                    },
-                }));
+                const { query, maxResults = 8 } = input;
+                // Search Semantic Scholar for real academic papers
+                const papers = yield services_1.semanticScholarClient.searchPapers(query, maxResults);
+                const results = papers.map((paper) => {
+                    var _a, _b, _c, _d, _e, _f, _g;
+                    return ({
+                        title: paper.title,
+                        url: paper.url || (((_a = paper.externalIds) === null || _a === void 0 ? void 0 : _a.ArXiv) ? `https://arxiv.org/abs/${paper.externalIds.ArXiv}` : ''),
+                        snippet: ((_b = paper.tldr) === null || _b === void 0 ? void 0 : _b.text) || ((_c = paper.abstract) === null || _c === void 0 ? void 0 : _c.substring(0, 300)) || '',
+                        reliability: Math.min(0.98, 0.75 + (paper.citationCount || 0) / 1000),
+                        bias: 0,
+                        type: 'paper',
+                        metadata: {
+                            paperId: paper.paperId,
+                            year: paper.year,
+                            citationCount: paper.citationCount,
+                            authors: (_d = paper.authors) === null || _d === void 0 ? void 0 : _d.map(a => a.name).join(', '),
+                            venue: paper.venue,
+                            doi: (_e = paper.externalIds) === null || _e === void 0 ? void 0 : _e.DOI,
+                            arxivId: (_f = paper.externalIds) === null || _f === void 0 ? void 0 : _f.ArXiv,
+                            openAccessUrl: (_g = paper.openAccessPdf) === null || _g === void 0 ? void 0 : _g.url,
+                            fieldsOfStudy: paper.fieldsOfStudy,
+                            publicationDate: paper.publicationDate,
+                        },
+                    });
+                });
                 return {
                     success: true,
-                    data: papers,
+                    data: results,
                     duration: Date.now() - startTime,
-                    cost: 0.002,
+                    cost: 0.001,
+                };
+            }
+            catch (error) {
+                return {
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    duration: Date.now() - startTime,
+                    cost: 0,
+                };
+            }
+        });
+    }
+}
+class ArXivSearchTool {
+    constructor() {
+        this.name = 'arxiv_search';
+        this.description = 'Search specifically for arXiv preprints and open-access papers';
+    }
+    execute(input) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const startTime = Date.now();
+            try {
+                const { query, maxResults = 5 } = input;
+                const papers = yield services_1.semanticScholarClient.searchArXiv(query, maxResults);
+                const results = papers.map((paper) => {
+                    var _a, _b, _c, _d, _e, _f, _g;
+                    return ({
+                        title: paper.title,
+                        url: ((_a = paper.openAccessPdf) === null || _a === void 0 ? void 0 : _a.url) || paper.url || `https://arxiv.org/abs/${((_b = paper.externalIds) === null || _b === void 0 ? void 0 : _b.ArXiv) || ''}`,
+                        snippet: ((_c = paper.tldr) === null || _c === void 0 ? void 0 : _c.text) || ((_d = paper.abstract) === null || _d === void 0 ? void 0 : _d.substring(0, 300)) || '',
+                        reliability: Math.min(0.95, 0.80 + (paper.citationCount || 0) / 800),
+                        bias: 0,
+                        type: 'paper',
+                        metadata: {
+                            paperId: paper.paperId,
+                            year: paper.year,
+                            citationCount: paper.citationCount,
+                            authors: (_e = paper.authors) === null || _e === void 0 ? void 0 : _e.map(a => a.name).join(', '),
+                            venue: paper.venue || 'arXiv preprint',
+                            arxivId: (_f = paper.externalIds) === null || _f === void 0 ? void 0 : _f.ArXiv,
+                            openAccessUrl: (_g = paper.openAccessPdf) === null || _g === void 0 ? void 0 : _g.url,
+                            isOpenAccess: true,
+                        },
+                    });
+                });
+                return {
+                    success: true,
+                    data: results,
+                    duration: Date.now() - startTime,
+                    cost: 0.001,
                 };
             }
             catch (error) {
@@ -350,6 +411,7 @@ class ToolExecutor {
         this.registerTool(new WebSearchTool());
         this.registerTool(new WebFetchTool());
         this.registerTool(new PaperSearchTool());
+        this.registerTool(new ArXivSearchTool());
         this.registerTool(new GitHubSearchTool());
         this.registerTool(new BlogSearchTool());
         this.registerTool(new VectorStoreTool());

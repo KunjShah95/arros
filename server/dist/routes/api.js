@@ -16,14 +16,16 @@ const express_1 = require("express");
 const orchestrator_1 = require("../agents/orchestrator");
 const prisma_1 = require("../services/prisma");
 const sarvam_1 = require("../services/sarvam");
+const auth_1 = require("../middleware/auth");
 const multer_1 = __importDefault(require("multer"));
 const router = (0, express_1.Router)();
 const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
-router.post('/research', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/research', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { query, userId } = req.body;
-        if (!query || !userId) {
-            return res.status(400).json({ error: 'Query and userId are required' });
+        const { query } = req.body;
+        const userId = req.userId || 'guest';
+        if (!query) {
+            return res.status(400).json({ error: 'Query is required' });
         }
         const orchestrator = new orchestrator_1.AgentOrchestrator(userId);
         const result = yield orchestrator.research(query);
@@ -34,10 +36,10 @@ router.post('/research', (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(500).json({ error: 'Research failed' });
     }
 }));
-router.get('/session/:sessionId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/session/:sessionId', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const sessionId = req.params.sessionId;
-        const orchestrator = new orchestrator_1.AgentOrchestrator('');
+        const orchestrator = new orchestrator_1.AgentOrchestrator(req.userId || 'guest');
         const session = yield orchestrator.getSession(sessionId);
         if (!session) {
             return res.status(404).json({ error: 'Session not found' });
@@ -48,12 +50,9 @@ router.get('/session/:sessionId', (req, res) => __awaiter(void 0, void 0, void 0
         res.status(500).json({ error: 'Failed to get session' });
     }
 }));
-router.get('/sessions', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/sessions', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userId = req.query.userId;
-        if (!userId) {
-            return res.status(400).json({ error: 'userId is required' });
-        }
+        const userId = req.userId || 'guest';
         const orchestrator = new orchestrator_1.AgentOrchestrator(userId);
         const sessions = yield orchestrator.getUserSessions();
         res.json(sessions);
@@ -62,7 +61,7 @@ router.get('/sessions', (req, res) => __awaiter(void 0, void 0, void 0, function
         res.status(500).json({ error: 'Failed to get sessions' });
     }
 }));
-router.get('/sources/:sessionId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/sources/:sessionId', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const sessionId = req.params.sessionId;
         const sources = yield prisma_1.prisma.source.findMany({
@@ -75,12 +74,9 @@ router.get('/sources/:sessionId', (req, res) => __awaiter(void 0, void 0, void 0
         res.status(500).json({ error: 'Failed to get sources' });
     }
 }));
-router.get('/memory', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/memory', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userId = req.query.userId;
-        if (!userId) {
-            return res.status(400).json({ error: 'userId is required' });
-        }
+        const userId = req.userId || 'guest';
         const memories = yield prisma_1.prisma.userMemory.findMany({
             where: { userId },
             orderBy: { importance: 'desc' },
@@ -92,12 +88,9 @@ router.get('/memory', (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(500).json({ error: 'Failed to get memories' });
     }
 }));
-router.get('/interests', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/interests', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userId = req.query.userId;
-        if (!userId) {
-            return res.status(400).json({ error: 'userId is required' });
-        }
+        const userId = req.userId || 'guest';
         const interests = yield prisma_1.prisma.userInterest.findMany({
             where: { userId },
             orderBy: { depth: 'desc' },
@@ -108,12 +101,9 @@ router.get('/interests', (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(500).json({ error: 'Failed to get interests' });
     }
 }));
-router.get('/knowledge-graph', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/knowledge-graph', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userId = req.query.userId;
-        if (!userId) {
-            return res.status(400).json({ error: 'userId is required' });
-        }
+        const userId = req.userId || 'guest';
         const nodes = yield prisma_1.prisma.knowledgeNode.findMany({
             include: {
                 edgesFrom: true,

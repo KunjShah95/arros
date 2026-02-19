@@ -75,6 +75,16 @@ export interface BiasIndicator {
   severity: number;
 }
 
+export interface AcademicCitation {
+  index: number;
+  title: string;
+  authors?: string;
+  year?: number;
+  venue?: string;
+  url?: string;
+  citationText: string;
+}
+
 export interface SynthesisResult {
   taskId: string;
   summary: string;
@@ -82,6 +92,18 @@ export interface SynthesisResult {
   keyFindings: string[];
   actionableOutputs?: ActionItem[];
   confidence: number;
+  // Academic-specific fields
+  introduction?: string;
+  conceptsAndDefinitions?: string;
+  applications?: string;
+  challenges?: string;
+  futureDirections?: string;
+  conclusion?: string;
+  keyTakeaways?: string[];
+  furtherReading?: string[];
+  citations?: AcademicCitation[];
+  verifiedSources?: number;
+  contradictionsFound?: number;
 }
 
 export interface ActionItem {

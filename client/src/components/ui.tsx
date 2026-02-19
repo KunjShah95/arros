@@ -7,7 +7,7 @@ export function cn(...inputs: (string | undefined | null | boolean | Record<stri
 
 /* ===== BUTTONS ===== */
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'electric';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'electric' | 'saffron' | 'peacock' | 'gold';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   icon?: React.ReactNode;
@@ -26,16 +26,31 @@ export function Button({
   const baseStyles = `
     inline-flex items-center justify-center font-medium 
     transition-all duration-200 ease-out
-    focus:outline-none focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-void
+    focus:outline-none focus-visible:ring-2 focus-visible:ring-peacock focus-visible:ring-offset-2 focus-visible:ring-offset-void
     disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
     cut-card
   `;
   
   const variants = {
     primary: `
-      bg-flame text-void hover:bg-flame-glow 
-      shadow-lg shadow-flame-20 hover:shadow-flame-30
+      bg-saffron text-void hover:bg-saffron-light 
+      shadow-lg shadow-saffron-20 hover:shadow-saffron-30
       active:scale-[0.98]
+    `,
+    saffron: `
+      bg-gradient-to-r from-saffron to-saffron-light text-void
+      hover:shadow-lg hover:shadow-saffron-30 hover:-translate-y-0.5
+      active:translate-y-0
+    `,
+    peacock: `
+      bg-peacock text-cream
+      hover:bg-peacock-light hover:shadow-lg hover:shadow-peacock-20 hover:-translate-y-0.5
+      active:translate-y-0
+    `,
+    gold: `
+      bg-gold text-void font-semibold
+      hover:bg-gold-light hover:shadow-lg hover:shadow-gold-20 hover:-translate-y-0.5
+      active:translate-y-0
     `,
     secondary: `
       bg-graphite text-chalk border border-smoke
@@ -49,8 +64,8 @@ export function Button({
       bg-error text-white hover:bg-red-600
     `,
     electric: `
-      bg-electric text-void font-semibold
-      hover:shadow-lg hover:shadow-electric-20 hover:-translate-y-0.5
+      bg-peacock text-void font-semibold
+      hover:shadow-lg hover:shadow-peacock-20 hover:-translate-y-0.5
       active:translate-y-0
     `,
   };
@@ -103,7 +118,7 @@ export function Input({ className, label, error, icon, ...props }: InputProps) {
           className={cn(
             'w-full px-4 py-3 bg-slate border border-smoke rounded-xl',
             'text-chalk placeholder:text-ash',
-            'focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame-10',
+            'focus:outline-none focus:border-saffron focus:ring-2 focus:ring-saffron-10',
             'transition-all duration-200',
             icon ? 'pl-11' : '',
             error ? 'border-error focus:border-error focus:ring-error-10' : '',
@@ -152,16 +167,20 @@ export function Badge({
   children 
 }: { 
   className?: string; 
-  variant?: 'default' | 'success' | 'warning' | 'error' | 'electric' | 'flame';
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'peacock' | 'saffron' | 'gold' | 'indus' | 'electric' | 'flame';
   children: React.ReactNode;
 }) {
-  const variants = {
+  const variants: Record<string, string> = {
     default: 'bg-smoke text-silver border border-smoke',
-    success: 'bg-mint/10 text-mint border border-mint/20',
-    warning: 'bg-warning/10 text-warning border border-warning/20',
-    error: 'bg-error/10 text-error border border-error/20',
-    electric: 'bg-electric/10 text-electric border border-electric/20',
-    flame: 'bg-flame/10 text-flame border border-flame/20',
+    success: 'bg-peacock/10 text-peacock border border-peacock/20',
+    warning: 'bg-marigold/10 text-marigold border border-marigold/20',
+    error: 'bg-saffron/10 text-saffron border border-saffron/20',
+    peacock: 'bg-peacock/10 text-peacock border border-peacock/20',
+    saffron: 'bg-saffron/10 text-saffron border border-saffron/20',
+    gold: 'bg-gold/10 text-gold border border-gold/20',
+    indus: 'bg-indus/10 text-indus border border-indus/20',
+    electric: 'bg-peacock/10 text-peacock border border-peacock/20',
+    flame: 'bg-saffron/10 text-saffron border border-saffron/20',
   };
 
   return (
@@ -176,11 +195,11 @@ export function Badge({
 }
 
 /* ===== PROGRESS BAR ===== */
-export function ProgressBar({ progress, variant = 'flame' }: { progress: number; variant?: 'flame' | 'electric' | 'mint' }) {
+export function ProgressBar({ progress, variant = 'saffron' }: { progress: number; variant?: 'saffron' | 'peacock' | 'gold' }) {
   const colors = {
-    flame: 'bg-gradient-to-r from-flame to-flame-glow',
-    electric: 'bg-gradient-to-r from-electric to-electric-dim',
-    mint: 'bg-gradient-to-r from-mint to-mint-dim',
+    saffron: 'bg-gradient-to-r from-saffron to-saffron-light',
+    peacock: 'bg-gradient-to-r from-peacock to-peacock-light',
+    gold: 'bg-gradient-to-r from-gold to-gold-light',
   };
 
   return (
@@ -194,7 +213,7 @@ export function ProgressBar({ progress, variant = 'flame' }: { progress: number;
 }
 
 /* ===== SPINNER ===== */
-export function Spinner({ size = 'md', variant = 'flame' }: { size?: 'sm' | 'md' | 'lg'; variant?: 'flame' | 'electric' | 'chalk' }) {
+export function Spinner({ size = 'md', variant = 'saffron' }: { size?: 'sm' | 'md' | 'lg'; variant?: 'saffron' | 'peacock' | 'chalk' }) {
   const sizes = {
     sm: 'h-4 w-4',
     md: 'h-6 w-6',
@@ -202,8 +221,8 @@ export function Spinner({ size = 'md', variant = 'flame' }: { size?: 'sm' | 'md'
   };
   
   const colors = {
-    flame: 'text-flame',
-    electric: 'text-electric',
+    saffron: 'text-saffron',
+    peacock: 'text-peacock',
     chalk: 'text-chalk',
   };
 
@@ -245,7 +264,7 @@ export function Avatar({
 
   return (
     <div className={cn(
-      'rounded-full bg-flame-20 text-flame flex items-center justify-center font-semibold',
+      'rounded-full bg-peacock/20 text-peacock flex items-center justify-center font-semibold',
       sizes[size],
       className
     )}>
@@ -313,7 +332,7 @@ export function Toggle({ checked, onChange, label }: ToggleProps) {
         onClick={() => onChange(!checked)}
         className={cn(
           'relative w-12 h-6 rounded-full transition-colors duration-200',
-          checked ? 'bg-flame' : 'bg-smoke'
+          checked ? 'bg-peacock' : 'bg-smoke'
         )}
       >
         <span
@@ -325,5 +344,49 @@ export function Toggle({ checked, onChange, label }: ToggleProps) {
       </button>
       {label && <span className="text-sm text-silver">{label}</span>}
     </label>
+  );
+}
+
+/* ===== MANDALA DECORATION ===== */
+export function Mandala({ className, size = 'md' }: { className?: string; size?: 'sm' | 'md' | 'lg' }) {
+  const sizes = {
+    sm: 'w-16 h-16',
+    md: 'w-32 h-32',
+    lg: 'w-48 h-48',
+  };
+  
+  return (
+    <div className={cn('relative', sizes[size], className)}>
+      <svg viewBox="0 0 100 100" className="w-full h-full opacity-20">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-saffron" />
+        <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-peacock" />
+        <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-gold" />
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
+          <line
+            key={angle}
+            x1="50"
+            y1="50"
+            x2={50 + 45 * Math.cos((angle * Math.PI) / 180)}
+            y2={50 + 45 * Math.sin((angle * Math.PI) / 180)}
+            stroke="currentColor"
+            strokeWidth="0.3"
+            className="text-saffron"
+          />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+/* ===== DIVYA SPARKLE ===== */
+export function DivyaSparkle({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={cn('w-4 h-4', className)}
+      fill="currentColor"
+    >
+      <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+    </svg>
   );
 }

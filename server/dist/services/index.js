@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SarvamClient = exports.sarvamClient = exports.FirecrawlClient = exports.firecrawlClient = exports.TavilyClient = exports.tavilyClient = exports.SerperClient = exports.serperClient = void 0;
+exports.SarvamClient = exports.sarvamClient = exports.semanticScholarClient = exports.FirecrawlClient = exports.firecrawlClient = exports.TavilyClient = exports.tavilyClient = exports.SerperClient = exports.serperClient = void 0;
 var serper_1 = require("./serper");
 Object.defineProperty(exports, "serperClient", { enumerable: true, get: function () { return serper_1.serperClient; } });
 Object.defineProperty(exports, "SerperClient", { enumerable: true, get: function () { return serper_1.SerperClient; } });
@@ -10,6 +10,8 @@ Object.defineProperty(exports, "TavilyClient", { enumerable: true, get: function
 var firecrawl_1 = require("./firecrawl");
 Object.defineProperty(exports, "firecrawlClient", { enumerable: true, get: function () { return firecrawl_1.firecrawlClient; } });
 Object.defineProperty(exports, "FirecrawlClient", { enumerable: true, get: function () { return firecrawl_1.FirecrawlClient; } });
+var semanticScholar_1 = require("./semanticScholar");
+Object.defineProperty(exports, "semanticScholarClient", { enumerable: true, get: function () { return semanticScholar_1.semanticScholarClient; } });
 var sarvam_1 = require("./sarvam");
 Object.defineProperty(exports, "sarvamClient", { enumerable: true, get: function () { return sarvam_1.sarvamClient; } });
 Object.defineProperty(exports, "SarvamClient", { enumerable: true, get: function () { return sarvam_1.SarvamClient; } });

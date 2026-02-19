@@ -39,40 +39,50 @@ class PlannerAgent {
             const messages = [
                 {
                     role: 'system',
-                    content: `You are a research planning agent. Create a detailed plan for researching the given query.
+                    content: `You are an academic research planning agent for ARROS (Academic Research OS). Your job is to create structured research plans for students and researchers.
+
+You specialize in academic research that produces:
+- Literature reviews and structured academic reports
+- Citation-backed summaries with verified sources
+- Key findings, definitions, applications, challenges, and future directions
+- Structured outputs suitable for academic use
 
 Available task types:
-- research: Search for sources and information
-- critic: Verify claims and detect contradictions/bias
-- synthesizer: Combine findings into coherent answer
-- memory: Store important information
-- action: Generate actionable outputs
-- meta: Evaluate the research quality
+- research: Search for sources and information (web + academic papers)
+- critic: Verify claims, check source reliability, detect contradictions
+- synthesizer: Produce structured academic output with citations
+- memory: Store topics/papers for continuity across sessions
+- action: Generate actionable academic outputs (study notes, further reading)
+- meta: Evaluate overall research quality
 
 Tool strategies:
-- web_search: General web search
-- paper_search: Academic papers
-- github_search: Code repositories
-- blog_search: Blog posts
-- web_fetch: Fetch specific URLs
-- vector_store: Store embeddings
-- knowledge_graph: Query knowledge graph
+- web_search: General web search (Wikipedia, blogs, context)
+- paper_search: Semantic Scholar academic papers with real citations
+- arxiv_search: arXiv preprints and open-access papers
+- blog_search: Educational blogs for context
+- web_fetch: Fetch full content from specific URLs
+- vector_store: Store embeddings for memory
+- knowledge_graph: Build topic knowledge graph
 
-Return a JSON object with:
-- strategy: One of "comparative", "actionable", "explanatory", "comprehensive"
-- estimatedCost: Estimated cost in USD
-- estimatedTime: Estimated time in seconds
-- subtasks: Array of tasks with dependencies`,
+For academic queries, ALWAYS include:
+1. At least one paper_search or arxiv_search task for academic papers
+2. A web_search task for foundational/contextual information
+3. A critic task to verify claims and score source reliability
+4. A synthesizer task to produce structured academic output
+5. A memory task to store research for future continuity
+
+Return a JSON with strategy (one of: literature_review, explanatory, comparative, comprehensive), estimatedCost, estimatedTime, and subtasks array.`,
                 },
                 {
                     role: 'user',
-                    content: `Create a research plan for: "${query}"
+                    content: `Create an academic research plan for: "${query}"
 
 Consider:
-- What type of information is needed?
-- Are there multiple viewpoints to consider?
-- Should we generate actionable outputs?
-- How many sources are needed?`,
+- Is this a definition/concept question? (Include foundational web sources)
+- Does it require recent research papers? (Use paper_search + arxiv_search)
+- Are there multiple schools of thought? (Use critic for contradictions)
+- What academic subtopics should be covered: definitions, key concepts, applications, challenges, future scope?
+- How many sources are needed for a credible academic report?`,
                 },
             ];
             try {
@@ -98,53 +108,53 @@ Consider:
                 return plan;
             }
             catch (error) {
-                console.error('LLM planning failed, using fallback:', error);
-                return this.fallbackPlan(query);
+                console.error('LLM planning failed, using academic fallback:', error);
+                return this.academicFallbackPlan(query);
             }
         });
     }
-    fallbackPlan(query) {
+    academicFallbackPlan(query) {
         const subtasks = [
             {
                 id: 'task_0',
                 type: 'research',
-                description: 'Search for relevant sources and information',
+                description: 'Search for foundational information, definitions, and context',
                 dependencies: [],
                 toolStrategy: {
-                    primary: ['web_search', 'paper_search'],
+                    primary: ['web_search', 'blog_search'],
                     fallback: ['web_fetch'],
-                    maxSources: 10,
+                    maxSources: 6,
                 },
             },
             {
                 id: 'task_1',
                 type: 'research',
-                description: 'Search for alternative viewpoints',
+                description: 'Search for peer-reviewed academic papers and published research',
                 dependencies: [],
                 toolStrategy: {
-                    primary: ['web_search', 'blog_search'],
-                    fallback: ['web_fetch'],
+                    primary: ['paper_search', 'arxiv_search'],
+                    fallback: ['web_search'],
                     maxSources: 8,
                 },
             },
             {
                 id: 'task_2',
                 type: 'critic',
-                description: 'Verify claims and detect contradictions',
+                description: 'Verify source reliability, check for contradictions, score confidence',
                 dependencies: ['task_0', 'task_1'],
                 toolStrategy: { primary: [], fallback: [], maxSources: 0 },
             },
             {
                 id: 'task_3',
                 type: 'synthesizer',
-                description: 'Synthesize findings',
+                description: 'Produce structured academic report with citations, key findings, and conclusion',
                 dependencies: ['task_2'],
                 toolStrategy: { primary: [], fallback: [], maxSources: 0 },
             },
             {
                 id: 'task_4',
                 type: 'memory',
-                description: 'Store in knowledge graph',
+                description: 'Store topic, key papers, and concepts for future continuity',
                 dependencies: ['task_3'],
                 toolStrategy: {
                     primary: ['vector_store', 'knowledge_graph'],
@@ -152,29 +162,25 @@ Consider:
                     maxSources: 0,
                 },
             },
-            {
-                id: 'task_5',
-                type: 'action',
-                description: 'Generate actionable outputs',
-                dependencies: ['task_3'],
-                toolStrategy: { primary: [], fallback: [], maxSources: 0 },
-            },
         ];
         return {
             subtasks,
-            strategy: this.determineStrategy(query),
+            strategy: this.determineAcademicStrategy(query),
             estimatedCost: 0.05,
             estimatedTime: 180,
         };
     }
-    determineStrategy(query) {
-        const lowerQuery = query.toLowerCase();
-        if (lowerQuery.includes('compare') || lowerQuery.includes('vs'))
+    determineAcademicStrategy(query) {
+        const lower = query.toLowerCase();
+        if (lower.includes('literature review') || lower.includes('survey') || lower.includes('systematic review')) {
+            return 'literature_review';
+        }
+        if (lower.includes('compare') || lower.includes('vs') || lower.includes('difference between')) {
             return 'comparative';
-        if (lowerQuery.includes('how to') || lowerQuery.includes('build'))
-            return 'actionable';
-        if (lowerQuery.includes('why') || lowerQuery.includes('explain'))
+        }
+        if (lower.includes('explain') || lower.includes('what is') || lower.includes('define') || lower.includes('how does')) {
             return 'explanatory';
+        }
         return 'comprehensive';
     }
 }
