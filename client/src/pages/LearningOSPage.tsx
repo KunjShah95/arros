@@ -5,11 +5,11 @@ import {
   ChevronRight, ChevronDown, CheckCircle, AlertCircle,
   Lightbulb, Target, Zap, Heart, MessageSquare,
   TrendingUp, TrendingDown, Minus, Sparkles, GraduationCap,
-  Briefcase, Resume, Video, Users, FileCode, AlertTriangle,
+  Briefcase, Video, Users, FileCode, AlertTriangle,
   Scale, Eye, RefreshCw, Send, Loader2
 } from 'lucide-react';
 import {
-  Card, Button, Input, Badge, ProgressBar, Select,
+  Card, Button, Input, Badge, ProgressBar,
   cn
 } from '../components/ui';
 import {

@@ -67,6 +67,7 @@ function GridBackground() {
 export function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navItems = ['Architecture', 'Capabilities', 'Academic Path', 'Community'];
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -96,7 +97,7 @@ export function LandingPage() {
           </div>
 
           <div className="hidden lg:flex items-center gap-10">
-            {['Architecture', 'Capabilities', 'Academic Path', 'Community'].map((item) => (
+            {navItems.map((item) => (
               <a
                 key={item}
                 href={`#${item.toLowerCase().replace(' ', '-')}`}
@@ -142,7 +143,7 @@ export function LandingPage() {
             </motion.h1>
 
             <motion.p variants={fadeInUp} className="text-lg text-silver max-w-xl mb-12 leading-relaxed">
-              ARROS is the world's first Autonomous Research & Reasoning OS that weaves together ancient Indian wisdom with cutting-edge synthesis. Not just an AI, but a second brain that remembers, reasonings, and realizes.
+              ARROS is an Autonomous Research & Reasoning OS that blends ancient Indian wisdom with modern synthesis. Not just an AI, but a second brain that remembers, reasons, and helps you realize ideas faster.
             </motion.p>
 
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4">
@@ -425,16 +426,25 @@ export function LandingPage() {
                 </button>
               </div>
               <div className="space-y-8">
-                {['Architecture', 'Capabilities', 'Academic Path', 'Community'].map((item) => (
-                  <a key={item} href="#" className="block text-2xl font-display font-bold uppercase tracking-widest text-white hover:text-saffron">
+                {navItems.map((item) => (
+                  <a
+                    key={item}
+                    href={`#${item.toLowerCase().replace(' ', '-')}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block text-2xl font-display font-bold uppercase tracking-widest text-white hover:text-saffron"
+                  >
                     {item}
                   </a>
                 ))}
               </div>
             </div>
             <div className="space-y-4">
-              <SanskritButton variant="primary" className="w-full">Initialize OS</SanskritButton>
-              <SanskritButton variant="secondary" className="w-full">SignIn</SanskritButton>
+              <SanskritButton variant="primary" className="w-full" onClick={() => { setMobileMenuOpen(false); window.location.href = '/app'; }}>
+                Initialize OS
+              </SanskritButton>
+              <SanskritButton variant="secondary" className="w-full" onClick={() => { setMobileMenuOpen(false); window.location.href = '/signin'; }}>
+                SignIn
+              </SanskritButton>
             </div>
           </motion.div>
         )}

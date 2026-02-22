@@ -120,15 +120,15 @@ export function SourcesPage() {
     : 0;
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6 pb-20">
-      <div className="max-w-6xl mx-auto py-6">
+    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-3 md:p-6 pb-24 md:pb-20 aurora-surface">
+      <div className="max-w-6xl mx-auto py-3 md:py-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="cut-card cut-border bg-graphite/40 p-6 relative overflow-hidden">
+          <div className="cut-card cut-border glass-premium p-5 md:p-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-48 h-48 -mr-16 -mt-16 opacity-5 pointer-events-none">
               <Mandala size="md" />
             </div>
@@ -144,7 +144,7 @@ export function SourcesPage() {
                   </div>
                 </div>
                 <p className="text-sm text-silver max-w-xl leading-relaxed">
-                  Every realizing in ARROS is backed by verified evidence. Review the foundations of your synthesized insights.
+                  Every realization in ARROS is backed by verified evidence. Review the foundations of your synthesized insights.
                 </p>
               </div>
 
@@ -164,7 +164,7 @@ export function SourcesPage() {
         </motion.div>
 
         {/* Filters */}
-        <div className="grid lg:grid-cols-[1fr_auto_auto] gap-4 mb-8">
+        <div className="grid lg:grid-cols-[1fr_auto_auto] gap-3 md:gap-4 mb-8">
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ash group-focus-within:text-gold transition-colors" />
             <input
@@ -172,14 +172,14 @@ export function SourcesPage() {
               placeholder="Search across the evidence matrix..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 bg-slate/40 border border-smoke/30 rounded-xl text-chalk placeholder:text-ash/40 focus:outline-none focus:border-gold/50 transition-all font-body text-sm"
+              className="w-full min-h-[44px] pl-12 pr-4 py-4 bg-slate/40 border border-smoke/30 rounded-xl text-chalk placeholder:text-ash/40 focus:outline-none focus:border-gold/50 transition-all font-body text-sm"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-6 py-4 bg-void border border-smoke/30 rounded-xl text-chalk text-[10px] uppercase font-bold tracking-widest focus:border-gold/50 transition-all"
+            className="px-4 md:px-6 min-h-[44px] py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-[10px] uppercase font-bold tracking-widest focus:border-gold/50 transition-all"
           >
             <option value="all">Universal Source</option>
             <option value="web">Loka (Web)</option>
@@ -191,7 +191,7 @@ export function SourcesPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-6 py-4 bg-void border border-smoke/30 rounded-xl text-chalk text-[10px] uppercase font-bold tracking-widest focus:border-gold/50 transition-all"
+            className="px-4 md:px-6 min-h-[44px] py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-[10px] uppercase font-bold tracking-widest focus:border-gold/50 transition-all"
           >
             <option value="recent">Navya (Recent)</option>
             <option value="reliability">Vishvasya (Trust)</option>

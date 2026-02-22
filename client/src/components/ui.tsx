@@ -25,7 +25,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles = `
-    inline-flex items-center justify-center font-medium 
+    inline-flex items-center justify-center font-medium min-h-[44px]
     transition-all duration-200 ease-out
     focus:outline-none focus-visible:ring-2 focus-visible:ring-peacock focus-visible:ring-offset-2 focus-visible:ring-offset-void
     disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
@@ -35,22 +35,22 @@ export function Button({
   const variants = {
     primary: `
       bg-saffron text-void hover:bg-saffron-light 
-      shadow-lg shadow-saffron-20 hover:shadow-saffron-30
+      shadow-[0_10px_28px_rgba(255,107,53,0.28)] hover:shadow-[0_14px_32px_rgba(255,107,53,0.36)]
       active:scale-[0.98]
     `,
     saffron: `
       bg-gradient-to-r from-saffron to-saffron-light text-void
-      hover:shadow-lg hover:shadow-saffron-30 hover:-translate-y-0.5
+      hover:shadow-[0_14px_32px_rgba(255,107,53,0.34)] hover:-translate-y-0.5
       active:translate-y-0
     `,
     peacock: `
       bg-peacock text-cream
-      hover:bg-peacock-light hover:shadow-lg hover:shadow-peacock-20 hover:-translate-y-0.5
+      hover:bg-peacock-light hover:shadow-[0_14px_32px_rgba(0,168,107,0.3)] hover:-translate-y-0.5
       active:translate-y-0
     `,
     gold: `
       bg-gold text-void font-semibold
-      hover:bg-gold-light hover:shadow-lg hover:shadow-gold-20 hover:-translate-y-0.5
+      hover:bg-gold-light hover:shadow-[0_14px_32px_rgba(212,168,75,0.3)] hover:-translate-y-0.5
       active:translate-y-0
     `,
     secondary: `
@@ -66,7 +66,7 @@ export function Button({
     `,
     electric: `
       bg-peacock text-void font-semibold
-      hover:shadow-lg hover:shadow-peacock-20 hover:-translate-y-0.5
+      hover:shadow-[0_14px_32px_rgba(0,168,107,0.28)] hover:-translate-y-0.5
       active:translate-y-0
     `,
   };
@@ -125,6 +125,7 @@ export function Input({ className, label, error, icon, ...props }: InputProps) {
         <input
           className={cn(
             'w-full px-4 py-3 bg-slate border border-smoke rounded-xl',
+            'min-h-[44px]',
             'text-chalk placeholder:text-ash',
             'focus:outline-none focus:border-saffron focus:ring-2 focus:ring-saffron-10',
             'transition-all duration-200',
@@ -232,7 +233,7 @@ export function Badge({
   children
 }: {
   className?: string;
-  variant?: 'default' | 'success' | 'warning' | 'error' | 'peacock' | 'saffron' | 'gold' | 'indus' | 'electric' | 'flame' | 'silver';
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'danger' | 'peacock' | 'saffron' | 'gold' | 'indus' | 'electric' | 'flame' | 'silver';
   children: React.ReactNode;
 }) {
   const variants: Record<string, string> = {
@@ -240,6 +241,7 @@ export function Badge({
     success: 'bg-peacock/10 text-peacock border border-peacock/20',
     warning: 'bg-marigold/10 text-marigold border border-marigold/20',
     error: 'bg-saffron/10 text-saffron border border-saffron/20',
+    danger: 'bg-saffron/10 text-saffron border border-saffron/20',
     peacock: 'bg-peacock/10 text-peacock border border-peacock/20',
     saffron: 'bg-saffron/10 text-saffron border border-saffron/20',
     gold: 'bg-gold/10 text-gold border border-gold/20',
@@ -473,6 +475,7 @@ export function SanskritButton({
     <button
       className={cn(
         'relative px-8 py-4 rounded-xl font-display font-bold transition-all duration-300',
+        'min-h-[44px]',
         'hover:-translate-y-1 active:translate-y-0 active:scale-95',
         'cut-card cut-border',
         variant === 'primary'

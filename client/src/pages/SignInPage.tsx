@@ -32,7 +32,7 @@ export function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-void relative overflow-hidden font-body selection:bg-saffron selection:text-void">
+    <div className="min-h-screen bg-void relative overflow-hidden font-body selection:bg-saffron selection:text-void aurora-surface">
       <div className="noise-overlay" />
       <GridBackground />
 
@@ -41,14 +41,14 @@ export function SignInPage() {
         <Mandala size="lg" className="animate-[spin_40s_linear_infinite]" />
       </div>
 
-      <div className="min-h-screen flex items-center justify-center px-6 py-16 relative z-10">
+      <div className="min-h-screen flex items-center justify-center px-3 md:px-6 py-10 md:py-16 relative z-10">
         <div className="w-full max-w-[440px] perspective-1000">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Card className="p-8 pb-10 bg-graphite/40 backdrop-blur-2xl border-smoke/30 cut-card relative overflow-hidden">
+            <Card className="p-6 md:p-8 pb-8 md:pb-10 glass-premium border-smoke/30 cut-card relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 opacity-10 pointer-events-none">
                 <Mandala size="md" />
               </div>
@@ -74,7 +74,7 @@ export function SignInPage() {
                       type="email"
                       required
                       placeholder="scholar@nexus.edu"
-                      className="w-full bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-saffron/50 transition-all font-body text-sm"
+                      className="w-full min-h-[44px] bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-saffron/50 transition-all font-body text-sm"
                     />
                   </div>
                 </div>
@@ -94,13 +94,13 @@ export function SignInPage() {
                       type="password"
                       required
                       placeholder="••••••••"
-                      className="w-full bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-saffron/50 transition-all font-body text-sm"
+                      className="w-full min-h-[44px] bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-saffron/50 transition-all font-body text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 py-1">
-                  <div className="w-4 h-4 rounded-sm border border-smoke/50 flex items-center justify-center cursor-pointer hover:border-saffron/50 transition-colors">
+                    <div className="w-6 h-6 min-w-[44px] min-h-[44px] rounded-sm border border-smoke/50 flex items-center justify-center cursor-pointer hover:border-saffron/50 transition-colors">
                     <ShieldCheck className="w-3 h-3 text-peacock opacity-0 hover:opacity-100 transition-opacity" />
                   </div>
                   <span className="text-xs text-ash">Maintain persistent connection</span>
@@ -119,11 +119,11 @@ export function SignInPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <button className="flex items-center justify-center gap-3 px-4 py-3 bg-void border border-smoke/20 rounded-xl text-ash hover:text-chalk hover:border-smoke/40 transition-all group">
+                  <button className="flex items-center justify-center gap-3 px-4 min-h-[44px] py-3 bg-void border border-smoke/20 rounded-xl text-ash hover:text-chalk hover:border-smoke/40 transition-all group">
                     <Github className="w-4 h-4" />
                     <span className="text-[10px] uppercase font-bold tracking-widest">Connect</span>
                   </button>
-                  <button className="flex items-center justify-center gap-3 px-4 py-3 bg-void border border-smoke/20 rounded-xl text-ash hover:text-chalk hover:border-smoke/40 transition-all group">
+                  <button className="flex items-center justify-center gap-3 px-4 min-h-[44px] py-3 bg-void border border-smoke/20 rounded-xl text-ash hover:text-chalk hover:border-smoke/40 transition-all group">
                     <div className="w-4 h-4 rounded-full border-2 border-peacock/30 group-hover:border-peacock/60 transition-colors" />
                     <span className="text-[10px] uppercase font-bold tracking-widest">Scholar ID</span>
                   </button>

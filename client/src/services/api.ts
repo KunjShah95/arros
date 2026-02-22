@@ -320,8 +320,8 @@ export const careerApi = {
 
 // Confidence Booster
 export const confidenceApi = {
-  detectHesitation: async (response: string, responseTime: number) => {
-    const response = await api.post('/confidence/hesitation', { response, responseTime });
+  detectHesitation: async (responseText: string, responseTime: number) => {
+    const response = await api.post('/confidence/hesitation', { response: responseText, responseTime });
     return response.data;
   },
   generateEncouragement: async (context: any, tone?: string) => {

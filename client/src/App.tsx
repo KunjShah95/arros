@@ -136,13 +136,17 @@ function AppLayout() {
   };
 
   return (
-    <div className="h-screen flex bg-void overflow-hidden">
+    <div className="h-screen flex bg-void overflow-hidden relative">
       <Sidebar
         activeView={activeView}
         onViewChange={setActiveView}
         onNewResearch={handleNewResearch}
       />
-      <main className="flex-1 overflow-hidden relative">
+      <main className="flex-1 overflow-hidden relative pb-[5.5rem] md:pb-0">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-24 right-[-8rem] w-[24rem] h-[24rem] bg-saffron/8 blur-3xl" />
+          <div className="absolute bottom-[-10rem] left-[-8rem] w-[28rem] h-[28rem] bg-peacock/8 blur-3xl" />
+        </div>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeView}

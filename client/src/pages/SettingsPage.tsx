@@ -75,15 +75,15 @@ export function SettingsPage() {
   const configuredKeys = apiKeys.filter((k) => savedKeys[k.key] || k.key === 'SARVAM_API_KEY').length; // Mock SARVAM as configured
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6 pb-20">
-      <div className="max-w-4xl mx-auto py-6">
+    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-3 md:p-6 pb-24 md:pb-20 aurora-surface">
+      <div className="max-w-4xl mx-auto py-3 md:py-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="cut-card cut-border bg-graphite/40 p-8 relative overflow-hidden">
+          <div className="cut-card cut-border glass-premium p-5 md:p-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 -mr-20 -mt-20 opacity-[0.03] pointer-events-none">
               <Mandala size="lg" />
             </div>
@@ -128,7 +128,7 @@ export function SettingsPage() {
                 <Badge variant="saffron" className="text-[9px] uppercase">{configuredKeys}/{apiKeys.length} ACTIVE</Badge>
               </div>
 
-              <Card className="cut-card cut-border bg-slate/40 p-6 space-y-4">
+              <Card className="cut-card cut-border glass-premium p-6 space-y-4">
                 {apiKeys.map((apiKey, index) => (
                   <ApiKeyInput
                     key={apiKey.key}
@@ -163,11 +163,11 @@ export function SettingsPage() {
                 <Cpu className="w-4 h-4 text-peacock" />
                 Reasoning Parameters
               </h3>
-              <Card className="cut-card cut-border bg-slate/40 p-6 space-y-6">
+              <Card className="cut-card cut-border glass-premium p-6 space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="text-[10px] uppercase font-bold text-ash tracking-[0.2em] block mb-2">Default Atman (Model)</label>
-                    <select className="w-full px-4 py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-xs focus:border-peacock/50 outline-none transition-all">
+                    <select className="w-full min-h-[44px] px-4 py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-xs focus:border-peacock/50 outline-none transition-all">
                       <option>GPT-4o (Mahatma)</option>
                       <option>Claude 3.5 Sonnet (Scholar)</option>
                       <option>GPT-4o Mini (Seeker)</option>
@@ -175,7 +175,7 @@ export function SettingsPage() {
                   </div>
                   <div>
                     <label className="text-[10px] uppercase font-bold text-ash tracking-[0.2em] block mb-2">Evidence Depth</label>
-                    <select className="w-full px-4 py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-xs focus:border-peacock/50 outline-none transition-all">
+                    <select className="w-full min-h-[44px] px-4 py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-xs focus:border-peacock/50 outline-none transition-all">
                       <option>Sutra (Concise - 5 sources)</option>
                       <option>Grantha (Standard - 15 sources)</option>
                       <option>Puran (Deep - 30 sources)</option>
@@ -201,7 +201,7 @@ export function SettingsPage() {
                 <Palette className="w-4 h-4 text-gold" />
                 Aesthetic Preferences
               </h3>
-              <Card className="cut-card cut-border bg-slate/40 p-6 space-y-4">
+              <Card className="cut-card cut-border glass-premium p-6 space-y-4">
                 {[
                   { id: 'dark', label: 'Vedic Void (Dark Mode)', desc: 'Standard obsidian interface', active: true },
                   { id: 'anim', label: 'Lila (Animations)', desc: 'Enable fluid UI transitions', active: true },
@@ -224,7 +224,7 @@ export function SettingsPage() {
                 <Database className="w-4 h-4 text-silver" />
                 Memory Governance
               </h3>
-              <Card className="cut-card cut-border bg-slate/40 p-6 space-y-4">
+              <Card className="cut-card cut-border glass-premium p-6 space-y-4">
                 <div className="p-4 cut-card bg-void border border-smoke/20">
                   <p className="text-xs font-bold text-white mb-2">Memory Expunge</p>
                   <p className="text-[10px] text-ash uppercase tracking-widest mb-4">Wipe all synthesized knowledge and realization history</p>
@@ -325,13 +325,13 @@ function Toggle({ defaultChecked = false }: { defaultChecked?: boolean }) {
       type="button"
       onClick={() => setChecked(!checked)}
       className={cn(
-        "relative w-10 h-5 rounded-full transition-colors duration-300",
+        "relative w-12 h-6 min-w-[44px] min-h-[44px] rounded-full transition-colors duration-300 flex items-center",
         checked ? 'bg-peacock' : 'bg-smoke/30'
       )}
     >
       <motion.span
-        className="absolute top-1 left-1 w-3 h-3 rounded-full bg-void shadow-sm"
-        animate={{ x: checked ? 20 : 0 }}
+        className="absolute top-1.5 left-1 w-3 h-3 rounded-full bg-void shadow-sm"
+        animate={{ x: checked ? 24 : 0 }}
         transition={{ type: "spring", stiffness: 500, damping: 30 }}
       />
     </button>

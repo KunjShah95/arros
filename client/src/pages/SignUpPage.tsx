@@ -32,7 +32,7 @@ export function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-void relative overflow-hidden font-body selection:bg-peacock selection:text-void">
+    <div className="min-h-screen bg-void relative overflow-hidden font-body selection:bg-peacock selection:text-void aurora-surface">
       <div className="noise-overlay" />
       <GridBackground />
 
@@ -41,14 +41,14 @@ export function SignUpPage() {
         <Mandala size="lg" className="animate-[spin_40s_linear_infinite]" />
       </div>
 
-      <div className="min-h-screen flex items-center justify-center px-6 py-16 relative z-10">
+      <div className="min-h-screen flex items-center justify-center px-3 md:px-6 py-10 md:py-16 relative z-10">
         <div className="w-full max-w-[480px] perspective-1000">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Card className="p-8 pb-10 bg-graphite/40 backdrop-blur-2xl border-smoke/30 cut-card relative overflow-hidden">
+            <Card className="p-6 md:p-8 pb-8 md:pb-10 glass-premium border-smoke/30 cut-card relative overflow-hidden">
               <div className="absolute bottom-0 left-0 w-32 h-32 -ml-16 -mb-16 opacity-10 pointer-events-none">
                 <Mandala size="md" />
               </div>
@@ -75,7 +75,7 @@ export function SignUpPage() {
                         type="text"
                         required
                         placeholder="Arya Sharma"
-                        className="w-full bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-peacock/50 transition-all font-body text-sm"
+                        className="w-full min-h-[44px] bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-peacock/50 transition-all font-body text-sm"
                       />
                     </div>
                   </div>
@@ -90,7 +90,7 @@ export function SignUpPage() {
                         type="email"
                         required
                         placeholder="scholar@nexus.edu"
-                        className="w-full bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-peacock/50 transition-all font-body text-sm"
+                        className="w-full min-h-[44px] bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-peacock/50 transition-all font-body text-sm"
                       />
                     </div>
                   </div>
@@ -105,14 +105,14 @@ export function SignUpPage() {
                         type="password"
                         required
                         placeholder="Create a secure sutra"
-                        className="w-full bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-peacock/50 transition-all font-body text-sm"
+                        className="w-full min-h-[44px] bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-peacock/50 transition-all font-body text-sm"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 py-2 px-1">
-                  <input type="checkbox" className="w-4 h-4 rounded border-smoke/30 bg-void/50 text-peacock focus:ring-peacock/20" required />
+                  <input type="checkbox" className="w-5 h-5 min-w-[20px] min-h-[20px] rounded border-smoke/30 bg-void/50 text-peacock focus:ring-peacock/20" required />
                   <p className="text-[10px] text-ash leading-relaxed">
                     I agree to the <span className="text-white hover:text-peacock cursor-pointer transition-colors underline underline-offset-2">Nexus Protocol</span> and the usage of Vedic reasoned intelligence.
                   </p>

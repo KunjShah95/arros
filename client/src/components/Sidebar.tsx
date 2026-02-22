@@ -12,9 +12,11 @@ import {
   Mic,
   Eye,
   BookMarked,
-  Hexagon,
-  Sparkles
+  Sparkles,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { cn } from './ui';
 
 interface SidebarProps {
@@ -40,134 +42,149 @@ const toolsNavItems = [
 ];
 
 export function Sidebar({ activeView, onViewChange, onNewResearch }: SidebarProps) {
+  const [expanded, setExpanded] = useState(true);
+
+  const mobileItems = useMemo(
+    () => [
+      { id: 'dashboard', icon: LayoutDashboard, label: 'Home' },
+      { id: 'workspace', icon: Search, label: 'Research' },
+      { id: 'graph', icon: Brain, label: 'Graph' },
+      { id: 'history', icon: Clock, label: 'History' },
+      { id: 'settings', icon: Settings, label: 'Settings' },
+    ],
+    []
+  );
+
   return (
-    <aside className="w-16 h-full bg-void border-r border-smoke/30 flex flex-col items-center py-4 relative overflow-hidden z-20">
-      {/* Subtle Vedic Glow */}
-      <div className="absolute top-0 left-0 w-full h-[200px] bg-gradient-to-b from-saffron/10 to-transparent pointer-events-none opacity-50" />
-
-      {/* ARROS Logo */}
-      <div className="mb-6 relative z-10">
-        <Link
-          to="/"
-          className="w-11 h-11 bg-gradient-to-br from-saffron to-gold text-void flex items-center justify-center hover:opacity-90 transition-opacity cut-card shadow-xl shadow-saffron/20 group"
-          title="ARROS — Academic Research OS"
-        >
-          <GraduationCap className="w-5 h-5 group-hover:scale-110 transition-transform" />
-        </Link>
-      </div>
-
-      {/* New Research Button */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onNewResearch}
-        className="w-11 h-11 bg-graphite border border-saffron/40 text-saffron flex items-center justify-center hover:bg-saffron hover:text-void transition-all cut-card shadow-lg shadow-saffron/10 mb-6"
-        title="Initialize New Realization"
+    <>
+      <aside
+        className={cn(
+          'hidden md:flex h-full bg-void/95 border-r border-smoke/40 flex-col py-4 px-2 relative overflow-hidden z-20 transition-[width] duration-300 ease-out',
+          expanded ? 'w-64' : 'w-[4.75rem]'
+        )}
       >
-        <Plus className="w-4 h-4" />
-      </motion.button>
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-12 -left-10 h-36 w-36 rounded-full bg-saffron/10 blur-2xl" />
+          <div className="absolute bottom-8 -right-8 h-40 w-40 rounded-full bg-peacock/10 blur-2xl" />
+        </div>
 
-      {/* Main Nav */}
-      <nav className="flex-1 flex flex-col gap-1.5 relative z-10 w-full px-2">
-        {mainNavItems.map((item) => (
-          <motion.button
-            key={item.id}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onViewChange(item.id)}
-            className={cn(
-              'w-full aspect-square flex items-center justify-center transition-all relative group',
-              activeView === item.id
-                ? 'bg-saffron/10 text-saffron cut-card'
-                : 'text-ash hover:text-saffron hover:bg-smoke/20 cut-card'
-            )}
-            title={item.label}
+        <div className="relative z-10 flex items-center gap-2 mb-4 px-1">
+          <Link
+            to="/"
+            className="h-11 w-11 shrink-0 bg-gradient-to-br from-saffron to-gold text-void flex items-center justify-center cut-card shadow-xl shadow-saffron/20"
+            title="ARROS — Academic Research OS"
           >
-            <item.icon className={cn(
-              "w-4 h-4 transition-all",
-              activeView === item.id && "scale-110"
-            )} />
-            {activeView === item.id && (
-              <motion.div
-                layoutId="active-nav-indicator"
-                className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-saffron rounded-full"
-              />
-            )}
-            {/* Hover shadow */}
-            <div className="absolute inset-0 rounded-xl bg-saffron/5 opacity-0 group-hover:opacity-100 transition-opacity -z-10" />
-          </motion.button>
-        ))}
-      </nav>
+            <GraduationCap className="w-5 h-5" />
+          </Link>
 
-      {/* Tools Section */}
-      <div className="flex flex-col gap-1.5 relative z-10 w-full px-2 mt-4">
-        <div className="w-full h-px bg-smoke/20 mb-2" />
-        {toolsNavItems.map((item) => (
-          <motion.button
-            key={item.id}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onViewChange(item.id)}
-            className={cn(
-              'w-full aspect-square flex items-center justify-center transition-all relative group',
-              activeView === item.id
-                ? 'bg-peacock/10 text-peacock cut-card'
-                : 'text-ash hover:text-peacock hover:bg-smoke/20 cut-card'
-            )}
-            title={item.label}
+          <div className={cn('overflow-hidden transition-all', expanded ? 'w-full opacity-100' : 'w-0 opacity-0')}>
+            <p className="text-sm font-semibold text-chalk leading-none">ARROS OS</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ash mt-1">Research cockpit</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="h-10 w-10 min-h-[44px] min-w-[44px] shrink-0 flex items-center justify-center rounded-xl border border-smoke/60 text-ash hover:text-chalk hover:border-saffron/40 transition-colors"
+            title={expanded ? 'Collapse navigation' : 'Expand navigation'}
+            aria-label={expanded ? 'Collapse navigation' : 'Expand navigation'}
           >
-            <item.icon className={cn(
-              "w-4 h-4 transition-all",
-              activeView === item.id && "scale-110"
-            )} />
-            {activeView === item.id && (
-              <motion.div
-                layoutId="active-tool-indicator"
-                className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-peacock rounded-full"
-              />
-            )}
-          </motion.button>
-        ))}
-      </div>
-
-      {/* Bottom Actions */}
-      <div className="mt-auto flex flex-col gap-2 w-full px-2">
-        <div className="w-full h-px bg-smoke/20 my-2" />
+            {expanded ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+          </button>
+        </div>
 
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => onViewChange('settings')}
-          className={cn(
-            'w-full aspect-square flex items-center justify-center transition-all relative group',
-            activeView === 'settings'
-              ? 'bg-gold/10 text-gold cut-card'
-              : 'text-ash hover:text-gold hover:bg-smoke/20 cut-card'
-          )}
-          title="Universal Settings"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onNewResearch}
+          className="h-12 min-h-[44px] w-full mb-4 bg-gradient-to-r from-saffron to-gold text-void flex items-center justify-center gap-2 cut-card shadow-lg shadow-saffron/20"
+          title="Initialize New Realization"
         >
-          <Settings className={cn(
-            "w-4 h-4 transition-all",
-            activeView === 'settings' && "animate-[spin_10s_linear_infinite]"
-          )} />
-          {activeView === 'settings' && (
-            <motion.div
-              layoutId="active-settings-indicator"
-              className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-gold rounded-full"
-            />
-          )}
+          <Plus className="w-4 h-4" />
+          <span className={cn('text-xs uppercase tracking-[0.15em] font-semibold transition-opacity', !expanded && 'hidden')}>
+            New Research
+          </span>
         </motion.button>
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="w-full aspect-square flex items-center justify-center text-ash/40 hover:text-saffron transition-all"
-          title="Vedic Engine v1.0"
+        <nav className="flex-1 flex flex-col gap-1.5 relative z-10">
+          {mainNavItems.map((item) => {
+            const isActive = activeView === item.id;
+
+            return (
+              <button
+                key={item.id}
+                onClick={() => onViewChange(item.id)}
+                className={cn(
+                  'w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all relative text-left',
+                  isActive
+                    ? 'bg-saffron/14 text-saffron border border-saffron/30'
+                    : 'text-ash hover:text-chalk hover:bg-smoke/20 border border-transparent hover:border-smoke/30'
+                )}
+                title={item.label}
+              >
+                <item.icon className={cn('w-4 h-4 shrink-0', isActive && 'scale-105')} />
+                <span className={cn('text-sm whitespace-nowrap', !expanded && 'hidden')}>{item.label}</span>
+                {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-saffron rounded-full" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="mt-4 pt-4 border-t border-smoke/30 space-y-1.5">
+          {toolsNavItems.map((item) => {
+            const isActive = activeView === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onViewChange(item.id)}
+                className={cn(
+                  'w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all relative text-left',
+                  isActive
+                    ? 'bg-peacock/14 text-peacock border border-peacock/30'
+                    : 'text-ash hover:text-chalk hover:bg-smoke/20 border border-transparent hover:border-smoke/30'
+                )}
+                title={item.label}
+              >
+                <item.icon className="w-4 h-4 shrink-0" />
+                <span className={cn('text-sm whitespace-nowrap', !expanded && 'hidden')}>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 px-2 pb-2 pt-1 bg-void/90 backdrop-blur-xl border-t border-smoke/40">
+        <div className="grid grid-cols-5 gap-1">
+          {mobileItems.map((item) => {
+            const isActive = activeView === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onViewChange(item.id)}
+                className={cn(
+                  'min-h-[44px] rounded-xl flex flex-col items-center justify-center gap-1 transition-colors',
+                  isActive ? 'bg-saffron/15 text-saffron' : 'text-ash hover:bg-smoke/30'
+                )}
+                title={item.label}
+              >
+                <item.icon className="w-4 h-4" />
+                <span className="text-[10px] uppercase tracking-[0.08em]">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={onNewResearch}
+          className="absolute -top-5 right-4 h-12 w-12 min-h-[44px] min-w-[44px] rounded-2xl bg-gradient-to-r from-saffron to-gold text-void flex items-center justify-center shadow-[0_12px_30px_rgba(255,107,53,0.35)]"
+          aria-label="Start new research"
+          title="New research"
         >
-          <Hexagon className="w-4 h-4" />
-        </motion.button>
+          <Plus className="w-5 h-5" />
+        </button>
       </div>
-    </aside>
+    </>
   );
 }
 

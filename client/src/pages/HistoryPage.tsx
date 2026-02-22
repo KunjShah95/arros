@@ -121,15 +121,15 @@ export function HistoryPage() {
   }, {} as Record<string, Session[]>);
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6 pb-20">
-      <div className="max-w-6xl mx-auto py-6">
+    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-3 md:p-6 pb-24 md:pb-20 aurora-surface">
+      <div className="max-w-6xl mx-auto py-3 md:py-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="cut-card cut-border bg-graphite/40 p-6 relative overflow-hidden">
+          <div className="cut-card cut-border glass-premium p-5 md:p-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-48 h-48 -mr-16 -mt-16 opacity-5 pointer-events-none">
               <Mandala size="md" />
             </div>
@@ -164,7 +164,7 @@ export function HistoryPage() {
         </motion.div>
 
         {/* Filters */}
-        <div className="grid lg:grid-cols-[1fr_auto] gap-4 mb-8">
+        <div className="grid lg:grid-cols-[1fr_auto] gap-3 md:gap-4 mb-8">
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ash group-focus-within:text-saffron transition-colors" />
             <input
@@ -172,7 +172,7 @@ export function HistoryPage() {
               placeholder="Search the ledger of realizations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 bg-slate/40 border border-smoke/30 rounded-xl text-chalk placeholder:text-ash/40 focus:outline-none focus:border-saffron/50 transition-all font-body text-sm"
+              className="w-full min-h-[44px] pl-12 pr-4 py-4 bg-slate/40 border border-smoke/30 rounded-xl text-chalk placeholder:text-ash/40 focus:outline-none focus:border-saffron/50 transition-all font-body text-sm"
             />
           </div>
 
@@ -182,7 +182,7 @@ export function HistoryPage() {
                 key={status}
                 onClick={() => setFilterStatus(status)}
                 className={cn(
-                  "px-6 py-4 rounded-xl font-display font-bold text-[10px] uppercase tracking-widest transition-all cut-card",
+                  "px-4 md:px-6 min-h-[44px] py-3 rounded-xl font-display font-bold text-[10px] uppercase tracking-widest transition-all cut-card",
                   filterStatus === status
                     ? 'bg-saffron text-void shadow-lg shadow-saffron/20'
                     : 'bg-slate/40 text-ash hover:text-silver border border-smoke/20'

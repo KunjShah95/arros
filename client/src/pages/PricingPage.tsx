@@ -148,12 +148,12 @@ export function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   return (
-    <div className="min-h-screen bg-void relative overflow-hidden">
+    <div className="min-h-screen bg-void relative overflow-hidden aurora-surface">
       <div className="noise-overlay" />
       <div className="absolute inset-0 grid-pattern opacity-20" />
       <AuroraBackground />
 
-      <div className="relative z-10 pt-24 pb-12 px-6">
+      <div className="relative z-10 pt-20 md:pt-24 pb-10 md:pb-12 px-3 md:px-6">
         <div className="max-w-5xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -168,10 +168,10 @@ export function PricingPage() {
               Start free, scale as you grow. No credit card required to begin.
             </p>
 
-            <div className="inline-flex items-center gap-4 p-1.5 cut-card bg-slate/80 border border-smoke backdrop-blur-xl">
+            <div className="inline-flex items-center gap-2 p-1.5 cut-card glass-premium">
               <button
                 onClick={() => setBillingCycle('monthly')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-4 min-h-[44px] py-2 rounded-lg text-sm font-medium transition-all ${
                   billingCycle === 'monthly' 
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg' 
                     : 'text-silver hover:text-chalk'
@@ -181,7 +181,7 @@ export function PricingPage() {
               </button>
               <button
                 onClick={() => setBillingCycle('yearly')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                className={`px-4 min-h-[44px] py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
                   billingCycle === 'yearly' 
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg' 
                     : 'text-silver hover:text-chalk'
@@ -195,7 +195,7 @@ export function PricingPage() {
         </div>
       </div>
 
-      <div className="relative z-10 px-6 pb-24">
+      <div className="relative z-10 px-3 md:px-6 pb-16 md:pb-24">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {plans.map((plan, index) => (
@@ -212,7 +212,7 @@ export function PricingPage() {
         </div>
       </div>
 
-      <div className="relative z-10 px-6 pb-24">
+      <div className="relative z-10 px-3 md:px-6 pb-16 md:pb-24">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="display-md font-display font-bold text-chalk mb-4">
@@ -221,7 +221,7 @@ export function PricingPage() {
           </div>
 
           <HoverCard>
-            <Card className="overflow-hidden cut-card cut-border bg-gray-900/80 backdrop-blur-xl">
+            <Card className="overflow-hidden cut-card cut-border glass-premium">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -291,7 +291,7 @@ export function PricingPage() {
         </div>
       </div>
 
-      <div className="relative z-10 px-6 pb-24 bg-slate/30">
+      <div className="relative z-10 px-3 md:px-6 pb-16 md:pb-24 bg-slate/30">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="display-md font-display font-bold text-chalk mb-4">
@@ -324,10 +324,10 @@ export function PricingPage() {
         </div>
       </div>
 
-      <div className="relative z-10 px-6 pb-24">
+      <div className="relative z-10 px-3 md:px-6 pb-16 md:pb-24">
         <div className="max-w-3xl mx-auto text-center">
           <HoverCard>
-            <Card variant="elevated" className="p-12 relative overflow-hidden cut-card cut-border bg-gray-900/80 backdrop-blur-xl">
+            <Card variant="elevated" className="p-8 md:p-12 relative overflow-hidden cut-card cut-border glass-premium">
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10" />
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px]" />
               <div className="relative">
@@ -335,7 +335,7 @@ export function PricingPage() {
                   Ready to start researching smarter?
                 </h2>
                 <p className="text-lg text-silver mb-8">
-                  Join thousands of researchers, engineers, and knowledge workers using Nexus.
+                  Join thousands of researchers, engineers, and knowledge workers building with ARROS.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Button variant="electric" size="lg" className="gap-2 relative overflow-hidden group">
@@ -384,7 +384,7 @@ function PricingCard({
         <div className={`absolute -inset-px rounded-2xl bg-gradient-to-r ${plan.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm`} />
         
         <Card 
-          className={`h-full flex flex-col relative cut-card cut-border bg-gray-900/80 backdrop-blur-xl ${
+          className={`h-full flex flex-col relative cut-card cut-border glass-premium ${
             plan.popular ? 'border-indigo-500/50 shadow-lg shadow-indigo-500/10' : ''
           }`}
         >
@@ -442,7 +442,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
       animate={{ opacity: 1, y: 0 }}
     >
       <HoverCard>
-        <Card className="p-0 overflow-hidden cut-card cut-border bg-gray-900/80 backdrop-blur-xl cursor-pointer group" onClick={() => setIsOpen(!isOpen)}>
+        <Card className="p-0 overflow-hidden cut-card cut-border glass-premium cursor-pointer group" onClick={() => setIsOpen(!isOpen)}>
           <button
             className="w-full p-4 flex items-center justify-between text-left"
           >

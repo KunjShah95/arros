@@ -63,6 +63,8 @@
   --color-warning: #ffc857;
   --color-error: #ff6b35;
   --color-info: #6c5ce7;
+  --color-mint: #2dd4a0;
+  --color-vibrant: #ff8c5a;
 
   /* Aceternity-style colors */
   --color-indigo-400: #818cf8;
@@ -105,6 +107,7 @@ body {
   color: var(--color-chalk);
   -webkit-font-smoothing: antialiased;
   line-height: 1.6;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -148,6 +151,15 @@ h1, h2, h3, h4, h5, h6 {
   outline-offset: 2px;
 }
 
+/* Better keyboard clarity on dark surfaces */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  box-shadow: 0 0 0 2px rgba(9, 10, 15, 0.9), 0 0 0 4px rgba(0, 168, 107, 0.45);
+}
+
 /* Input focus */
 input:focus, textarea:focus, select:focus {
   outline: none;
@@ -168,6 +180,12 @@ input:focus, textarea:focus, select:focus {
 .glass {
   background: rgba(19, 21, 28, 0.78);
   backdrop-filter: blur(14px);
+}
+
+.glass-premium {
+  background: linear-gradient(160deg, rgba(19, 21, 28, 0.86), rgba(13, 14, 20, 0.78));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
 }
 
 /* Text balance */
@@ -297,6 +315,38 @@ input:focus, textarea:focus, select:focus {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 
+.aurora-surface {
+  position: relative;
+  isolation: isolate;
+}
+
+.aurora-surface::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto;
+  height: 55%;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(45% 45% at 20% 40%, rgba(255, 107, 53, 0.18) 0%, transparent 70%),
+    radial-gradient(40% 40% at 80% 30%, rgba(0, 168, 107, 0.17) 0%, transparent 70%),
+    radial-gradient(35% 35% at 55% 20%, rgba(212, 168, 75, 0.12) 0%, transparent 70%);
+  filter: blur(16px);
+}
+
+.interactive-lift {
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.interactive-lift:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.interactive-lift:active {
+  transform: translateY(0) scale(0.98);
+}
+
 /* Temple frame - ornate border */
 .prism-frame {
   position: relative;
@@ -419,5 +469,16 @@ input:focus, textarea:focus, select:focus {
   
   .display-md {
     font-size: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

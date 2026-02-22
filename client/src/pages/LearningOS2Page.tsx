@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Brain, FileText, Target, Code, Briefcase, Heart, Lightbulb,
-  Sparkles, Quiz, Compass, TrendingUp, Calendar, Search,
+  Sparkles, CircleHelp, Compass, TrendingUp, Calendar, Search,
   BookOpen, Award, Link2, Clock, CheckCircle, AlertCircle,
   Video, ExternalLink, Download, Copy, Send, Loader2,
   GraduationCap, BarChart2, Users, Layers, Fingerprint
@@ -16,7 +16,7 @@ import {
 } from '../services/api';
 
 const features2 = [
-  { id: 'quiz', icon: Quiz, label: 'Quiz Generator', color: 'from-blue to-cyan' },
+  { id: 'quiz', icon: CircleHelp, label: 'Quiz Generator', color: 'from-blue to-cyan' },
   { id: 'style', icon: Fingerprint, label: 'Learning Style', color: 'from-purple to-pink' },
   { id: 'analytics', icon: TrendingUp, label: 'Predictive Analytics', color: 'from-green to-emerald' },
   { id: 'calendar', icon: Calendar, label: 'Calendar', color: 'from-orange to-amber' },
@@ -124,7 +124,7 @@ function QuizGeneratorPanel() {
   return (
     <Card className="p-6 bg-graphite/40 border border-smoke/20">
       <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-        <Quiz className="w-5 h-5 text-blue" />
+        <CircleHelp className="w-5 h-5 text-blue" />
         AI Quiz Generator
       </h3>
 
@@ -607,7 +607,7 @@ function LearningSidebar2() {
         <h4 className="text-xs uppercase text-ash tracking-wider mb-4">Recent Activity</h4>
         <div className="space-y-2">
           {[
-            { icon: Quiz, text: 'Quiz completed', time: '2h ago' },
+            { icon: CircleHelp, text: 'Quiz completed', time: '2h ago' },
             { icon: Calendar, text: 'Schedule updated', time: '5h ago' },
             { icon: Award, text: 'Certificate earned', time: '1d ago' },
           ].map((item, i) => (

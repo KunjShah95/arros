@@ -52,6 +52,11 @@ export function ResearchWorkspace({
   const [isRecording, setIsRecording] = useState(false);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [executingActionId, setExecutingActionId] = useState<string | null>(null);
+  const quickPrompts = [
+    'Give me a compact lit review on multimodal RAG systems',
+    'Compare RLHF vs DPO with latest benchmarks',
+    'Create an exam-ready summary of quantum optimization methods',
+  ];
 
   useEffect(() => {
     const fetchIntegrations = async () => {
@@ -133,17 +138,17 @@ export function ResearchWorkspace({
   const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
 
   return (
-    <div className="flex h-full gap-6 flex-col lg:flex-row overflow-hidden">
+    <div className="flex h-full gap-4 md:gap-6 flex-col lg:flex-row overflow-hidden px-3 md:px-5 lg:px-6 py-3 md:py-4 aurora-surface">
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Workspace header */}
-        <div className="mb-4 cut-card cut-border bg-graphite/60 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-shrink-0">
+        <div className="mb-4 cut-card cut-border glass-premium p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-shrink-0">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <GraduationCap className="w-4 h-4 text-peacock" />
               <Badge variant="peacock">Research Workspace</Badge>
             </div>
-            <p className="text-xs text-ash">Academic Research OS — 5 Agent Pipeline</p>
+            <p className="text-xs text-ash">Academic Research OS — multi-agent verification pipeline</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="cut-card bg-slate/70 px-3 py-2 text-xs text-ash uppercase tracking-[0.15em]">
@@ -159,7 +164,7 @@ export function ResearchWorkspace({
 
         {/* Search bar */}
         <div className="mb-4 flex-shrink-0">
-          <form onSubmit={handleSubmit} className="relative cut-card cut-border bg-slate/70 p-3">
+          <form onSubmit={handleSubmit} className="relative cut-card cut-border glass-premium p-3">
             <div className="flex flex-col sm:flex-row gap-3 items-stretch">
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ash" />
@@ -170,6 +175,9 @@ export function ResearchWorkspace({
                   className="w-full pl-11 pr-4 py-3.5 bg-graphite/80 border border-smoke rounded-xl text-chalk placeholder:text-ash text-sm focus:outline-none focus:border-peacock focus:ring-2 focus:ring-peacock/10 transition-all"
                   disabled={isResearching}
                 />
+                <span className="hidden md:inline-flex absolute right-3 top-1/2 -translate-y-1/2 text-[10px] uppercase tracking-[0.15em] text-ash border border-smoke/60 rounded-md px-2 py-1">
+                  Enter ↵
+                </span>
               </div>
 
               {/* Voice Controls */}
@@ -225,6 +233,21 @@ export function ResearchWorkspace({
                 )}
               </div>
             </div>
+
+            {!result && !isResearching && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {quickPrompts.map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => onSubmit(prompt)}
+                    className="min-h-[44px] px-3 py-2 text-xs text-silver bg-graphite/70 border border-smoke/60 cut-card hover:border-peacock/40 hover:text-chalk transition-colors"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            )}
           </form>
         </div>
 
@@ -271,7 +294,7 @@ export function ResearchWorkspace({
       </div>
 
       {/* Agent Timeline Sidebar */}
-      <div className="w-full lg:w-72 flex-shrink-0 overflow-hidden">
+      <div className="w-full lg:w-72 flex-shrink-0 overflow-hidden pb-2 lg:pb-0">
         <Card className="h-full p-4 overflow-hidden flex flex-col border-smoke/50 cut-card cut-border">
           <AgentTimeline tasks={tasks} />
         </Card>

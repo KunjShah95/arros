@@ -34,7 +34,7 @@ export function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-void relative overflow-hidden font-body selection:bg-gold selection:text-void">
+    <div className="min-h-screen bg-void relative overflow-hidden font-body selection:bg-gold selection:text-void aurora-surface">
       <div className="noise-overlay" />
       <GridBackground />
 
@@ -43,14 +43,14 @@ export function ForgotPasswordPage() {
         <Mandala size="lg" className="animate-[spin_60s_linear_infinite]" />
       </div>
 
-      <div className="min-h-screen flex items-center justify-center px-6 py-16 relative z-10">
+      <div className="min-h-screen flex items-center justify-center px-3 md:px-6 py-10 md:py-16 relative z-10">
         <div className="w-full max-w-[440px] perspective-1000">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <Card className="p-8 pb-10 bg-graphite/40 backdrop-blur-2xl border-smoke/30 cut-card relative overflow-hidden">
+            <Card className="p-6 md:p-8 pb-8 md:pb-10 glass-premium border-smoke/30 cut-card relative overflow-hidden">
               <div className="absolute top-0 left-0 w-32 h-32 -ml-16 -mt-16 opacity-10 pointer-events-none">
                 <Mandala size="md" />
               </div>
@@ -97,7 +97,7 @@ export function ForgotPasswordPage() {
                           type="email"
                           required
                           placeholder="scholar@nexus.edu"
-                          className="w-full bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-gold/50 transition-all font-body text-sm"
+                          className="w-full min-h-[44px] bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-gold/50 transition-all font-body text-sm"
                         />
                       </div>
                     </div>

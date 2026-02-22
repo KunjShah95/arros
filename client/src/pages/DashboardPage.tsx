@@ -110,11 +110,11 @@ export function DashboardPage({ onStartResearch, onViewChange }: DashboardProps)
     };
 
     return (
-        <div className="h-full overflow-y-auto p-6 scroll-smooth no-scrollbar">
+        <div className="h-full overflow-y-auto p-3 md:p-6 scroll-smooth no-scrollbar aurora-surface">
             <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="cut-card cut-border bg-graphite/40 p-8 mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden"
+                className="cut-card cut-border glass-premium p-5 md:p-8 mb-6 md:mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden"
             >
                 <div className="absolute top-0 right-0 w-64 h-64 -mr-20 -mt-20 opacity-10 pointer-events-none">
                     <Mandala size="lg" />
@@ -147,7 +147,7 @@ export function DashboardPage({ onStartResearch, onViewChange }: DashboardProps)
                 </SanskritButton>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
                 {[
                     { label: 'Total Realizations', value: stats.total, icon: BookOpen, color: 'text-saffron', gradient: 'from-saffron/20 to-gold/20' },
                     { label: 'Verified Findings', value: stats.completed, icon: CheckCircle2, color: 'text-peacock', gradient: 'from-peacock/20 to-indus/20' },
@@ -160,7 +160,7 @@ export function DashboardPage({ onStartResearch, onViewChange }: DashboardProps)
                         transition={{ delay: i * 0.1 }}
                     >
                         <HoverCard gradient={stat.gradient}>
-                            <Card className="p-6 bg-slate/40 border-smoke/30 cut-card flex items-center gap-5">
+                            <Card className="p-5 md:p-6 bg-slate/40 border-smoke/30 cut-card flex items-center gap-4 md:gap-5 interactive-lift">
                                 <div className={cn("w-12 h-12 cut-card flex items-center justify-center bg-void border border-smoke/30", stat.color)}>
                                     <stat.icon className="w-5 h-5" />
                                 </div>
@@ -174,7 +174,7 @@ export function DashboardPage({ onStartResearch, onViewChange }: DashboardProps)
                 ))}
             </div>
 
-            <div className="grid lg:grid-cols-[1.5fr_1fr] gap-8">
+            <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6 md:gap-8">
                 {/* Left Column: Recent Realizations */}
                 <div>
                     <div className="flex items-center justify-between mb-6">
