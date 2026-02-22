@@ -13,8 +13,10 @@ import {
   Star,
   TrendingUp,
   Filter,
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
-import { Card, Button, Badge, Input } from '../components/ui';
+import { Card, Button, Badge, Input, SanskritButton, Mandala, cn } from '../components/ui';
 import type { Source } from '../types';
 
 const sourceTypeIcons: Record<string, React.ElementType> = {
@@ -25,10 +27,10 @@ const sourceTypeIcons: Record<string, React.ElementType> = {
 };
 
 const sourceTypeColors: Record<string, string> = {
-  web: 'bg-electric/10 text-electric',
-  paper: 'bg-flame/10 text-flame',
-  github: 'bg-graphite text-chalk',
-  blog: 'bg-mint/10 text-mint',
+  web: 'text-peacock',
+  paper: 'text-saffron',
+  github: 'text-silver',
+  blog: 'text-gold',
 };
 
 export function SourcesPage() {
@@ -43,16 +45,17 @@ export function SourcesPage() {
   }, []);
 
   const loadSources = async () => {
+    setLoading(true);
     try {
       const mockSources: Source[] = [
         {
           id: '1',
           sessionId: '1',
-          type: 'web',
-          title: 'Introduction to Large Language Models',
+          type: 'paper',
+          title: 'Foundational Principles of Vedic Robotics',
           url: 'https://arxiv.org/abs/2303.08774',
-          content: 'This paper provides a comprehensive introduction to LLMs...',
-          reliability: 0.95,
+          content: 'A comprehensive study on the integration of dharma-based decision making in autonomous systems...',
+          reliability: 0.98,
           bias: 0.05,
           createdAt: new Date().toISOString(),
         },
@@ -60,10 +63,10 @@ export function SourcesPage() {
           id: '2',
           sessionId: '1',
           type: 'paper',
-          title: 'Attention Is All You Need',
+          title: 'Attention in Ancient Linguistic Structures',
           url: 'https://arxiv.org/abs/1706.03762',
-          content: 'The Transformer architecture has revolutionized NLP...',
-          reliability: 0.98,
+          content: 'Analyzing recursive parsing techniques in Paninian grammar as a precursor to modern self-attention...',
+          reliability: 0.99,
           bias: 0,
           createdAt: new Date().toISOString(),
         },
@@ -71,10 +74,10 @@ export function SourcesPage() {
           id: '3',
           sessionId: '1',
           type: 'github',
-          title: 'transformers - Hugging Face',
-          url: 'https://github.com/huggingface/transformers',
-          content: 'State-of-the-art machine learning for PyTorch and TensorFlow...',
-          reliability: 0.92,
+          title: 'arros-core/veda-engine',
+          url: 'https://github.com/arros-core/veda-engine',
+          content: 'State-of-the-art multilingual knowledge synthesis engine for Indian languages...',
+          reliability: 0.94,
           bias: 0,
           createdAt: new Date().toISOString(),
         },
@@ -82,10 +85,10 @@ export function SourcesPage() {
           id: '4',
           sessionId: '1',
           type: 'blog',
-          title: 'How GPT-4 Works',
-          url: 'https://learn.microsoft.com/en-us/azure/ai-services/openai/overview',
-          content: 'GPT-4 is a large multimodal model...',
-          reliability: 0.88,
+          title: 'The Future of AI is Multimodal and Indic',
+          url: 'https://dev.arros.ai/blog/multimodal-indic',
+          content: 'How Sarvam AI and ARROS are rebuilding the digital architecture of India...',
+          reliability: 0.91,
           bias: 0.1,
           createdAt: new Date().toISOString(),
         },
@@ -116,136 +119,104 @@ export function SourcesPage() {
     ? sources.reduce((sum, s) => sum + (s.reliability || 0), 0) / sources.length
     : 0;
 
-  const biasDistribution = sources.reduce((acc, s) => {
-    const bias = s.bias || 0;
-    if (bias < -0.3) acc.negative++;
-    else if (bias > 0.3) acc.positive++;
-    else acc.neutral++;
-    return acc;
-  }, { positive: 0, negative: 0, neutral: 0 });
-
   return (
-    <div className="h-full flex flex-col">
-      <div className="cut-card cut-border bg-graphite/60 p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <Badge variant="flame" className="mb-2">Sources</Badge>
-          <h2 className="text-2xl font-display text-chalk">Evidence Ledger</h2>
-          <p className="text-sm text-ash">{sources.length} sources across verified sessions</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="cut-card bg-slate/70 px-4 py-3 text-xs text-ash uppercase tracking-[0.2em]">
-            Avg reliability
-            <span className="block text-chalk text-sm tracking-normal mt-1">{(avgReliability * 100).toFixed(0)}%</span>
-          </div>
-          <div className="cut-card bg-slate/70 px-4 py-3 text-xs text-ash uppercase tracking-[0.2em]">
-            Bias alerts
-            <span className="block text-chalk text-sm tracking-normal mt-1">{biasDistribution.positive + biasDistribution.negative}</span>
-          </div>
-        </div>
-      </div>
+    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6 pb-20">
+      <div className="max-w-6xl mx-auto py-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="cut-card cut-border bg-graphite/40 p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 -mr-16 -mt-16 opacity-5 pointer-events-none">
+              <Mandala size="md" />
+            </div>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 cut-card bg-gold/10 flex items-center justify-center border border-gold/20 text-gold">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-display font-bold text-white tracking-tight">Evidence Ledger</h1>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-gold font-bold">Verified Knowledge Sources</p>
+                  </div>
+                </div>
+                <p className="text-sm text-silver max-w-xl leading-relaxed">
+                  Every realizing in ARROS is backed by verified evidence. Review the foundations of your synthesized insights.
+                </p>
+              </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4 cut-card cut-border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 cut-card bg-electric/10 flex items-center justify-center">
-              <Search className="w-5 h-5 text-electric" />
-            </div>
-            <div>
-              <p className="text-2xl font-display text-chalk">{sources.length}</p>
-              <p className="text-sm text-ash">Total sources</p>
+              <div className="flex gap-4">
+                <div className="text-center">
+                  <p className="text-[9px] uppercase font-bold text-ash tracking-widest mb-1">Satya Index</p>
+                  <p className="text-2xl font-display font-bold text-gold">{(avgReliability * 100).toFixed(0)}%</p>
+                </div>
+                <div className="w-px h-10 bg-smoke/20 my-auto" />
+                <div className="text-center">
+                  <p className="text-[9px] uppercase font-bold text-ash tracking-widest mb-1">Evidence Depth</p>
+                  <p className="text-2xl font-display font-bold text-peacock">{sources.length}</p>
+                </div>
+              </div>
             </div>
           </div>
-        </Card>
+        </motion.div>
 
-        <Card className="p-4 cut-card cut-border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 cut-card bg-mint/10 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-mint" />
-            </div>
-            <div>
-              <p className="text-2xl font-display text-chalk">{(avgReliability * 100).toFixed(0)}%</p>
-              <p className="text-sm text-ash">Avg reliability</p>
-            </div>
+        {/* Filters */}
+        <div className="grid lg:grid-cols-[1fr_auto_auto] gap-4 mb-8">
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ash group-focus-within:text-gold transition-colors" />
+            <input
+              type="text"
+              placeholder="Search across the evidence matrix..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-slate/40 border border-smoke/30 rounded-xl text-chalk placeholder:text-ash/40 focus:outline-none focus:border-gold/50 transition-all font-body text-sm"
+            />
           </div>
-        </Card>
 
-        <Card className="p-4 cut-card cut-border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 cut-card bg-flame/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-flame" />
-            </div>
-            <div>
-              <p className="text-2xl font-display text-chalk">{biasDistribution.neutral}</p>
-              <p className="text-sm text-ash">Neutral sources</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 cut-card cut-border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 cut-card bg-warning/10 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-warning" />
-            </div>
-            <div>
-              <p className="text-2xl font-display text-chalk">{biasDistribution.positive + biasDistribution.negative}</p>
-              <p className="text-sm text-ash">Bias flags</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      <div className="cut-card cut-border bg-slate/70 p-4 mb-6 flex flex-col lg:flex-row gap-4">
-        <div className="flex-1">
-          <Input
-            placeholder="Search sources or summaries..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="flex flex-wrap gap-3 items-center">
-          <div className="flex items-center gap-2 text-xs text-ash uppercase tracking-[0.2em]">
-            <Filter className="w-4 h-4" />
-            Filters
-          </div>
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2 bg-graphite border border-smoke rounded-lg text-chalk text-sm"
+            className="px-6 py-4 bg-void border border-smoke/30 rounded-xl text-chalk text-[10px] uppercase font-bold tracking-widest focus:border-gold/50 transition-all"
           >
-            <option value="all">All types</option>
-            <option value="web">Web</option>
-            <option value="paper">Papers</option>
-            <option value="github">GitHub</option>
-            <option value="blog">Blogs</option>
+            <option value="all">Universal Source</option>
+            <option value="web">Loka (Web)</option>
+            <option value="paper">Grantha (Papers)</option>
+            <option value="github">Kriti (Code)</option>
+            <option value="blog">Varta (Blogs)</option>
           </select>
+
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'recent' | 'reliability')}
-            className="px-4 py-2 bg-graphite border border-smoke rounded-lg text-chalk text-sm"
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="px-6 py-4 bg-void border border-smoke/30 rounded-xl text-chalk text-[10px] uppercase font-bold tracking-widest focus:border-gold/50 transition-all"
           >
-            <option value="recent">Most recent</option>
-            <option value="reliability">Highest reliability</option>
+            <option value="recent">Navya (Recent)</option>
+            <option value="reliability">Vishvasya (Trust)</option>
           </select>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin w-8 h-8 border-2 border-flame border-t-transparent rounded-full" />
-          </div>
-        ) : filteredSources.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center cut-card cut-border bg-slate/60">
-            <FileText className="w-12 h-12 text-ash mb-4" />
-            <p className="text-ash">No sources found</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredSources.map((source, index) => (
+        {/* Sources Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {loading ? (
+            <div className="col-span-full py-20 flex flex-col items-center justify-center gap-4">
+              <Spinner variant="gold" size="md" />
+              <p className="text-[10px] uppercase font-bold text-ash tracking-[0.3em]">Querying the Akasha...</p>
+            </div>
+          ) : filteredSources.length === 0 ? (
+            <div className="col-span-full py-20 text-center cut-card cut-border bg-graphite/20">
+              <FileText className="w-12 h-12 text-ash/30 mx-auto mb-6" />
+              <h3 className="text-xl font-display font-bold text-ash mb-2">No evidence found</h3>
+              <p className="text-sm text-ash/60">The requested knowledge capsule does not exist in our indices.</p>
+            </div>
+          ) : (
+            filteredSources.map((source, index) => (
               <SourceCard key={source.id} source={source} index={index} />
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
@@ -254,7 +225,7 @@ export function SourcesPage() {
 function SourceCard({ source, index }: { source: Source; index: number }) {
   const [copied, setCopied] = useState(false);
   const Icon = sourceTypeIcons[source.type] || Globe;
-  const typeColor = sourceTypeColors[source.type] || 'bg-graphite text-chalk';
+  const colorClass = sourceTypeColors[source.type] || 'text-silver';
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(source.url);
@@ -264,74 +235,72 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
+      whileHover={{ y: -5 }}
+      className="group h-full"
     >
-      <Card className="p-4 cut-card cut-border hover:border-flame/30 transition-colors">
-        <div className="flex items-start gap-4">
-          <div className={`w-10 h-10 cut-card flex items-center justify-center flex-shrink-0 ${typeColor}`}>
+      <Card className="p-6 cut-card border-smoke/30 bg-graphite/40 hover:border-gold/40 transition-all flex flex-col h-full">
+        <div className="flex justify-between items-start mb-4">
+          <div className={cn("w-10 h-10 cut-card bg-void border border-smoke/30 flex items-center justify-center", colorClass)}>
             <Icon className="w-5 h-5" />
           </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <h3 className="font-medium text-chalk line-clamp-1">{source.title}</h3>
-                <p className="text-sm text-ash truncate">{source.url}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <ReliabilityBadge score={source.reliability || 0} />
-                {source.bias !== 0 && (
-                  <BiasIndicator bias={source.bias || 0} />
-                )}
-              </div>
-            </div>
-
-            {source.content && (
-              <p className="mt-2 text-sm text-silver line-clamp-2">
-                {source.content}
-              </p>
+          <div className="flex flex-col items-end gap-1">
+            <Badge variant="gold" className="text-[9px] px-2 py-0.5">
+              {Math.round((source.reliability || 0) * 100)}% RELIABLE
+            </Badge>
+            {source.bias && source.bias > 0.3 && (
+              <Badge variant="saffron" className="text-[9px] px-2 py-0.5">BIAS ALERT</Badge>
             )}
-
-            <div className="mt-3 flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={copyToClipboard}>
-                {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                <span className="ml-1">{copied ? 'Copied' : 'Copy'}</span>
-              </Button>
-              <a
-                href={source.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-electric hover:underline"
-              >
-                Open <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
           </div>
+        </div>
+
+        <h3 className="text-base font-display font-bold text-white group-hover:text-gold transition-colors mb-2 line-clamp-2 leading-tight">
+          {source.title}
+        </h3>
+
+        <p className="text-xs text-ash font-mono truncate mb-4 opacity-60">
+          {source.url.replace('https://', '')}
+        </p>
+
+        <div className="bg-void/40 p-3 rounded-lg border border-smoke/10 mb-6 flex-1">
+          <p className="text-xs text-silver leading-relaxed line-clamp-3 italic">
+            "{source.content?.slice(0, 150)}..."
+          </p>
+        </div>
+
+        <div className="mt-auto pt-4 border-t border-smoke/10 flex items-center justify-between">
+          <div className="flex gap-2">
+            <button
+              onClick={copyToClipboard}
+              className="p-2 rounded-lg bg-void border border-smoke/30 text-ash hover:text-gold hover:border-gold/40 transition-all"
+            >
+              {copied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+            <a
+              href={source.url}
+              target="_blank"
+              className="p-2 rounded-lg bg-void border border-smoke/30 text-ash hover:text-peacock hover:border-peacock/40 transition-all"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+
+          <SanskritButton variant="ghost" className="px-3 py-1.5 h-auto text-[9px] gap-2 border-none">
+            Explore Depth <ArrowRight className="w-3 h-3" />
+          </SanskritButton>
         </div>
       </Card>
     </motion.div>
   );
 }
 
-function ReliabilityBadge({ score }: { score: number }) {
-  const variant = score >= 0.8 ? 'success' : score >= 0.6 ? 'warning' : 'error';
-  return (
-    <Badge variant={variant}>
-      <Star className="w-3 h-3 mr-1" />
-      {(score * 100).toFixed(0)}%
-    </Badge>
-  );
-}
+const Spinner = ({ className, size = 'md', variant = 'peacock' }: { className?: string, size?: 'sm' | 'md' | 'lg', variant?: string }) => {
+  const sizeClass = size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-10 h-10' : 'w-6 h-6';
+  const colorClass = variant === 'saffron' ? 'border-saffron' : variant === 'gold' ? 'border-gold' : 'border-peacock';
 
-function BiasIndicator({ bias }: { bias: number }) {
-  const variant = bias > 0 ? 'error' : 'warning';
-  const label = bias > 0 ? 'Positive Bias' : 'Negative Bias';
   return (
-    <Badge variant={variant}>
-      <AlertTriangle className="w-3 h-3 mr-1" />
-      {label}
-    </Badge>
+    <div className={cn("animate-spin rounded-full border-2 border-t-transparent", sizeClass, colorClass, className)} />
   );
-}
+};

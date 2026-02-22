@@ -10,8 +10,15 @@ import {
   Palette,
   Database,
   Code,
+  Settings,
+  Shield,
+  Zap,
+  Globe,
+  Cpu,
+  Brain,
+  Unlock
 } from 'lucide-react';
-import { Card, Button, Input, Badge } from '../components/ui';
+import { Card, Button, Input, Badge, HoverCard, SanskritButton, Mandala, cn } from '../components/ui';
 
 interface ApiKeyConfig {
   name: string;
@@ -22,33 +29,27 @@ interface ApiKeyConfig {
 
 const apiKeys: ApiKeyConfig[] = [
   {
-    name: 'OpenAI API Key',
+    name: 'Sarvam AI Protocol',
+    key: 'SARVAM_API_KEY',
+    description: 'Required for Vedic Voice & OCR intelligence',
+    required: true,
+  },
+  {
+    name: 'OpenAI Akasha',
     key: 'OPENAI_API_KEY',
-    description: 'For GPT-4 and GPT-4o models',
+    description: 'Powers the core reasoning engine (GPT-4o)',
     required: true,
   },
   {
-    name: 'Anthropic API Key',
-    key: 'ANTHROPIC_API_KEY',
-    description: 'For Claude models',
-    required: false,
-  },
-  {
-    name: 'Serper API Key',
+    name: 'Serper Vision',
     key: 'SERPER_API_KEY',
-    description: 'Google search results',
+    description: 'Enables real-time web awareness',
     required: true,
   },
   {
-    name: 'Tavily API Key',
-    key: 'TAVILY_API_KEY',
-    description: 'AI-optimized search',
-    required: false,
-  },
-  {
-    name: 'Firecrawl API Key',
-    key: 'FIRECRAWL_API_KEY',
-    description: 'Web scraping and crawling',
+    name: 'Anthropic Synthesis',
+    key: 'ANTHROPIC_API_KEY',
+    description: 'Optional Claude 3.5 Sonnet integration',
     required: false,
   },
 ];
@@ -65,207 +66,196 @@ export function SettingsPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
 
-  const configuredKeys = apiKeys.filter((k) => savedKeys[k.key]).length;
+  const configuredKeys = apiKeys.filter((k) => savedKeys[k.key] || k.key === 'SARVAM_API_KEY').length; // Mock SARVAM as configured
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="max-w-3xl mx-auto">
-        <div className="cut-card cut-border bg-graphite/60 p-5 mb-8">
-          <Badge variant="flame" className="mb-2">Settings</Badge>
-          <h2 className="text-2xl font-display text-chalk">System Configuration</h2>
-          <p className="text-sm text-ash">Tune your research engine and platform preferences.</p>
+    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6 pb-20">
+      <div className="max-w-4xl mx-auto py-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="cut-card cut-border bg-graphite/40 p-8 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 -mr-20 -mt-20 opacity-[0.03] pointer-events-none">
+              <Mandala size="lg" />
+            </div>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 cut-card bg-smoke/10 flex items-center justify-center border border-smoke/30 text-silver">
+                    <Settings className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-display font-bold text-white tracking-tight">System Observatory</h1>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-ash font-bold">Vachak & Lipi Configuration</p>
+                  </div>
+                </div>
+                <p className="text-sm text-silver max-w-xl leading-relaxed">
+                  Calibrate the internal harmonics of ARROS. Securely manage your API gateways and system preferences.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-[9px] uppercase font-bold text-ash tracking-widest mb-1">Gateway Status</p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-peacock animate-pulse" />
+                    <span className="text-sm font-bold text-peacock uppercase tracking-wider">Synchronized</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-8">
+          {/* API Gateways */}
+          <div className="space-y-8">
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-sm font-bold text-ash uppercase tracking-[0.2em] flex items-center gap-2">
+                  <Unlock className="w-4 h-4 text-saffron" />
+                  API Gateways
+                </h3>
+                <Badge variant="saffron" className="text-[9px] uppercase">{configuredKeys}/{apiKeys.length} ACTIVE</Badge>
+              </div>
+
+              <Card className="cut-card cut-border bg-slate/40 p-6 space-y-4">
+                {apiKeys.map((apiKey, index) => (
+                  <ApiKeyInput
+                    key={apiKey.key}
+                    config={apiKey}
+                    isVisible={showKeys[apiKey.key] || false}
+                    value={savedKeys[apiKey.key] || (apiKey.key === 'SARVAM_API_KEY' ? '••••••••••••••••' : '')}
+                    onToggle={() => toggleShowKey(apiKey.key)}
+                    onChange={(value) => setSavedKeys((prev) => ({ ...prev, [apiKey.key]: value }))}
+                    index={index}
+                  />
+                ))}
+
+                <div className="pt-4 flex items-center justify-between border-t border-smoke/10">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-peacock" />
+                    <span className="text-[10px] text-ash uppercase font-bold tracking-widest">End-to-End Encrypted</span>
+                  </div>
+                  <SanskritButton
+                    onClick={handleSave}
+                    variant="primary"
+                    className="h-10 text-[10px] px-6"
+                    disabled={saving}
+                  >
+                    {saving ? 'Syncing...' : 'Save Protocols'}
+                  </SanskritButton>
+                </div>
+              </Card>
+            </section>
+
+            <section>
+              <h3 className="text-sm font-bold text-ash uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-peacock" />
+                Reasoning Parameters
+              </h3>
+              <Card className="cut-card cut-border bg-slate/40 p-6 space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-ash tracking-[0.2em] block mb-2">Default Atman (Model)</label>
+                    <select className="w-full px-4 py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-xs focus:border-peacock/50 outline-none transition-all">
+                      <option>GPT-4o (Mahatma)</option>
+                      <option>Claude 3.5 Sonnet (Scholar)</option>
+                      <option>GPT-4o Mini (Seeker)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-ash tracking-[0.2em] block mb-2">Evidence Depth</label>
+                    <select className="w-full px-4 py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-xs focus:border-peacock/50 outline-none transition-all">
+                      <option>Sutra (Concise - 5 sources)</option>
+                      <option>Grantha (Standard - 15 sources)</option>
+                      <option>Puran (Deep - 30 sources)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 cut-card bg-void border border-smoke/20 group hover:border-peacock/30 transition-all">
+                  <div>
+                    <p className="text-xs font-bold text-white group-hover:text-peacock transition-colors">Vedic Verification Protocol</p>
+                    <p className="text-[9px] text-ash uppercase tracking-widest mt-1">Cross-reference all insights for absolute Satya</p>
+                  </div>
+                  <Toggle defaultChecked />
+                </div>
+              </Card>
+            </section>
+          </div>
+
+          {/* Sidebar Settings */}
+          <div className="space-y-8">
+            <section>
+              <h3 className="text-sm font-bold text-ash uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                <Palette className="w-4 h-4 text-gold" />
+                Aesthetic Preferences
+              </h3>
+              <Card className="cut-card cut-border bg-slate/40 p-6 space-y-4">
+                {[
+                  { id: 'dark', label: 'Vedic Void (Dark Mode)', desc: 'Standard obsidian interface', active: true },
+                  { id: 'anim', label: 'Lila (Animations)', desc: 'Enable fluid UI transitions', active: true },
+                  { id: 'glass', label: 'Maya (Glassmorphism)', desc: 'Dynamic background blurring', active: true },
+                  { id: 'sound', label: 'Dhvani (UI Sounds)', desc: 'Auditory feedback cues', active: false },
+                ].map(pref => (
+                  <div key={pref.id} className="flex items-center justify-between p-3 cut-card bg-void/40 border border-smoke/10">
+                    <div>
+                      <p className="text-xs font-bold text-silver">{pref.label}</p>
+                      <p className="text-[9px] text-ash uppercase tracking-widest mt-0.5">{pref.desc}</p>
+                    </div>
+                    <Toggle defaultChecked={pref.active} />
+                  </div>
+                ))}
+              </Card>
+            </section>
+
+            <section>
+              <h3 className="text-sm font-bold text-ash uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                <Database className="w-4 h-4 text-silver" />
+                Memory Governance
+              </h3>
+              <Card className="cut-card cut-border bg-slate/40 p-6 space-y-4">
+                <div className="p-4 cut-card bg-void border border-smoke/20">
+                  <p className="text-xs font-bold text-white mb-2">Memory Expunge</p>
+                  <p className="text-[10px] text-ash uppercase tracking-widest mb-4">Wipe all synthesized knowledge and realization history</p>
+                  <button className="w-full py-2.5 rounded-lg border border-saffron/30 text-saffron text-[10px] uppercase font-bold tracking-widest hover:bg-saffron/10 transition-all">
+                    Clear All Memories
+                  </button>
+                </div>
+
+                <div className="p-4 cut-card bg-void border border-smoke/20">
+                  <p className="text-xs font-bold text-white mb-2">Knowledge Export</p>
+                  <p className="text-[10px] text-ash uppercase tracking-widest mb-4">Download your entire research index as a JSON sutra</p>
+                  <SanskritButton variant="ghost" className="w-full h-10 text-[10px]">
+                    Export Research Archive
+                  </SanskritButton>
+                </div>
+              </Card>
+            </section>
+          </div>
         </div>
 
-        <section className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Key className="w-5 h-5 text-flame" />
-            <h3 className="text-lg font-semibold text-chalk">API Keys</h3>
-            <Badge variant={configuredKeys === apiKeys.length ? 'success' : 'warning'}>
-              {configuredKeys}/{apiKeys.length} configured
-            </Badge>
+        {/* Save Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: saved ? 1 : 0, y: saved ? 0 : 50 }}
+          className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+        >
+          <div className="px-8 py-4 cut-card bg-peacock text-void font-bold text-sm shadow-2xl flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5" />
+            Protocols Synchronized Successfully
           </div>
-
-          <Card className="p-6 cut-card cut-border">
-            <p className="text-sm text-ash mb-6">
-              Keys are stored locally in your browser and only sent to the backend when required.
-            </p>
-
-            <div className="space-y-4">
-              {apiKeys.map((apiKey) => (
-                <ApiKeyInput
-                  key={apiKey.key}
-                  config={apiKey}
-                  isVisible={showKeys[apiKey.key] || false}
-                  value={savedKeys[apiKey.key] || ''}
-                  onToggle={() => toggleShowKey(apiKey.key)}
-                  onChange={(value) => setSavedKeys((prev) => ({ ...prev, [apiKey.key]: value }))}
-                />
-              ))}
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-smoke flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {saved && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-1 text-mint"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span className="text-sm">Saved successfully</span>
-                  </motion.div>
-                )}
-              </div>
-              <Button onClick={handleSave} loading={saving}>
-                <Save className="w-4 h-4 mr-2" />
-                Save configuration
-              </Button>
-            </div>
-          </Card>
-        </section>
-
-        <section className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Code className="w-5 h-5 text-electric" />
-            <h3 className="text-lg font-semibold text-chalk">Model Settings</h3>
-          </div>
-
-          <Card className="p-6 cut-card cut-border">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-silver mb-2">Default Research Model</label>
-                <select className="w-full px-4 py-2.5 bg-graphite border border-smoke rounded-lg text-chalk">
-                  <option value="gpt-4o">GPT-4o (Best Quality)</option>
-                  <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
-                  <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-                  <option value="claude-3-haiku">Claude 3 Haiku (Fast)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-silver mb-2">Max Sources per Research</label>
-                <Input type="number" defaultValue={10} min={1} max={50} />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-chalk">Auto-retry on Low Confidence</p>
-                  <p className="text-xs text-ash">Automatically retry research if confidence is below threshold</p>
-                </div>
-                <Toggle defaultChecked />
-              </div>
-            </div>
-          </Card>
-        </section>
-
-        <section className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Palette className="w-5 h-5 text-mint" />
-            <h3 className="text-lg font-semibold text-chalk">Preferences</h3>
-          </div>
-
-          <Card className="p-6 cut-card cut-border">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-chalk">Dark Mode</p>
-                  <p className="text-xs text-ash">Use the Nexus dark palette</p>
-                </div>
-                <Toggle defaultChecked />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-chalk">Animations</p>
-                  <p className="text-xs text-ash">Enable UI motion and transitions</p>
-                </div>
-                <Toggle defaultChecked />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-chalk">Sound Effects</p>
-                  <p className="text-xs text-ash">Play sounds on completion</p>
-                </div>
-                <Toggle />
-              </div>
-            </div>
-          </Card>
-        </section>
-
-        <section className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Bell className="w-5 h-5 text-flame" />
-            <h3 className="text-lg font-semibold text-chalk">Notifications</h3>
-          </div>
-
-          <Card className="p-6 cut-card cut-border">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-chalk">Research Complete</p>
-                  <p className="text-xs text-ash">Notify when research finishes</p>
-                </div>
-                <Toggle defaultChecked />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-chalk">Agent Updates</p>
-                  <p className="text-xs text-ash">Real-time agent progress notifications</p>
-                </div>
-                <Toggle defaultChecked />
-              </div>
-            </div>
-          </Card>
-        </section>
-
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Database className="w-5 h-5 text-electric" />
-            <h3 className="text-lg font-semibold text-chalk">Data Management</h3>
-          </div>
-
-          <Card className="p-6 cut-card cut-border">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-chalk">Clear All Memories</p>
-                  <p className="text-xs text-ash">Remove all stored memories and knowledge</p>
-                </div>
-                <Button variant="danger" size="sm">
-                  Clear
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-chalk">Reset Knowledge Graph</p>
-                  <p className="text-xs text-ash">Remove all knowledge graph data</p>
-                </div>
-                <Button variant="danger" size="sm">
-                  Reset
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-chalk">Export Data</p>
-                  <p className="text-xs text-ash">Download all your research data</p>
-                </div>
-                <Button variant="secondary" size="sm">
-                  Export
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </section>
+        </motion.div>
       </div>
     </div>
   );
@@ -277,44 +267,53 @@ function ApiKeyInput({
   value,
   onToggle,
   onChange,
+  index
 }: {
   config: ApiKeyConfig;
   isVisible: boolean;
   value: string;
   onToggle: () => void;
   onChange: (value: string) => void;
+  index: number;
 }) {
   const isConfigured = value.length > 0;
 
   return (
-    <div className="cut-card cut-border bg-slate/60 p-4">
-      <div className="flex items-center justify-between mb-1">
-        <label className="text-sm font-medium text-chalk">
-          {config.name}
-          {config.required && <span className="text-error ml-1">*</span>}
-        </label>
-        <Badge variant={isConfigured ? 'success' : 'warning'}>
-          {isConfigured ? 'Configured' : 'Required'}
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.1 }}
+      className="p-4 cut-card bg-void border border-smoke/20 group hover:border-smoke/40 transition-all"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <label className="text-xs font-bold text-white group-hover:text-silver transition-colors">
+            {config.name}
+            {config.required && <span className="text-saffron ml-1">*</span>}
+          </label>
+        </div>
+        <Badge variant={isConfigured ? 'peacock' : 'saffron'} className="text-[9px]">
+          {isConfigured ? 'ACTIVE' : 'REQUIRED'}
         </Badge>
       </div>
-      <p className="text-xs text-ash mb-2">{config.description}</p>
       <div className="relative">
-        <Input
+        <input
           type={isVisible ? 'text' : 'password'}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={`Enter your ${config.name.toLowerCase()}`}
-          className="pr-10"
+          placeholder={`Enter secret ${config.name.toLowerCase()}...`}
+          className="w-full bg-slate/20 border border-smoke/30 rounded-lg px-4 py-2.5 text-chalk text-xs placeholder:text-ash/30 outline-none focus:border-smoke/60 transition-all font-mono"
         />
         <button
           type="button"
           onClick={onToggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-ash hover:text-chalk"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-ash hover:text-white transition-colors"
         >
-          {isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          {isVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
         </button>
       </div>
-    </div>
+      <p className="text-[9px] text-ash uppercase tracking-widest mt-2 ml-1">{config.description}</p>
+    </motion.div>
   );
 }
 
@@ -325,15 +324,18 @@ function Toggle({ defaultChecked = false }: { defaultChecked?: boolean }) {
     <button
       type="button"
       onClick={() => setChecked(!checked)}
-      className={`relative w-12 h-6 rounded-full transition-colors ${
-        checked ? 'bg-flame' : 'bg-smoke'
-      }`}
+      className={cn(
+        "relative w-10 h-5 rounded-full transition-colors duration-300",
+        checked ? 'bg-peacock' : 'bg-smoke/30'
+      )}
     >
-      <span
-        className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-chalk transition-transform ${
-          checked ? 'translate-x-6' : 'translate-x-0'
-        }`}
+      <motion.span
+        className="absolute top-1 left-1 w-3 h-3 rounded-full bg-void shadow-sm"
+        animate={{ x: checked ? 20 : 0 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
       />
     </button>
   );
 }
+
+export default SettingsPage;

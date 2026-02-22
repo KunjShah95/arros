@@ -54,6 +54,7 @@ Available task types:
 - memory: Store topics/papers for continuity across sessions
 - action: Generate actionable academic outputs (study notes, further reading)
 - meta: Evaluate overall research quality
+- debate: Deliberate on controversial claims or contradictions between sources. Use when contradictions are likely.
 
 Tool strategies:
 - web_search: General web search (Wikipedia, blogs, context)

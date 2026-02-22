@@ -103,5 +103,8 @@ class CacheService {
     generateCacheKey(prefix, ...parts) {
         return `${prefix}:${parts.map(p => p.toLowerCase().replace(/\s+/g, '-')).join(':')}`;
     }
+    getStatus() {
+        return this.isConnected;
+    }
 }
 exports.cacheService = new CacheService();

@@ -11,6 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MemoryAgent = void 0;
 const prisma_1 = require("../services/prisma");
+const llm_1 = require("../services/llm");
+const uuid_1 = require("uuid");
 class MemoryAgent {
     constructor(sessionId, userId, taskId) {
         this.sessionId = sessionId;
@@ -28,26 +30,21 @@ class MemoryAgent {
                     create: { userId: this.userId, topic, depth: 1, lastResearchedAt: new Date() },
                 });
             }
+            // Store key findings as memories with embeddings
             for (const finding of synthesisResult.keyFindings.slice(0, 5)) {
+                const embedding = yield llm_1.llmService.generateEmbedding(finding);
+                // Use raw SQL for vector insertion because Prisma doesn't support the vector type natively in the create API for Unsupported fields easily
+                const memoryId = (0, uuid_1.v4)();
+                yield prisma_1.prisma.$executeRaw `
+        INSERT INTO "UserMemory" ("id", "userId", "type", "content", "importance", "embedding", "lastUsedAt", "createdAt", "updatedAt")
+        VALUES (${memoryId}, ${this.userId}, 'fact', ${finding}, ${synthesisResult.confidence}, ${embedding}::vector, now(), now(), now())
+      `;
                 memories.push({
                     type: 'fact',
                     content: finding,
                     importance: synthesisResult.confidence,
                 });
             }
-            memories.push({
-                type: 'strategy',
-                content: `Research strategy: ${synthesisResult.keyFindings.length} key findings identified`,
-                importance: 0.5,
-            });
-            yield prisma_1.prisma.userMemory.createMany({
-                data: memories.map(m => ({
-                    userId: this.userId,
-                    type: m.type,
-                    content: m.content,
-                    importance: m.importance,
-                })),
-            });
             yield this.updateKnowledgeGraph(synthesisResult, query);
             yield prisma_1.prisma.agentTask.update({
                 where: { id: this.taskId },
@@ -57,16 +54,22 @@ class MemoryAgent {
     }
     getRelevantMemories(query_1) {
         return __awaiter(this, arguments, void 0, function* (query, limit = 5) {
-            const memories = yield prisma_1.prisma.userMemory.findMany({
-                where: { userId: this.userId },
-                orderBy: { importance: 'desc' },
-                take: limit,
-            });
-            return memories.map((m) => ({
+            const queryEmbedding = yield llm_1.llmService.generateEmbedding(query);
+            // Semantic search using pgvector cosine distance (<=>)
+            const relevantMemories = yield prisma_1.prisma.$queryRaw `
+      SELECT id, type, content, importance, 
+             1 - (embedding <=> ${queryEmbedding}::vector) as similarity
+      FROM "UserMemory"
+      WHERE "userId" = ${this.userId}
+      ORDER BY similarity DESC
+      LIMIT ${limit}
+    `;
+            return relevantMemories.map(m => ({
                 id: m.id,
                 type: m.type,
                 content: m.content,
                 importance: m.importance,
+                similarity: m.similarity,
             }));
         });
     }

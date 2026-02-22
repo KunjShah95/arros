@@ -11,6 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MetaEvaluatorAgent = void 0;
 const prisma_1 = require("../services/prisma");
+const llm_1 = require("../services/llm");
+const zod_1 = require("zod");
 class MetaEvaluatorAgent {
     constructor(sessionId, taskId) {
         this.sessionId = sessionId;
@@ -18,14 +20,88 @@ class MetaEvaluatorAgent {
     }
     evaluate(synthesisResult, critiqueResult, query) {
         return __awaiter(this, void 0, void 0, function* () {
+            const messages = [
+                {
+                    role: 'system',
+                    content: `You are a Meta-Evaluator Agent for ARROS. Your task is to evaluate the quality of an autonomous research synthesis.
+Evaluate based on:
+1. completeness: Does it answer all parts of the query?
+2. agreement: Do the synthesis and critique align? Are there unresolved contradictions?
+3. confidence: Is the confidence score justified by the evidence?
+4. hallucination: Are there any claims that seem unfounded or contradicted by the critique?
+5. bias: Is the summary balanced or does it lean too much on one source type?
+
+Critique Details:
+- Accepted Claims: ${critiqueResult.acceptedClaims.length}
+- Rejected Claims: ${critiqueResult.rejectedClaims.length}
+- Contradictions Found: ${critiqueResult.contradictions.join(', ')}
+- Source Reliability: ${critiqueResult.overallConfidence}
+
+Synthesis Summary:
+${synthesisResult.summary}
+
+Return JSON with overallScore (0-1), passed (boolean), type ('meta'), details (object with completeness, agreement, hallucination, bias scores), and recommendations (array).`,
+                },
+                {
+                    role: 'user',
+                    content: `Query: "${query}"\n\nEvaluate the research quality and provide specific recommendations for improvement if it failed.`,
+                },
+            ];
+            try {
+                const response = yield llm_1.llmService.chat(messages, {
+                    temperature: 0.1,
+                    model: 'gpt-4o-mini',
+                    responseFormat: zod_1.z.object({
+                        overallScore: zod_1.z.number(),
+                        passed: zod_1.z.boolean(),
+                        type: zod_1.z.string(),
+                        details: zod_1.z.object({
+                            completeness: zod_1.z.number(),
+                            agreement: zod_1.z.number(),
+                            hallucination: zod_1.z.number(),
+                            bias: zod_1.z.number(),
+                        }),
+                        recommendations: zod_1.z.array(zod_1.z.string()),
+                    }),
+                });
+                const finalEvaluation = JSON.parse(response.content);
+                yield prisma_1.prisma.evaluation.create({
+                    data: {
+                        sessionId: this.sessionId,
+                        type: 'meta',
+                        score: finalEvaluation.overallScore,
+                        details: finalEvaluation.details,
+                        passed: finalEvaluation.passed,
+                    },
+                });
+                yield prisma_1.prisma.agentTask.update({
+                    where: { id: this.taskId },
+                    data: { status: 'completed', output: finalEvaluation },
+                });
+                return {
+                    type: 'meta',
+                    score: finalEvaluation.overallScore,
+                    details: finalEvaluation.details,
+                    passed: finalEvaluation.passed,
+                    recommendations: finalEvaluation.recommendations,
+                };
+            }
+            catch (error) {
+                console.error('LLM evaluation failed, falling back to deterministic:', error);
+                return this.fallbackEvaluate(synthesisResult, critiqueResult, query);
+            }
+        });
+    }
+    fallbackEvaluate(synthesisResult, critiqueResult, query) {
+        return __awaiter(this, void 0, void 0, function* () {
             const evaluations = [];
             evaluations.push(this.evaluateCompleteness(synthesisResult, query));
             evaluations.push(this.evaluateAgreement(critiqueResult));
             evaluations.push(this.evaluateConfidence(synthesisResult, critiqueResult));
             const overallScore = evaluations.reduce((sum, e) => sum + e.score, 0) / evaluations.length;
             const passed = overallScore >= 0.7;
-            const finalEvaluation = {
-                type: 'completeness',
+            return {
+                type: 'meta',
                 score: overallScore,
                 details: {
                     evaluations: evaluations.map(e => ({ type: e.type, score: e.score, passed: e.passed })),
@@ -34,20 +110,6 @@ class MetaEvaluatorAgent {
                 passed,
                 recommendations: passed ? undefined : ['Improve source quality', 'Add more verification', 'Resolve contradictions'],
             };
-            yield prisma_1.prisma.evaluation.create({
-                data: {
-                    sessionId: this.sessionId,
-                    type: 'completeness',
-                    score: finalEvaluation.score,
-                    details: finalEvaluation.details,
-                    passed: finalEvaluation.passed,
-                },
-            });
-            yield prisma_1.prisma.agentTask.update({
-                where: { id: this.taskId },
-                data: { status: 'completed', output: finalEvaluation },
-            });
-            return finalEvaluation;
         });
     }
     evaluateCompleteness(synthesisResult, query) {

@@ -11,7 +11,7 @@ export interface Session {
 export interface AgentTask {
   id: string;
   sessionId: string;
-  type: 'planner' | 'research' | 'critic' | 'synthesizer' | 'memory' | 'action' | 'meta';
+  type: 'planner' | 'research' | 'critic' | 'synthesizer' | 'memory' | 'action' | 'meta' | 'debate';
   agentName?: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
   input?: Record<string, unknown>;
@@ -72,19 +72,30 @@ export interface SynthesisResult {
   citations?: AcademicCitation[];
   verifiedSources?: number;
   contradictionsFound?: number;
+  lineage?: Array<{ finding: string; sourceIndices: number[] }>;
+}
+
+export interface Integration {
+  id: string;
+  name: 'notion' | 'github' | 'zotero' | 'slack';
+  connected: boolean;
+  config?: Record<string, unknown>;
 }
 
 export interface ActionItem {
-  type: 'prd' | 'architecture' | 'ticket' | 'code' | 'decision';
+  id?: string;
+  type: 'prd' | 'architecture' | 'ticket' | 'code' | 'decision' | 'connector';
   title: string;
   description: string;
   priority: 'low' | 'medium' | 'high';
+  status?: 'pending' | 'completed' | 'failed';
+  integrationId?: string;
 }
 
 export interface Evaluation {
   id: string;
   sessionId: string;
-  type: 'hallucination' | 'completeness' | 'agreement' | 'bias';
+  type: 'hallucination' | 'completeness' | 'agreement' | 'bias' | 'meta';
   score: number;
   passed: boolean;
   createdAt: string;

@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -16,7 +16,7 @@ export const researchLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
-    return req.userId || req.ip || 'anonymous';
+    return (req as any).userId || req.ip || 'anonymous';
   },
 });
 

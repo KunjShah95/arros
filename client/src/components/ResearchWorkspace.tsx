@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send,
@@ -19,10 +19,16 @@ import {
   TrendingUp,
   Mic,
   Volume2,
+  Download,
+  Share2,
+  Hash,
+  Cpu,
+  Server,
 } from 'lucide-react';
-import { Button, Card, Badge, ProgressBar } from './ui';
+import { Button, Card, Badge, ProgressBar, SanskritButton, cn } from './ui';
 import { AgentTimeline } from './AgentTimeline';
-import type { ResearchResponse, AgentTask, Source, AcademicCitation } from '../types';
+import { integrationsApi } from '../services/api';
+import type { ResearchResponse, AgentTask, Source, AcademicCitation, Integration, ActionItem } from '../types';
 
 interface ResearchWorkspaceProps {
   query: string;
@@ -44,6 +50,41 @@ export function ResearchWorkspace({
   sources: _sources,
 }: ResearchWorkspaceProps) {
   const [isRecording, setIsRecording] = useState(false);
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
+  const [executingActionId, setExecutingActionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchIntegrations = async () => {
+      try {
+        const data = await integrationsApi.getIntegrations();
+        setIntegrations(data);
+      } catch (error) {
+        console.error('Failed to fetch integrations:', error);
+      }
+    };
+    fetchIntegrations();
+  }, []);
+
+  const handleExecuteAction = async (action: ActionItem, integrationName: string) => {
+    const integration = integrations.find(i => i.name === integrationName);
+    if (!integration || !integration.connected) {
+      alert(`Please connect ${integrationName} first.`);
+      return;
+    }
+
+    setExecutingActionId(action.title); // Using title as fallback id
+    try {
+      const result = await integrationsApi.executeAction(action, integration.id);
+      if (result.success && result.url) {
+        window.open(result.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Action execution failed:', error);
+    } finally {
+      setExecutingActionId(null);
+    }
+  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +97,7 @@ export function ResearchWorkspace({
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
-      
+
       recognition.lang = 'en-IN';
       recognition.continuous = false;
       recognition.interimResults = true;
@@ -76,9 +117,9 @@ export function ResearchWorkspace({
 
   const handleSpeakOutput = () => {
     if (result?.synthesis) {
-      const text = result.synthesis.summary || 
+      const text = result.synthesis.summary ||
         (result.synthesis.introduction + ' ' + result.synthesis.conclusion);
-      
+
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-IN';
@@ -130,7 +171,7 @@ export function ResearchWorkspace({
                   disabled={isResearching}
                 />
               </div>
-              
+
               {/* Voice Controls */}
               <div className="flex items-center gap-2">
                 <Button
@@ -141,9 +182,9 @@ export function ResearchWorkspace({
                   disabled={isResearching}
                   title="Voice input (STT)"
                 >
-                  <Mic className={`w-4 h-4 ${isRecording ? 'animate-pulse' : ''}`} />
+                  <Mic className={`w-4 h-4 ${isRecording ? 'animate-pulse text-void' : ''}`} />
                 </Button>
-                
+
                 {result && (
                   <Button
                     type="button"
@@ -152,20 +193,36 @@ export function ResearchWorkspace({
                     onClick={handleSpeakOutput}
                     title="Listen to output (TTS)"
                   >
-                    <Volume2 className="w-4 h-4" />
+                    <Volume2 className="w-4 h-4 text-saffron" />
                   </Button>
                 )}
-                
-                <Button
+
+                <SanskritButton
                   type="submit"
-                  variant="peacock"
-                  className="gap-2"
-                  loading={isResearching}
-                  disabled={!query.trim()}
+                  variant="primary"
+                  className="px-6 py-2 text-[10px] uppercase tracking-widest gap-2"
+                  disabled={isResearching || !query.trim()}
                 >
-                  <Send className="w-4 h-4" />
-                  <span className="hidden sm:inline">Research</span>
-                </Button>
+                  {isResearching ? (
+                    <div className="animate-spin w-3 h-3 border-2 border-void border-t-transparent rounded-full" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
+                  <span className="hidden sm:inline">Initialize Research</span>
+                </SanskritButton>
+
+                {result && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="md"
+                    onClick={() => window.open(`/api/research/export/${result.sessionId}`, '_blank')}
+                    title="Export to Markdown"
+                    className="gap-2"
+                  >
+                    <Download className="w-4 h-4 text-gold" />
+                  </Button>
+                )}
               </div>
             </div>
           </form>
@@ -201,7 +258,12 @@ export function ResearchWorkspace({
         {/* Results or empty state */}
         <div className="flex-1 overflow-y-auto">
           {result ? (
-            <AcademicResearchResults result={result} />
+            <AcademicResearchResults
+              result={result}
+              integrations={integrations}
+              handleExecuteAction={handleExecuteAction}
+              executingActionId={executingActionId}
+            />
           ) : !isResearching ? (
             <EmptyWorkspace onSubmit={onSubmit} />
           ) : null}
@@ -220,7 +282,17 @@ export function ResearchWorkspace({
 
 // ─── Academic Research Results Component ─────────────────────────────────────
 
-function AcademicResearchResults({ result }: { result: ResearchResponse }) {
+function AcademicResearchResults({
+  result,
+  integrations,
+  handleExecuteAction,
+  executingActionId
+}: {
+  result: ResearchResponse;
+  integrations: Integration[];
+  handleExecuteAction: (action: ActionItem, integrationName: string) => Promise<void>;
+  executingActionId: string | null;
+}) {
   const { synthesis } = result;
   const confidence = synthesis.confidence * 100;
   const verifiedSources = synthesis.verifiedSources || result.evaluations.length || 0;
@@ -257,7 +329,7 @@ function AcademicResearchResults({ result }: { result: ResearchResponse }) {
         </div>
 
         {/* Trust metrics */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="cut-card cut-border bg-slate/70 p-3 text-center">
             <span className="text-xl font-display text-chalk">{confidence.toFixed(0)}%</span>
             <span className="block text-[10px] text-ash uppercase tracking-[0.15em] mt-0.5">Confidence</span>
@@ -270,7 +342,41 @@ function AcademicResearchResults({ result }: { result: ResearchResponse }) {
             <span className="text-xl font-display text-warning">{contradictions}</span>
             <span className="block text-[10px] text-ash uppercase tracking-[0.15em] mt-0.5">Contradictions</span>
           </div>
+          <div className="cut-card cut-border bg-slate/70 p-3 text-center">
+            <span className="text-xl font-display text-mint">Low</span>
+            <span className="block text-[10px] text-ash uppercase tracking-[0.15em] mt-0.5">Bias Indicator</span>
+          </div>
         </div>
+
+        {/* Quality Report - Features Meta metrics */}
+        {result?.evaluations && (
+          <div className="mt-6 pt-6 border-t border-smoke/30">
+            <h4 className="text-[10px] text-ash uppercase tracking-[0.2em] mb-4">Quality Assurance Report</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {result.evaluations.map((evalItem) => (
+                <div key={evalItem.type} className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-ash capitalize">{evalItem.type}</span>
+                    <span className={evalItem.passed ? 'text-mint' : 'text-error'}>
+                      {(evalItem.score * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <div className="h-1 bg-graphite rounded-full overflow-hidden">
+                    <div
+                      className={cn("h-full transition-all duration-1000", evalItem.passed ? 'bg-peacock shadow-[0_0_8px_rgba(0,168,107,0.4)]' : 'bg-saffron shadow-[0_0_8px_rgba(255,107,53,0.4)]')}
+                      style={{ width: `${evalItem.score * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {!result.evaluations.every(e => e.passed) && (
+              <p className="mt-4 text-[11px] text-saffron italic bg-saffron/5 p-2 cut-card border border-saffron/20">
+                Notice: Research was automatically refined and retried by the Agent Council to meet quality thresholds.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Strategy badge */}
         <div className="flex items-center gap-2 mt-3">
@@ -325,10 +431,18 @@ function AcademicResearchResults({ result }: { result: ResearchResponse }) {
                 transition={{ delay: i * 0.06 }}
                 className="flex items-start gap-3"
               >
-                <span className="w-5 h-5 cut-card bg-peacock/20 text-[9px] text-peacock font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <span className="text-silver text-sm leading-relaxed">{finding}</span>
+                <div className="flex-1">
+                  <span className="text-silver text-sm leading-relaxed">{finding}</span>
+                  {synthesis.lineage && synthesis.lineage.find(l => l.finding === finding) && (
+                    <div className="flex gap-1 mt-1.5">
+                      {synthesis.lineage.find(l => l.finding === finding)?.sourceIndices.map(idx => (
+                        <span key={idx} className="text-[9px] font-mono text-peacock bg-peacock/10 border border-peacock/20 px-1 rounded flex items-center gap-0.5">
+                          Source [{idx}]
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </motion.li>
             ))}
           </ul>
@@ -403,6 +517,111 @@ function AcademicResearchResults({ result }: { result: ResearchResponse }) {
           <div className="text-silver text-sm leading-relaxed whitespace-pre-wrap">{synthesis.deepDive}</div>
         </AcademicSection>
       )}
+
+      {/* Actions & Connectors */}
+      <div className="mt-8 mb-8 pt-8 border-t border-smoke/30">
+        <div className="flex items-center gap-2 mb-6">
+          <Cpu className="w-4 h-4 text-warning" />
+          <h3 className="text-sm font-medium text-silver uppercase tracking-[0.2em]">Action & Integration Dashboard</h3>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Generated Action Items */}
+          <Card className="p-5 cut-card cut-border bg-slate/60 shadow-xl border-smoke/20">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-xs font-bold text-ash uppercase tracking-wider flex items-center gap-2">
+                <Server className="w-3.5 h-3.5 text-peacock" />
+                Suggested Next Steps
+              </h4>
+              <Badge variant="peacock" className="text-[9px]">{(synthesis.actionableOutputs || []).length} Actions</Badge>
+            </div>
+
+            <div className="space-y-3">
+              {(synthesis.actionableOutputs || []).map((action: any, idx: number) => (
+                <div key={idx} className="p-3 cut-card bg-graphite/40 border border-smoke/30 transition-all hover:border-peacock/40">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[9px] font-mono text-peacock uppercase tracking-widest">{action.type}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "text-[9px] px-1.5 py-0.5 cut-card border uppercase",
+                        action.priority === 'high' ? 'border-error/30 text-error bg-error/5' : 'border-ash/30 text-ash bg-ash/5'
+                      )}>
+                        {action.priority}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 hover:bg-peacock/10 hover:text-peacock"
+                        onClick={() => handleExecuteAction(action, 'notion')}
+                        disabled={executingActionId === action.title}
+                        title="Export to Notion"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  <h5 className="text-sm font-semibold text-silver">{action.title}</h5>
+                  <p className="text-xs text-ash mt-1.5 leading-relaxed">{action.description}</p>
+                </div>
+              ))}
+              {(!synthesis.actionableOutputs || synthesis.actionableOutputs.length === 0) && (
+                <div className="flex flex-col items-center justify-center py-8 text-center bg-void/20 cut-card border border-smoke/10">
+                  <AlertTriangle className="w-6 h-6 text-ash/40 mb-2" />
+                  <p className="text-xs text-ash/60">No specific action items detected.</p>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Integration Hub */}
+          <Card className="p-5 cut-card cut-border bg-slate/60 shadow-xl border-smoke/20">
+            <h4 className="text-xs font-bold text-ash uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Share2 className="w-3.5 h-3.5 text-gold" />
+              Connected Platforms
+            </h4>
+            <div className="grid grid-cols-2 gap-3">
+              {['Notion', 'GitHub', 'Zotero', 'Slack'].map(tool => {
+                const status = integrations.find(i => i.name.toLowerCase() === tool.toLowerCase());
+                return (
+                  <div
+                    key={tool}
+                    className={cn(
+                      "p-4 cut-card border flex flex-col items-center text-center transition-all",
+                      status?.connected
+                        ? "bg-graphite/80 border-mint/40"
+                        : "bg-void/60 border-smoke/30 opacity-60 hover:opacity-100"
+                    )}
+                  >
+                    <div className="relative mb-3">
+                      <div className={cn(
+                        "w-10 h-10 cut-card flex items-center justify-center",
+                        status?.connected ? "bg-peacock/10 text-peacock" : "bg-smoke/20 text-ash"
+                      )}>
+                        {tool === 'Notion' && <Server className="w-5 h-5" />}
+                        {tool === 'GitHub' && <ExternalLink className="w-5 h-5" />}
+                        {tool === 'Zotero' && <BookOpen className="w-5 h-5" />}
+                        {tool === 'Slack' && <Hash className="w-5 h-5" />}
+                      </div>
+                      {status?.connected && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-void flex items-center justify-center">
+                          <CheckCircle2 className="w-3 h-3 text-peacock font-bold" />
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-xs font-bold text-silver mb-3 tracking-wide">{tool}</span>
+                    <SanskritButton
+                      variant={status?.connected ? 'outline' : 'primary'}
+                      className="w-full text-[9px] h-8 uppercase tracking-widest font-bold px-0"
+                    >
+                      {status?.connected ? 'Configure' : 'Connect'}
+                    </SanskritButton>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        </div>
+      </div>
 
       {/* Citations */}
       {synthesis.citations && synthesis.citations.length > 0 && (

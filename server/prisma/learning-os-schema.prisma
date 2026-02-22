@@ -1,0 +1,404 @@
+// Learning OS Schema Extensions
+// Add these models to your existing schema.prisma
+
+// ============================================
+// CONCEPT COACH MODULE
+// ============================================
+
+model TopicMastery {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  topic           String
+  subject         String?
+  masteryLevel    Float    @default(0.0)  // 0.0 to 1.0
+  confidenceScore Float    @default(0.5)
+  hintsUsed       Int      @default(0)
+  attempts        Int      @default(0)
+  correctAnswers  Int      @default(0)
+  lastPracticedAt DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, topic])
+  @@index([userId, subject])
+}
+
+model LearningSession {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  topic            String
+  mode             String   @default("learn") // learn, practice, quiz, review
+  startedAt        DateTime @default(now())
+  endedAt          DateTime?
+  hintsRequested   Int      @default(0)
+  correctAnswers   Int      @default(0)
+  wrongAnswers     Int      @default(0)
+  confidenceReadings Json?  // [{time, score, context}]
+  stressSignals    Json?    // hesitation, repetition patterns
+  masteryBefore    Float?
+  masteryAfter     Float?
+  createdAt        DateTime @default(now())
+
+  @@index([userId, startedAt])
+}
+
+model ExplanationStep {
+  id              String   @id @default(uuid())
+  sessionId       String
+  session         LearningSession @relation(fields: [sessionId], references: [id])
+  stepNumber      Int
+  content         String   @db.Text
+  type            String   // intro, concept, example, practice, summary
+  hintLevel       Int      @default(0) // 0=full, 1-4 hint levels
+  studentQuery    String?
+  aiResponse      String   @db.Text
+  createdAt       DateTime @default(now())
+
+  @@index([sessionId])
+}
+
+// ============================================
+// STUDY PLANNER MODULE
+// ============================================
+
+model StudyPlan {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  description String?
+  syllabus    Json?    // Parsed syllabus structure
+  startDate   DateTime
+  endDate     DateTime
+  dailyHours  Float    @default(2.0)
+  planData    Json?    // Generated schedule [{date, topics, duration}]
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tasks       StudyTask[]
+
+  @@index([userId, active])
+}
+
+model StudyTask {
+  id           String   @id @default(uuid())
+  planId       String
+  plan         StudyPlan @relation(fields: [planId], references: [id])
+  topic        String
+  description  String?
+  scheduledAt  DateTime
+  duration     Int      // minutes
+  completed    Boolean  @default(false)
+  completedAt  DateTime?
+  difficulty   Float    @default(0.5)
+  priority     Int      @default(1) // 1-5
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  @@index([planId, scheduledAt])
+}
+
+model BurnoutIndicator {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  date          DateTime @default(now())
+  studyHours    Float    @default(0)
+  breakHours    Float    @default(0)
+  focusScore    Float?   // 0-1
+  stressSignals Json?    // indicators
+  riskLevel     String   @default("low") // low, medium, high
+  recommendations Json?
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, date])
+}
+
+model ExamPrediction {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  examName        String
+  examDate        DateTime
+  predictedScore  Float?   // 0-100
+  confidence      Float?   // 0-1
+  readinessBreakdown Json? // {topic: readiness}
+  recommendations Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId, examDate])
+}
+
+// ============================================
+// ASSIGNMENT EVALUATOR MODULE
+// ============================================
+
+model Rubric {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   // essay, code, ppt, lab_report, general
+  criteria    Json     // [{id, name, weight, description, levels: [{score, description}]}]
+  totalPoints Float    @default(100)
+  createdBy   String?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignments Assignment[]
+
+  @@index([type, isPublic])
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  rubricId    String?
+  rubric      Rubric?  @relation(fields: [rubricId], references: [id])
+  type        String   // essay, code, ppt, lab_report
+  title       String
+  prompt      String?  @db.Text
+  content     String?  @db.Text
+  fileUrl     String?
+  evaluation  Json?    // {scores: [], feedback: [], overallScore, grade}
+  score       Float?
+  grade       String?  // A+, A, B+, etc.
+  status      String   @default("draft") // draft, submitted, evaluated
+  submittedAt DateTime?
+  evaluatedAt DateTime?
+  version     Int      @default(1)
+  parentAssignmentId String? // for version tracking
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  integrityChecks IntegrityCheck[]
+  improvementRuns ImprovementRun[]
+
+  @@index([userId, status])
+}
+
+model IntegrityCheck {
+  id               String   @id @default(uuid())
+  assignmentId     String
+  assignment       Assignment @relation(fields: [assignmentId], references: [id])
+  originalityScore Float?   // 0-100
+  aiProbability    Float?   // 0-1
+  plagiarismScore  Float?   // 0-100
+  flaggedPhrases   Json?    // [{text, reason}]
+  matchedSources   Json?    // [{url, similarity}]
+  suggestions      Json?    // improvement suggestions
+  checkedAt        DateTime @default(now())
+
+  @@index([assignmentId])
+}
+
+model ImprovementRun {
+  id             String   @id @default(uuid())
+  assignmentId   String
+  assignment     Assignment @relation(fields: [assignmentId], references: [id])
+  targetGrade    String   // A+, A, etc.
+  changes        Json?    // [{section, before, after, reason}]
+  newScore       Float?
+  newGrade       String?
+  feedback       String?  @db.Text
+  createdAt      DateTime @default(now())
+
+  @@index([assignmentId])
+}
+
+// ============================================
+// CAREER NAVIGATOR MODULE
+// ============================================
+
+model SkillProfile {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  skills        Json?    // [{name, level: 1-5, evidence: [], lastUsed}]
+  targetRole    String?
+  targetIndustry String?
+  gapAnalysis   Json?    // {missing: [], weak: [], strong: []}
+  jobReadyScore Float?   // 0-100
+  resumeUrl     String?
+  portfolioUrl  String?
+  updatedAt     DateTime @updatedAt
+
+  interviews MockInterview[]
+
+  @@unique([userId])
+}
+
+model MockInterview {
+  id            String   @id @default(uuid())
+  profileId     String
+  profile       SkillProfile @relation(fields: [profileId], references: [id])
+  role          String
+  company       String?
+  type          String   @default("behavioral") // behavioral, technical, mixed
+  questions     Json     // [{question, category}]
+  answers       Json?    // [{questionId, answer, timestamp}]
+  feedback      Json?    // {overallScore, breakdown: [], strengths: [], improvements: []}
+  score         Float?
+  duration      Int?     // seconds
+  createdAt     DateTime @default(now())
+
+  @@index([profileId])
+}
+
+model CareerRoadmap {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  targetRole  String
+  currentRole String?
+  milestones  Json?    // [{order, title, description, skills, estimatedTime, resources}]
+  progress    Float    @default(0.0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, targetRole])
+}
+
+// ============================================
+// CONFIDENCE BOOSTER MODULE
+// ============================================
+
+model ConfidenceProfile {
+  id                 String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id])
+  baseline           Float    @default(0.5) // 0-1
+  currentLevel       Float    @default(0.5)
+  hesitationCount    Int      @default(0)
+  mistakeStreak      Int      @default(0)
+  successStreak      Int      @default(0)
+  encouragementStyle String   @default("balanced") // gentle, balanced, challenging
+  preferredPace      String   @default("normal") // slow, normal, fast
+  lastAdaptation     DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  events ConfidenceEvent[]
+
+  @@unique([userId])
+}
+
+model ConfidenceEvent {
+  id          String   @id @default(uuid())
+  profileId   String
+  profile     ConfidenceProfile @relation(fields: [profileId], references: [id])
+  type        String   // hesitation, mistake, success, stress, breakthrough
+  context     Json?    // {topic, question, response}
+  trigger     String?  // what triggered this event
+  response    String?  @db.Text // AI's adaptive response
+  beforeLevel Float?   // confidence before event
+  afterLevel  Float?   // confidence after intervention
+  createdAt   DateTime @default(now())
+
+  @@index([profileId, createdAt])
+}
+
+// ============================================
+// DEBUG COACH MODULE
+// ============================================
+
+model DebugSession {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  language      String   // python, javascript, java, etc.
+  code          String   @db.Text
+  errorType     String?
+  errorMessage  String?  @db.Text
+  solution      Json?    // {steps: [], explanation, fixedCode}
+  concepts      Json?    // related concepts to learn
+  resolved      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model CodePattern {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  patternType String   // common_mistake, good_practice, optimization
+  language    String
+  description String
+  codeExample String   @db.Text
+  frequency   Int      @default(1)
+  lastSeenAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, patternType, language, description])
+}
+
+// ============================================
+// FLASHCARD & SRS (Enhanced)
+// ============================================
+
+model FlashcardDeck {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  name        String
+  description String?
+  subject     String?
+  topicId     String?  // Link to TopicMastery
+  cardCount   Int      @default(0)
+  masteredCount Int    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  cards Flashcard[]
+
+  @@index([userId, subject])
+}
+
+model Flashcard {
+  id            String   @id @default(uuid())
+  deckId        String
+  deck          FlashcardDeck @relation(fields: [deckId], references: [id])
+  front         String   @db.Text
+  back          String   @db.Text
+  tags          Json?    // []
+  difficulty    Float    @default(0.5)
+  
+  // SRS fields
+  interval      Int      @default(1) // days until next review
+  easeFactor    Float    @default(2.5)
+  nextReview    DateTime @default(now())
+  lastReview    DateTime?
+  reviewCount   Int      @default(0)
+  lapseCount    Int      @default(0) // times forgotten
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([deckId, nextReview])
+}
+
+// ============================================
+// EXTEND USER MODEL
+// ============================================
+
+// Add these relations to the existing User model:
+// model User {
+//   ...
+//   // Learning OS relations
+//   topicMasteries     TopicMastery[]
+//   learningSessions   LearningSession[]
+//   studyPlans         StudyPlan[]
+//   burnoutIndicators  BurnoutIndicator[]
+//   examPredictions    ExamPrediction[]
+//   assignments        Assignment[]
+//   skillProfile       SkillProfile?
+//   careerRoadmaps     CareerRoadmap[]
+//   confidenceProfile  ConfidenceProfile?
+//   debugSessions      DebugSession[]
+//   codePatterns       CodePattern[]
+//   flashcardDecks     FlashcardDeck[]
+// }

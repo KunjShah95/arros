@@ -10,6 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -19,6 +20,20 @@ model User {
   sessions  Session[]
   memories  UserMemory[]
   interests UserInterest[]
+  
+  // Learning OS Relations
+  topicMasteries     TopicMastery[]
+  learningSessions   LearningSession[]
+  studyPlans         StudyPlan[]
+  burnoutIndicators  BurnoutIndicator[]
+  examPredictions    ExamPrediction[]
+  assignments        Assignment[]
+  skillProfile       SkillProfile?
+  careerRoadmaps     CareerRoadmap[]
+  confidenceProfile  ConfidenceProfile?
+  debugSessions      DebugSession[]
+  codePatterns       CodePattern[]
+  flashcardDecks     FlashcardDeck[]
 }
 
 model Session {

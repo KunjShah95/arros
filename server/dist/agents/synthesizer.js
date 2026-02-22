@@ -44,6 +44,11 @@ const AcademicSynthesisSchema = zod_1.z.object({
     confidence: zod_1.z.number(),
     verifiedSources: zod_1.z.number(),
     contradictionsFound: zod_1.z.number(),
+    // Lineage (Finding index -> Citation indices)
+    lineage: zod_1.z.array(zod_1.z.object({
+        finding: zod_1.z.string(),
+        sourceIndices: zod_1.z.array(zod_1.z.number()),
+    })).optional(),
 });
 // Keep backward compatibility with existing SynthesisResult interface
 const SynthesisResultSchema = AcademicSynthesisSchema.extend({
@@ -115,7 +120,7 @@ ${researchRawContent.substring(0, 10000)}
 
 Now produce a complete academic research report with all sections filled in. Extract and number all citations from the sources above.
 
-Return a JSON with all fields: introduction, conceptsAndDefinitions, keyFindings (array), applications, challenges, futureDirections, conclusion, keyTakeaways (array of 5-7 bullet points), furtherReading (array of 3-5 reading suggestions), citations (array with index, title, authors, year, venue, url, citationText), summary (one-paragraph overview), deepDive (full detailed text), confidence (0-1), verifiedSources (number), contradictionsFound (number).`,
+Return a JSON with all fields: introduction, conceptsAndDefinitions, keyFindings (array), applications, challenges, futureDirections, conclusion, keyTakeaways (array of 5-7 bullet points), furtherReading (array of 3-5 reading suggestions), citations (array with index, title, authors, year, venue, url, citationText), summary (one-paragraph overview), deepDive (full detailed text), confidence (0-1), verifiedSources (number), contradictionsFound (number), and lineage (array of objects with 'finding' and 'sourceIndices' linking each major finding back to the citation numbers [1], [2], etc.).`,
                 },
             ];
             try {

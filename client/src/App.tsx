@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './components/Sidebar';
 import { ResearchWorkspace } from './components/ResearchWorkspace';
 import { LandingPage } from './pages/LandingPage.tsx';
@@ -13,6 +14,10 @@ import { SettingsPage } from './pages/SettingsPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { VoiceStudio } from './pages/VoiceStudioPage';
 import { DocumentScanner } from './pages/DocumentScannerPage';
+import { KnowledgeGraphPage } from './pages/KnowledgeGraphPage';
+import { StudyOSPage } from './pages/StudyOSPage';
+import { LearningOSPage } from './pages/LearningOSPage';
+import { LearningOS2Page } from './pages/LearningOS2Page';
 import { researchApi } from './services/api';
 import type { ResearchResponse, AgentTask, Source } from './types';
 
@@ -53,6 +58,16 @@ function AppLayout() {
     setTasks([]);
     setSources([]);
   };
+
+  useEffect(() => {
+    const handleRemoteResearch = (e: any) => {
+      if (e.detail?.query) {
+        handleSubmit(e.detail.query);
+      }
+    };
+    window.addEventListener('arros:research', handleRemoteResearch);
+    return () => window.removeEventListener('arros:research', handleRemoteResearch);
+  }, [handleSubmit]);
 
   useEffect(() => {
     if (result?.sessionId) {
@@ -107,6 +122,14 @@ function AppLayout() {
         return <VoiceStudio />;
       case 'scanner':
         return <DocumentScanner />;
+      case 'graph':
+        return <KnowledgeGraphPage />;
+      case 'studyos':
+        return <StudyOSPage />;
+      case 'learningos':
+        return <LearningOSPage />;
+      case 'learningos2':
+        return <LearningOS2Page />;
       default:
         return null;
     }
@@ -119,8 +142,19 @@ function AppLayout() {
         onViewChange={setActiveView}
         onNewResearch={handleNewResearch}
       />
-      <main className="flex-1 overflow-hidden p-6">
-        {renderContent()}
+      <main className="flex-1 overflow-hidden relative">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeView}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="h-full"
+          >
+            {renderContent()}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

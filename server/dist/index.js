@@ -69,12 +69,42 @@ const upload = (0, multer_1.default)({
     storage: multer_1.default.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 }
 });
-app.use((0, cors_1.default)());
+const corsOrigin = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost'];
+app.use((0, cors_1.default)({
+    origin: corsOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(rateLimiter_1.generalLimiter);
 app.get('/health', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    const dbStatus = yield checkDatabaseHealth();
+    const redisStatus = cache_1.cacheService.getStatus();
+    const isHealthy = dbStatus && redisStatus;
+    res.status(isHealthy ? 200 : 503).json({
+        status: isHealthy ? 'ok' : 'degraded',
+        timestamp: new Date().toISOString(),
+        services: {
+            database: dbStatus ? 'connected' : 'disconnected',
+            redis: redisStatus ? 'connected' : 'disconnected',
+        }
+    });
 }));
+function checkDatabaseHealth() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { prisma } = yield Promise.resolve().then(() => __importStar(require('./services/prisma')));
+            yield prisma.$queryRaw `SELECT 1`;
+            return true;
+        }
+        catch (_a) {
+            return false;
+        }
+    });
+}
 app.use('/api', rateLimiter_1.researchLimiter, api_1.default);
 app.use('/api/auth', rateLimiter_1.authLimiter);
 app.post('/api/research', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {

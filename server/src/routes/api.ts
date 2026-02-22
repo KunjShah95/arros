@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import { AgentOrchestrator } from '../agents/orchestrator';
 import { prisma } from '../services/prisma';
 import { sarvamClient } from '../services/sarvam';
+import { ExportService } from '../services/export';
+import { IntegrationService } from '../services/integrations';
 import { authenticate } from '../middleware/auth';
 import multer from 'multer';
 
@@ -122,6 +124,221 @@ router.get('/knowledge-graph', authenticate({ optional: true }), async (req: Req
   }
 });
 
+router.get('/research/export/:sessionId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const sessionId = req.params.sessionId as string;
+
+    const task = await prisma.agentTask.findFirst({
+      where: { sessionId: sessionId as string, type: 'synthesizer' as any },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!task || !task.output) {
+      return res.status(404).json({ error: 'Synthesis not found for this session' });
+    }
+
+    const markdown = ExportService.toMarkdown(task.output as any);
+
+    res.setHeader('Content-Type', 'text/markdown');
+    res.setHeader('Content-Disposition', `attachment; filename="ARROS-Research-${sessionId}.md"`);
+    res.send(markdown);
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json({ error: 'Export failed' });
+  }
+});
+
+router.get('/integrations', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const integrations = await IntegrationService.getIntegrations(req.userId || 'guest');
+    res.json(integrations);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get integrations' });
+  }
+});
+
+router.post('/research/action/execute', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { action, integrationId } = req.body;
+    const result = await IntegrationService.executeAction(action, integrationId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to execute action' });
+  }
+});
+
+router.post('/research/stream', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { query } = req.body;
+    const userId = req.userId || 'guest';
+
+    if (!query) {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const orchestrator = new AgentOrchestrator(userId);
+
+    res.write(`data: ${JSON.stringify({ type: 'started', query })}\n\n`);
+
+    const result = await orchestrator.research(query);
+
+    res.write(`data: ${JSON.stringify({ type: 'completed', result })}\n\n`);
+    res.end();
+  } catch (error) {
+    console.error('Streaming research error:', error);
+    res.write(`data: ${JSON.stringify({ type: 'error', error: 'Research failed' })}\n\n`);
+    res.end();
+  }
+});
+
+router.get('/agents/config', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    res.json({
+      researchTypes: ['web', 'academic', 'code', 'news'],
+      criticTypes: ['verifier', 'bias', 'contradiction'],
+      memoryTypes: ['shortTerm', 'longTerm', 'knowledgeGraph'],
+      actionTypes: ['prd', 'ticket', 'code', 'decision'],
+      availableModels: ['gpt-4o', 'gpt-4o-mini', 'claude-3-5-sonnet', 'claude-3-haiku'],
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get agent config' });
+  }
+});
+
+router.get('/evaluations/:sessionId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const sessionId = req.params.sessionId as string;
+
+    const evaluations = await prisma.evaluation.findMany({
+      where: { sessionId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(evaluations);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get evaluations' });
+  }
+});
+
+router.get('/analytics/usage', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const days = parseInt(req.query.days as string) || 30;
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const sessions = await prisma.session.findMany({
+      where: { userId, createdAt: { gte: startDate } },
+      include: { tasks: true, sources: true },
+    });
+
+    const totalSessions = sessions.length;
+    const completedSessions = sessions.filter(s => s.status === 'completed').length;
+    const totalSources = sessions.reduce((acc, s) => acc + s.sources.length, 0);
+    const totalTasks = sessions.reduce((acc, s) => acc + s.tasks.length, 0);
+    const totalCost = sessions.reduce((acc, s) =>
+      acc + s.tasks.reduce((tacc, t) => tacc + (t.cost || 0), 0), 0
+    );
+
+    res.json({
+      period: { days, startDate, endDate: new Date() },
+      summary: {
+        totalSessions,
+        completedSessions,
+        totalSources,
+        totalTasks,
+        totalCost: Math.round(totalCost * 10000) / 10000,
+      },
+      sessions: sessions.map(s => ({
+        id: s.id,
+        title: s.title,
+        status: s.status,
+        createdAt: s.createdAt,
+        taskCount: s.tasks.length,
+        sourceCount: s.sources.length,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get analytics' });
+  }
+});
+
+router.post('/memory/search', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const { query, limit = 5 } = req.body;
+
+    if (!query) {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+
+    const { MemoryFleet } = await import('../agents/subagents/memoryFleet');
+    const memoryFleet = new MemoryFleet(userId, 'search-session');
+
+    const memories = await memoryFleet.retrieveMemory(query, limit);
+
+    res.json(memories);
+  } catch (error) {
+    console.error('Memory search error:', error);
+    res.status(500).json({ error: 'Failed to search memories' });
+  }
+});
+
+router.delete('/memory/:memoryId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const memoryId = req.params.memoryId as string;
+
+    await prisma.userMemory.deleteMany({
+      where: { id: memoryId, userId: userId as string },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete memory' });
+  }
+});
+
+router.delete('/knowledge-graph/:nodeId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const nodeId = req.params.nodeId as string;
+
+    await prisma.knowledgeEdge.deleteMany({
+      where: {
+        OR: [{ fromNodeId: nodeId as string }, { toNodeId: nodeId as string }],
+      },
+    });
+
+    await prisma.knowledgeNode.delete({
+      where: { id: nodeId as string },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete node' });
+  }
+});
+
+router.get('/tasks/:sessionId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const sessionId = req.params.sessionId as string;
+
+    const tasks = await prisma.agentTask.findMany({
+      where: { sessionId: sessionId as string },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get tasks' });
+  }
+});
+
 // Sarvam AI Integration Routes
 // Note: Sarvam AI does not provide OCR service. This is a placeholder.
 // For OCR, consider using Google Cloud Vision, AWS Textract, or Tesseract.js
@@ -210,6 +427,1544 @@ router.get('/sarvam/languages', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Get languages error:', error);
     res.status(500).json({ error: 'Failed to get supported languages' });
+  }
+});
+
+import {
+  StudyOSAgent,
+  SpacedRepetitionAgent,
+  FormulaSheetAgent,
+  MockExamAgent,
+  RevisionSchedulerAgent,
+  LiteratureReviewAgent,
+  ThesisValidatorAgent,
+  ResearchGapFinderAgent,
+  CitationGeneratorAgent,
+  PaperComparatorAgent,
+  MindMapGeneratorAgent,
+  SocraticTutorAgent,
+  ConceptDependencyAgent,
+  AnkiExportAgent,
+  LearningAnalyticsAgent,
+  DecentralizedShareAgent,
+  VideoSummarizerAgent,
+  CollaborativeStudyRoomAgent,
+  PomodoroAgent,
+  ErrorTrackingAgent,
+  QuestionBankAgent,
+  GamificationAgent,
+  PDFAnnotationAgent,
+  ExamCountdownAgent
+} from '../agents/studyOS';
+
+import { ConceptCoachAgent, MasteryGraphGenerator } from '../agents/conceptCoach';
+import { AssignmentEvaluatorAgent, QuickFeedbackGenerator } from '../agents/assignmentEvaluator';
+import { IntegrityAgent, TransparencyLogger } from '../agents/integrity';
+import { StudyPlannerAgent, FocusModeAgent } from '../agents/studyPlanner';
+import { CodeDebugCoachAgent, CodeEvolutionWatcher } from '../agents/codeDebugCoach';
+import { CareerSkillNavigatorAgent } from '../agents/careerNavigator';
+import { ConfidenceBoosterAgent } from '../agents/confidenceBooster';
+import { LogicalFallacyDetectorAgent } from '../agents/fallacyDetector';
+
+import { v4 as uuid } from 'uuid';
+
+router.post('/studyos/exam-prep', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { content, topic, options } = req.body;
+    const userId = req.userId || 'guest';
+    const sessionId = req.body.sessionId || uuid();
+    const taskId = uuid();
+
+    if (!content || !topic) {
+      return res.status(400).json({ error: 'Content and topic are required' });
+    }
+
+    const studyAgent = new StudyOSAgent(sessionId, userId, taskId);
+    const result = await studyAgent.generateExamPrepMaterials(content, topic, options || {});
+
+    res.json(result);
+  } catch (error) {
+    console.error('StudyOS exam prep error:', error);
+    res.status(500).json({ error: 'Failed to generate exam prep materials' });
+  }
+});
+
+router.post('/studyos/from-pdf', authenticate({ optional: true }), async (req: MulterRequest, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const sessionId = uuid();
+    const taskId = uuid();
+    const title = req.body.title || 'PDF Study Session';
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'PDF file is required' });
+    }
+
+    const pdfText = req.file.buffer.toString('utf-8');
+    
+    const studyAgent = new StudyOSAgent(sessionId, userId, taskId);
+    const result = await studyAgent.generateFromPDF(pdfText, title);
+
+    res.json(result);
+  } catch (error) {
+    console.error('StudyOS PDF error:', error);
+    res.status(500).json({ error: 'Failed to process PDF' });
+  }
+});
+
+router.post('/studyos/continue', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { previousMaterials, focusAreas } = req.body;
+    const userId = req.userId || 'guest';
+    const sessionId = uuid();
+    const taskId = uuid();
+
+    if (!previousMaterials) {
+      return res.status(400).json({ error: 'Previous materials are required' });
+    }
+
+    const studyAgent = new StudyOSAgent(sessionId, userId, taskId);
+    const result = await studyAgent.continueStudySession(previousMaterials, focusAreas);
+
+    res.json(result);
+  } catch (error) {
+    console.error('StudyOS continue error:', error);
+    res.status(500).json({ error: 'Failed to continue study session' });
+  }
+});
+
+router.post('/studyos/share', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { materials, options } = req.body;
+    const userId = req.userId || 'guest';
+
+    if (!materials) {
+      return res.status(400).json({ error: 'Materials are required' });
+    }
+
+    const shareAgent = new DecentralizedShareAgent(userId);
+    const result = await shareAgent.createShareableStudyBundle(materials, options || {});
+
+    res.json(result);
+  } catch (error) {
+    console.error('StudyOS share error:', error);
+    res.status(500).json({ error: 'Failed to create shareable bundle' });
+  }
+});
+
+router.get('/studyos/bundle/:bundleId', async (req: Request, res: Response) => {
+  try {
+    const bundleId = req.params.bundleId as string;
+    
+    const bundle = await prisma.agentOutput.findFirst({
+      where: { sessionId: bundleId },
+    });
+
+    if (!bundle) {
+      return res.status(404).json({ error: 'Bundle not found' });
+    }
+
+    res.json(bundle);
+  } catch (error) {
+    console.error('StudyOS bundle error:', error);
+    res.status(500).json({ error: 'Failed to get bundle' });
+  }
+});
+
+router.post('/studyos/srs/create-queue', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { cards, settings } = req.body;
+    const userId = req.userId || 'guest';
+    const srsAgent = new SpacedRepetitionAgent(userId);
+    const result = await srsAgent.createSRSQueue(cards, settings);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create SRS queue' });
+  }
+});
+
+router.post('/studyos/srs/review', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { cardId, quality } = req.body;
+    const srsAgent = new SpacedRepetitionAgent(req.userId || 'guest');
+    const result = await srsAgent.reviewCard(cardId, quality);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to review card' });
+  }
+});
+
+router.get('/studyos/srs/due', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const srsAgent = new SpacedRepetitionAgent(req.userId || 'guest');
+    const cards = await srsAgent.getDueCards();
+    const stats = await srsAgent.getReviewStats();
+    res.json({ dueCards: cards, stats });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get due cards' });
+  }
+});
+
+router.post('/studyos/formulas', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, content } = req.body;
+    const agent = new FormulaSheetAgent();
+    const result = await agent.generateFormulaSheet(topic, content);
+    const cheatSheet = agent.generateCheatSheet([result]);
+    res.json({ formulaSheet: result, cheatSheet });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate formula sheet' });
+  }
+});
+
+router.post('/studyos/mock-exam', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, content, options } = req.body;
+    const agent = new MockExamAgent();
+    const exam = await agent.generateMockExam(topic, content, options);
+    const answerKey = agent.generateAnswerKey(exam);
+    res.json({ exam, answerKey });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate mock exam' });
+  }
+});
+
+router.post('/studyos/schedule', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, subtopics, examDate, dailyHours } = req.body;
+    const agent = new RevisionSchedulerAgent();
+    const schedule = await agent.generateSchedule(topic, subtopics, new Date(examDate), dailyHours);
+    const progress = agent.getProgress(schedule);
+    res.json({ schedule, progress });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate schedule' });
+  }
+});
+
+router.post('/studyos/literature-review', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, papers } = req.body;
+    const agent = new LiteratureReviewAgent();
+    const review = await agent.buildLiteratureReview(topic, papers);
+    res.json(review);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to build literature review' });
+  }
+});
+
+router.get('/studyos/related-papers/:topic', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const topic = req.params.topic as string;
+    const agent = new LiteratureReviewAgent();
+    const papers = await agent.getRelatedPapers(topic);
+    res.json({ papers });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to find related papers' });
+  }
+});
+
+router.post('/studyos/validate-thesis', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { thesis, context } = req.body;
+    const agent = new ThesisValidatorAgent();
+    const result = await agent.validateThesis(thesis, context);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to validate thesis' });
+  }
+});
+
+router.post('/studyos/research-gaps', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, existingPapers } = req.body;
+    const agent = new ResearchGapFinderAgent();
+    const gaps = await agent.findGaps(topic, existingPapers || []);
+    res.json({ gaps });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to find research gaps' });
+  }
+});
+
+router.post('/studyos/citations', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { papers, format } = req.body;
+    const agent = new CitationGeneratorAgent();
+    const citations = await agent.formatReferences(papers, format || 'apa');
+    res.json({ citations });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate citations' });
+  }
+});
+
+router.post('/studyos/compare-papers', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { papers } = req.body;
+    const agent = new PaperComparatorAgent();
+    const result = await agent.comparePapers(papers);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to compare papers' });
+  }
+});
+
+router.post('/studyos/mindmap', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, content } = req.body;
+    const agent = new MindMapGeneratorAgent();
+    const mindmap = await agent.generateMindMap(topic, content);
+    const mermaidCode = agent.generateMermaidCode(mindmap);
+    res.json({ mindmap, mermaidCode });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate mind map' });
+  }
+});
+
+router.post('/studyos/socratic/ask', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, context } = req.body;
+    const agent = new SocraticTutorAgent();
+    const question = await agent.askQuestion(topic, context);
+    res.json(question);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to ask question' });
+  }
+});
+
+router.post('/studyos/socratic/evaluate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { question, answer } = req.body;
+    const agent = new SocraticTutorAgent();
+    const result = await agent.evaluateAnswer(question, answer);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to evaluate answer' });
+  }
+});
+
+router.post('/studyos/explain-level', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { concept, level } = req.body;
+    const agent = new SocraticTutorAgent();
+    const explanation = await agent.explainAtLevel(concept, level || 2);
+    res.json({ explanation });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to explain concept' });
+  }
+});
+
+router.post('/studyos/dependency-graph', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { concepts, content } = req.body;
+    const agent = new ConceptDependencyAgent();
+    const dependencies = await agent.buildDependencyGraph(concepts, content);
+    const learningPath = agent.suggestLearningPath(dependencies);
+    res.json({ dependencies, learningPath });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to build dependency graph' });
+  }
+});
+
+router.post('/studyos/anki/export', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { cards, deckName, format } = req.body;
+    const agent = new AnkiExportAgent();
+    const deck = agent.generateAnkiDeck(cards, deckName || 'StudyOS Deck');
+    
+    if (format === 'csv') {
+      const csv = await agent.exportToCSV(deck);
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${deckName}.csv"`);
+      return res.send(csv);
+    }
+    
+    res.json({ deck });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to export to Anki' });
+  }
+});
+
+router.get('/studyos/analytics', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new LearningAnalyticsAgent();
+    const analytics = await agent.getAnalytics(userId);
+    const insights = agent.generateInsights(analytics);
+    res.json({ analytics, insights });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get analytics' });
+  }
+});
+
+router.post('/studyos/video/summarize', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { url } = req.body;
+    const agent = new VideoSummarizerAgent();
+    const summary = await agent.summarizeVideo(url);
+    res.json(summary);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to summarize video' });
+  }
+});
+
+router.post('/studyos/room/create', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { name, topic } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CollaborativeStudyRoomAgent();
+    const room = await agent.createRoom(name, topic, userId);
+    res.json(room);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create room' });
+  }
+});
+
+router.post('/studyos/room/join', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { roomId } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CollaborativeStudyRoomAgent();
+    const room = await agent.joinRoom(roomId, userId);
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+    res.json(room);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to join room' });
+  }
+});
+
+router.get('/studyos/room/active', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const agent = new CollaborativeStudyRoomAgent();
+    const rooms = await agent.getActiveRooms();
+    res.json({ rooms });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get rooms' });
+  }
+});
+
+router.post('/studyos/pomodoro/start', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { type, duration, task } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new PomodoroAgent();
+    const session = await agent.startSession(userId, type, duration, task);
+    res.json(session);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to start session' });
+  }
+});
+
+router.post('/studyos/pomodoro/complete', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.body;
+    const agent = new PomodoroAgent();
+    const session = await agent.completeSession(sessionId);
+    res.json(session);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to complete session' });
+  }
+});
+
+router.get('/studyos/pomodoro/stats', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new PomodoroAgent();
+    const stats = await agent.getTodayStats(userId);
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get stats' });
+  }
+});
+
+router.post('/studyos/errors/log', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, question, yourAnswer, correctAnswer, mistakeType } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new ErrorTrackingAgent();
+    const error = await agent.logError({ userId, topic, question, yourAnswer, correctAnswer, mistakeType });
+    res.json(error);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to log error' });
+  }
+});
+
+router.get('/studyos/errors/weak-areas', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new ErrorTrackingAgent();
+    const weakAreas = await agent.getWeakAreas(userId);
+    const plan = agent.generateRemedialStudyplan(weakAreas);
+    res.json({ weakAreas, plan });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get weak areas' });
+  }
+});
+
+router.post('/studyos/question-bank/add', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { question, options, correctAnswer, explanation, topic, difficulty, author } = req.body;
+    const agent = new QuestionBankAgent();
+    const item = await agent.addQuestion({ question, options, correctAnswer, explanation, topic, difficulty, author: author || 'User' });
+    res.json(item);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add question' });
+  }
+});
+
+router.get('/studyos/question-bank', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, difficulty, limit } = req.query;
+    const agent = new QuestionBankAgent();
+    const questions = await agent.getQuestions(topic as string, difficulty as string, Number(limit) || 20);
+    res.json({ questions });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get questions' });
+  }
+});
+
+router.post('/studyos/question-bank/generate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, content, count } = req.body;
+    const agent = new QuestionBankAgent();
+    const questions = await agent.generateFromContent(topic, content, count || 10);
+    res.json({ questions });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate questions' });
+  }
+});
+
+router.get('/studyos/gamification/profile', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new GamificationAgent();
+    const profile = await agent.getUserProfile(userId);
+    const levelInfo = agent.getLevelProgress(profile.xp);
+    res.json({ profile, levelInfo });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get profile' });
+  }
+});
+
+router.post('/studyos/gamification/badges', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new GamificationAgent();
+    const newBadges = await agent.checkAndAwardBadges(userId);
+    res.json({ newBadges });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to check badges' });
+  }
+});
+
+router.post('/studyos/pdf/annotate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { pdfId, annotations } = req.body;
+    const agent = new PDFAnnotationAgent();
+    await agent.annotatePDF(pdfId, annotations);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to annotate PDF' });
+  }
+});
+
+router.get('/studyos/pdf/annotations/:pdfId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const pdfId = req.params.pdfId as string;
+    const agent = new PDFAnnotationAgent();
+    const annotations = await agent.getAnnotations(pdfId);
+    res.json({ annotations });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get annotations' });
+  }
+});
+
+router.post('/studyos/pdf/highlights', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { content } = req.body;
+    const agent = new PDFAnnotationAgent();
+    const highlights = await agent.generateHighlights(content);
+    res.json({ highlights });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate highlights' });
+  }
+});
+
+router.post('/studyos/exam/countdown', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { name, date, subject } = req.body;
+    const examDate = new Date(date);
+    const agent = new ExamCountdownAgent();
+    const countdown = agent.getCountdown(examDate);
+    const urgency = agent.getUrgencyLevel(countdown.days);
+    res.json({ name, subject, date: examDate, countdown, urgency });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to set countdown' });
+  }
+});
+
+// ============ NEW LEARNING OS MODULES ============
+
+// Concept Coach Agent
+router.post('/coach/explain', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, level, context } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new ConceptCoachAgent(userId);
+    const result = await agent.explainStepwise(topic, level, context);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to explain concept' });
+  }
+});
+
+router.post('/coach/hint', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { question, attemptNumber, previousAnswer, context } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new ConceptCoachAgent(userId);
+    const result = await agent.giveHint(question, attemptNumber, previousAnswer, context);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get hint' });
+  }
+});
+
+router.get('/coach/mastery/:topic', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const topic = req.params.topic as string;
+    const userId = req.userId || 'guest';
+    const agent = new ConceptCoachAgent(userId);
+    const result = await agent.assessMastery(topic);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to assess mastery' });
+  }
+});
+
+router.get('/coach/weak-topics', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new ConceptCoachAgent(userId);
+    const result = await agent.detectWeakTopics();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to detect weak topics' });
+  }
+});
+
+router.post('/coach/adapt-difficulty', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { correctAnswers, totalQuestions, avgResponseTime, hintsUsed } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new ConceptCoachAgent(userId);
+    const result = await agent.adaptDifficulty({ correctAnswers, totalQuestions, avgResponseTime, hintsUsed });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to adapt difficulty' });
+  }
+});
+
+router.get('/coach/mastery-graph', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const generator = new MasteryGraphGenerator();
+    const result = await generator.generateMasteryGraph(userId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate mastery graph' });
+  }
+});
+
+// Assignment Evaluator
+router.post('/evaluate/essay', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { content, rubric, assignmentType } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new AssignmentEvaluatorAgent(userId);
+    const result = await agent.evaluateEssay(content, rubric, assignmentType);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to evaluate essay' });
+  }
+});
+
+router.post('/evaluate/code', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { code, language, criteria } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new AssignmentEvaluatorAgent(userId);
+    const result = await agent.evaluateCode(code, language, criteria);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to evaluate code' });
+  }
+});
+
+router.post('/evaluate/presentation', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { slides, rubric } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new AssignmentEvaluatorAgent(userId);
+    const result = await agent.evaluatePresentation(slides, rubric);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to evaluate presentation' });
+  }
+});
+
+router.post('/evaluate/lab-report', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { content, labType } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new AssignmentEvaluatorAgent(userId);
+    const result = await agent.evaluateLabReport(content, labType);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to evaluate lab report' });
+  }
+});
+
+router.post('/evaluate/improve', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { work, workType, targetGrade } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new AssignmentEvaluatorAgent(userId);
+    const result = await agent.suggestImprovements(work, workType, targetGrade);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to suggest improvements' });
+  }
+});
+
+router.post('/evaluate/compare', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { v1, v2, workType } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new AssignmentEvaluatorAgent(userId);
+    const result = await agent.compareVersions(v1, v2, workType);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to compare versions' });
+  }
+});
+
+router.post('/evaluate/rubric', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { name, type, criteria } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new AssignmentEvaluatorAgent(userId);
+    const result = await agent.createRubric(name, type, criteria);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create rubric' });
+  }
+});
+
+router.get('/evaluate/rubrics', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { type } = req.query;
+    const userId = req.userId || 'guest';
+    const agent = new AssignmentEvaluatorAgent(userId);
+    const result = await agent.getRubrics(type as any);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get rubrics' });
+  }
+});
+
+// Integrity Agent
+router.post('/integrity/check', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { content } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new IntegrityAgent(userId);
+    const result = await agent.checkOriginality(content);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to check originality' });
+  }
+});
+
+router.post('/integrity/ai-usage', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { content } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new IntegrityAgent(userId);
+    const result = await agent.detectAIUsage(content);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to detect AI usage' });
+  }
+});
+
+router.post('/integrity/citations', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { content, style } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new IntegrityAgent(userId);
+    const result = await agent.checkCitations(content, style);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to check citations' });
+  }
+});
+
+router.post('/integrity/generate-citations', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { sources, format } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new IntegrityAgent(userId);
+    const result = await agent.generateCitations(sources, format);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate citations' });
+  }
+});
+
+router.post('/integrity/references', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, count } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new IntegrityAgent(userId);
+    const result = await agent.suggestReferences(topic, count);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to suggest references' });
+  }
+});
+
+router.post('/integrity/weak-arguments', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { content } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new IntegrityAgent(userId);
+    const result = await agent.detectWeakArguments(content);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to detect weak arguments' });
+  }
+});
+
+// Study Planner
+router.post('/planner/generate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { syllabusText, examDate, dailyHours, weakTopicEmphasis, priorityBased } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new StudyPlannerAgent(userId);
+    const syllabus = await agent.parseSyllabus(syllabusText, examDate ? new Date(examDate) : undefined);
+    const plan = await agent.generateStudyPlan(syllabus, { dailyHours, weakTopicEmphasis, priorityBased });
+    res.json({ syllabus, plan });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate study plan' });
+  }
+});
+
+router.get('/planner/readiness', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { syllabus, performanceData } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new StudyPlannerAgent(userId);
+    const result = await agent.calculateReadiness(syllabus, performanceData);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to calculate readiness' });
+  }
+});
+
+router.get('/planner/burnout', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new StudyPlannerAgent(userId);
+    const result = await agent.detectBurnoutRisk(userId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to detect burnout risk' });
+  }
+});
+
+router.post('/planner/flashcards', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { syllabus, cardsPerTopic } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new StudyPlannerAgent(userId);
+    const result = agent.generateFlashcardsFromSyllabus(syllabus, cardsPerTopic);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate flashcards' });
+  }
+});
+
+// Code Debug Coach
+router.post('/debug/explain', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { code, language, error, expectedBehavior } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CodeDebugCoachAgent(userId);
+    const result = await agent.explainDebugStepwise(code, language, error, expectedBehavior);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to explain debug' });
+  }
+});
+
+router.post('/debug/analyze', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { code, language } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CodeDebugCoachAgent(userId);
+    const result = await agent.analyzeCode(code, language);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to analyze code' });
+  }
+});
+
+router.post('/debug/logic', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { code, expectedOutput, actualOutput, language } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CodeDebugCoachAgent(userId);
+    const result = await agent.explainWhyLogicFails(code, expectedOutput, actualOutput, language);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to explain logic' });
+  }
+});
+
+router.post('/debug/concepts', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { code, language, concepts } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CodeDebugCoachAgent(userId);
+    const result = await agent.suggestConceptResources(code, language, concepts);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to suggest concepts' });
+  }
+});
+
+router.post('/debug/unittest', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { code, testInput, expectedOutput, actualOutput, language } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CodeDebugCoachAgent(userId);
+    const result = await agent.learnFromUnitTest(code, testInput, expectedOutput, actualOutput, language);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to learn from unit test' });
+  }
+});
+
+router.post('/debug/exercise', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, language, difficulty } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CodeDebugCoachAgent(userId);
+    const result = await agent.createDebugExercise(topic, language, difficulty);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create debug exercise' });
+  }
+});
+
+// Career Navigator
+router.post('/career/skills', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { skills, targetRoles } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CareerSkillNavigatorAgent(userId);
+    const result = await agent.mapSkills(skills, targetRoles);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to map skills' });
+  }
+});
+
+router.post('/career/resume', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { resume, targetRole } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CareerSkillNavigatorAgent(userId);
+    const result = await agent.reviewResume(resume, targetRole);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to review resume' });
+  }
+});
+
+router.post('/career/interview', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { role, type, difficulty, questionCount } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CareerSkillNavigatorAgent(userId);
+    const result = await agent.generateMockInterview(role, type, difficulty, questionCount);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate interview' });
+  }
+});
+
+router.post('/career/interview/evaluate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { question, answer } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CareerSkillNavigatorAgent(userId);
+    const result = await agent.evaluateAnswer(question, answer);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to evaluate answer' });
+  }
+});
+
+router.post('/career/portfolio', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { projects } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CareerSkillNavigatorAgent(userId);
+    const result = await agent.reviewPortfolio(projects);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to review portfolio' });
+  }
+});
+
+router.post('/career/roadmap', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { targetRole, currentSkills, timelineMonths } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CareerSkillNavigatorAgent(userId);
+    const result = await agent.generateCareerRoadmap(targetRole, currentSkills, timelineMonths);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate roadmap' });
+  }
+});
+
+router.get('/career/jobs', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { skills, targetRoles, location, limit } = req.query;
+    const userId = req.userId || 'guest';
+    const agent = new CareerSkillNavigatorAgent(userId);
+    const result = await agent.findJobMatches(
+      skills as any,
+      targetRoles as string[],
+      location as string,
+      Number(limit) || 10
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to find jobs' });
+  }
+});
+
+router.get('/career/interview-tips/:role', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const role = req.params.role as string;
+    const companyType = (req.query.companyType as string) || 'mid-size';
+    const userId = req.userId || 'guest';
+    const agent = new CareerSkillNavigatorAgent(userId);
+    const result = await agent.getInterviewTips(role, companyType as any);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get interview tips' });
+  }
+});
+
+// Confidence Booster
+router.post('/confidence/hesitation', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { response, responseTime } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new ConfidenceBoosterAgent(userId);
+    const result = await agent.detectHesitation(response, responseTime);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to detect hesitation' });
+  }
+});
+
+router.post('/confidence/encourage', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { context, tone } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new ConfidenceBoosterAgent(userId);
+    const result = await agent.generateEncouragement(context, tone);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate encouragement' });
+  }
+});
+
+router.post('/confidence/anxiety', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { text } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new ConfidenceBoosterAgent(userId);
+    const result = await agent.analyzeAnxietyFromText(text);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to analyze anxiety' });
+  }
+});
+
+router.post('/confidence/stress', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { anxietyLevel, context } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new ConfidenceBoosterAgent(userId);
+    const result = await agent.generateStressResponse(anxietyLevel, context);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate stress response' });
+  }
+});
+
+router.get('/confidence/trend', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { period } = req.query;
+    const userId = req.userId || 'guest';
+    const agent = new ConfidenceBoosterAgent(userId);
+    const result = await agent.trackConfidenceTrend(period as any || 'week');
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to track confidence trend' });
+  }
+});
+
+// Critical Thinking / Fallacy Detector
+router.post('/thinking/fallacies', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { text } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new LogicalFallacyDetectorAgent(userId);
+    const result = await agent.detectFallacies(text);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to detect fallacies' });
+  }
+});
+
+router.post('/thinking/analyze', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { argument, context } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new LogicalFallacyDetectorAgent(userId);
+    const result = await agent.analyzeArgument(argument, context);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to analyze argument' });
+  }
+});
+
+router.post('/thinking/debate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { yourArgument, opponentResponse, isProponent } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new LogicalFallacyDetectorAgent(userId);
+    const result = await agent.evaluateDebatePerformance(yourArgument, opponentResponse, isProponent);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to evaluate debate' });
+  }
+});
+
+router.post('/thinking/score', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { text } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new LogicalFallacyDetectorAgent(userId);
+    const result = await agent.assessCriticalThinking(text);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to assess thinking' });
+  }
+});
+
+router.post('/thinking/challenge', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { argument, count } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new LogicalFallacyDetectorAgent(userId);
+    const result = await agent.generateSocraticChallenges(argument, count);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate challenges' });
+  }
+});
+
+router.post('/thinking/bias', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { text } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new LogicalFallacyDetectorAgent(userId);
+    const result = await agent.detectBias(text);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to detect bias' });
+  }
+});
+
+router.get('/thinking/fallacy/:type', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { type } = req.params;
+    const userId = req.userId || 'guest';
+    const agent = new LogicalFallacyDetectorAgent(userId);
+    const result = await agent.teachFallacy(type as any);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to teach fallacy' });
+  }
+});
+
+// ============ QUIZ GENERATOR ============
+import { QuizGeneratorAgent, QuizBankAgent } from '../agents/quizGenerator';
+
+router.post('/quiz/generate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { content, topic, questionCount, difficulty } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new QuizGeneratorAgent(userId);
+    const result = await agent.generateFromContent(content, topic, { questionCount, difficulty });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate quiz' });
+  }
+});
+
+router.post('/quiz/evaluate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { quizId, answers } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new QuizGeneratorAgent(userId);
+    const result = await agent.evaluateQuiz(quizId, answers);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to evaluate quiz' });
+  }
+});
+
+router.get('/quiz/analytics/:quizId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const quizId = req.params.quizId as string;
+    const userId = req.userId || 'guest';
+    const agent = new QuizGeneratorAgent(userId);
+    const result = await agent.getQuizAnalytics(quizId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get analytics' });
+  }
+});
+
+// ============ LEARNING STYLE DETECTOR ============
+import { LearningStyleDetectorAgent } from '../agents/learningStyleDetector';
+
+router.get('/learning-style/questionnaire', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new LearningStyleDetectorAgent(userId);
+    const result = await agent.generateQuestionnaire();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get questionnaire' });
+  }
+});
+
+router.post('/learning-style/analyze', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { responses } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new LearningStyleDetectorAgent(userId);
+    const result = await agent.analyzeResponses(responses);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to analyze learning style' });
+  }
+});
+
+router.get('/learning-style/profile', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new LearningStyleDetectorAgent(userId);
+    const result = await agent.getProfile();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get profile' });
+  }
+});
+
+// ============ PREDICTIVE ANALYTICS ============
+import { PredictiveAnalyticsAgent } from '../agents/predictiveAnalytics';
+
+router.post('/analytics/predict', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, examDate, performanceHistory, studyHoursRemaining } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new PredictiveAnalyticsAgent(userId);
+    const result = await agent.predictExamScore(topic, new Date(examDate), performanceHistory, studyHoursRemaining);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to predict score' });
+  }
+});
+
+router.get('/analytics/patterns', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new PredictiveAnalyticsAgent(userId);
+    const result = await agent.analyzeStudyPatterns();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to analyze patterns' });
+  }
+});
+
+router.get('/analytics/competency', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topics } = req.query;
+    const userId = req.userId || 'guest';
+    const agent = new PredictiveAnalyticsAgent(userId);
+    const result = await agent.getCompetencyRadar(topics as string[]);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get competency' });
+  }
+});
+
+// ============ CALENDAR INTEGRATION ============
+import { CalendarIntegrationAgent } from '../agents/calendarIntegration';
+
+router.post('/calendar/schedule', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { examDate, topics, dailyStudyHours } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CalendarIntegrationAgent(userId);
+    const result = await agent.generateStudySchedule(new Date(examDate), topics, dailyStudyHours);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate schedule' });
+  }
+});
+
+router.get('/calendar/events', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { days } = req.query;
+    const userId = req.userId || 'guest';
+    const agent = new CalendarIntegrationAgent(userId);
+    const result = await agent.getUpcomingEvents(Number(days) || 7);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get events' });
+  }
+});
+
+router.get('/calendar/export', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { schedule } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CalendarIntegrationAgent(userId);
+    const ics = await agent.exportToICS(schedule);
+    res.setHeader('Content-Type', 'text/calendar');
+    res.send(ics);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to export calendar' });
+  }
+});
+
+// ============ SKILL INTELLIGENCE ============
+import { SkillIntelligenceEngine } from '../agents/skillIntelligence';
+
+router.post('/skills/map', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { activities } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new SkillIntelligenceEngine(userId);
+    const result = await agent.buildCompetencyMap(activities);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to map skills' });
+  }
+});
+
+router.get('/skills/recommendations', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new SkillIntelligenceEngine(userId);
+    const result = await agent.getSkillRecommendations();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get recommendations' });
+  }
+});
+
+router.post('/skills/path', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { targetRole, currentLevel, targetLevel, skills } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new SkillIntelligenceEngine(userId);
+    const result = await agent.generateLearningPath(targetRole, currentLevel, targetLevel, skills);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate path' });
+  }
+});
+
+// ============ WEB SEARCH ============
+import { WebSearchAgent } from '../agents/webSearch';
+
+router.post('/search/learning', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { topic, sources, maxResults, difficulty } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new WebSearchAgent(userId);
+    const result = await agent.searchForLearningContent(topic, { sources, maxResults, difficulty });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to search' });
+  }
+});
+
+router.post('/search/summarize', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { url } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new WebSearchAgent(userId);
+    const result = await agent.summarizeContent(url);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to summarize' });
+  }
+});
+
+// ============ PORTFOLIO GENERATOR ============
+import { PortfolioGeneratorAgent } from '../agents/portfolioGenerator';
+
+router.post('/portfolio/generate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { userData, projectData } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new PortfolioGeneratorAgent(userId);
+    const result = await agent.generatePortfolio(userData, projectData);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate portfolio' });
+  }
+});
+
+router.get('/portfolio/export/markdown', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { portfolio } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new PortfolioGeneratorAgent(userId);
+    const markdown = await agent.exportToMarkdown(portfolio);
+    res.setHeader('Content-Type', 'text/markdown');
+    res.send(markdown);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to export' });
+  }
+});
+
+// ============ CERTIFICATE GENERATOR ============
+import { CertificateGeneratorAgent } from '../agents/certificateGenerator';
+
+router.post('/certificate/generate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { recipient, course } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new CertificateGeneratorAgent(userId);
+    const result = await agent.generateCertificate(recipient, course);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate certificate' });
+  }
+});
+
+router.get('/certificate/verify/:credentialId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const credentialId = req.params.credentialId as string;
+    const userId = req.userId || 'guest';
+    const agent = new CertificateGeneratorAgent(userId);
+    const result = await agent.verifyCertificate(credentialId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to verify' });
+  }
+});
+
+router.get('/certificate/html/:credentialId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const credentialId = req.params.credentialId as string;
+    const userId = req.userId || 'guest';
+    const agent = new CertificateGeneratorAgent(userId);
+    const { certificate } = await agent.verifyCertificate(credentialId);
+    if (certificate) {
+      const html = await agent.generateHTML(certificate);
+      res.setHeader('Content-Type', 'text/html');
+      res.send(html);
+    } else {
+      res.status(404).json({ error: 'Certificate not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate HTML' });
+  }
+});
+
+// ============ LMS CONNECTOR ============
+import { LMSConnectorAgent } from '../agents/lmsConnector';
+
+router.post('/lms/connect', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { provider, baseUrl } = req.body;
+    const userId = req.userId || 'guest';
+    const agent = new LMSConnectorAgent(userId);
+    const result = await agent.connect(provider, baseUrl);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to connect' });
+  }
+});
+
+router.get('/lms/courses', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new LMSConnectorAgent(userId);
+    const result = await agent.getCourses();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get courses' });
+  }
+});
+
+router.get('/lms/assignments/:courseId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const courseId = req.params.courseId as string;
+    const userId = req.userId || 'guest';
+    const agent = new LMSConnectorAgent(userId);
+    const result = await agent.getAssignments(courseId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get assignments' });
+  }
+});
+
+router.get('/lms/grades/:courseId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const courseId = req.params.courseId as string;
+    const userId = req.userId || 'guest';
+    const agent = new LMSConnectorAgent(userId);
+    const result = await agent.getGrades(courseId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get grades' });
+  }
+});
+
+router.post('/lms/sync', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const agent = new LMSConnectorAgent(userId);
+    const result = await agent.syncWithLMS();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to sync' });
   }
 });
 

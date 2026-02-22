@@ -18,6 +18,18 @@ export interface WebSocketMessage {
 
 type MessageHandler = (message: WebSocketMessage) => void;
 
+const getWebSocketUrl = (): string => {
+  if (import.meta.env.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL;
+  }
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    return `${protocol}//${host}/ws`;
+  }
+  return 'ws://localhost:3001/ws';
+};
+
 class WebSocketClient {
   private ws: WebSocket | null = null;
   private url: string;
@@ -27,8 +39,8 @@ class WebSocketClient {
   private reconnectDelay = 1000;
   private sessionId: string | null = null;
 
-  constructor(url: string = 'ws://localhost:3001/ws') {
-    this.url = url;
+  constructor(url?: string) {
+    this.url = url || getWebSocketUrl();
   }
 
   connect(sessionId?: string): Promise<void> {

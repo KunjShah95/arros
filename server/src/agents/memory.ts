@@ -1,6 +1,8 @@
 import type { MemoryItem, SynthesisResult, SessionContext } from '../types';
 import { prisma } from '../services/prisma';
 import { Prisma } from '@prisma/client';
+import { llmService } from '../services/llm';
+import { v4 as uuid } from 'uuid';
 
 export class MemoryAgent {
   private sessionId: string;
@@ -25,28 +27,23 @@ export class MemoryAgent {
       });
     }
 
+    // Store key findings as memories with embeddings
     for (const finding of synthesisResult.keyFindings.slice(0, 5)) {
+      const embedding = await llmService.generateEmbedding(finding);
+
+      // Use raw SQL for vector insertion because Prisma doesn't support the vector type natively in the create API for Unsupported fields easily
+      const memoryId = uuid();
+      await prisma.$executeRaw`
+        INSERT INTO "UserMemory" ("id", "userId", "type", "content", "importance", "embedding", "lastUsedAt", "createdAt", "updatedAt")
+        VALUES (${memoryId}, ${this.userId}, 'fact', ${finding}, ${synthesisResult.confidence}, ${embedding}::vector, now(), now(), now())
+      `;
+
       memories.push({
         type: 'fact',
         content: finding,
         importance: synthesisResult.confidence,
       });
     }
-
-    memories.push({
-      type: 'strategy',
-      content: `Research strategy: ${synthesisResult.keyFindings.length} key findings identified`,
-      importance: 0.5,
-    });
-
-    await prisma.userMemory.createMany({
-      data: memories.map(m => ({
-        userId: this.userId,
-        type: m.type,
-        content: m.content,
-        importance: m.importance,
-      })),
-    });
 
     await this.updateKnowledgeGraph(synthesisResult, query);
 
@@ -57,17 +54,24 @@ export class MemoryAgent {
   }
 
   async getRelevantMemories(query: string, limit: number = 5): Promise<MemoryItem[]> {
-    const memories = await prisma.userMemory.findMany({
-      where: { userId: this.userId },
-      orderBy: { importance: 'desc' },
-      take: limit,
-    });
+    const queryEmbedding = await llmService.generateEmbedding(query);
 
-    return memories.map((m: { id: string; type: string; content: string; importance: number }) => ({
+    // Semantic search using pgvector cosine distance (<=>)
+    const relevantMemories = await prisma.$queryRaw<any[]>`
+      SELECT id, type, content, importance, 
+             1 - (embedding <=> ${queryEmbedding}::vector) as similarity
+      FROM "UserMemory"
+      WHERE "userId" = ${this.userId}
+      ORDER BY similarity DESC
+      LIMIT ${limit}
+    `;
+
+    return relevantMemories.map(m => ({
       id: m.id,
       type: m.type as MemoryItem['type'],
       content: m.content,
       importance: m.importance,
+      similarity: m.similarity,
     }));
   }
 

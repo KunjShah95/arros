@@ -13,11 +13,12 @@ exports.prisma = void 0;
 exports.connectDatabase = connectDatabase;
 exports.disconnectDatabase = disconnectDatabase;
 const client_1 = require("@prisma/client");
+require("dotenv/config");
 exports.prisma = new client_1.PrismaClient();
 function connectDatabase() {
     return __awaiter(this, void 0, void 0, function* () {
         yield exports.prisma.$connect();
-        console.log('Database connected');
+        console.log('✅ Database connected');
     });
 }
 function disconnectDatabase() {

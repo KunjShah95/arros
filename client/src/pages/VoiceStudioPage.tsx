@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Mic, Upload, Copy, Download, Square, Sparkles, Volume2, Play, Pause, Languages, FileAudio } from 'lucide-react';
-import { Button, Card, Badge, Spinner } from '../components/ui';
+import { Button, Card, Badge, Spinner, SanskritButton, Mandala, cn } from '../components/ui';
 
 const languages = [
   { code: 'en-IN', name: 'English', native: 'English' },
@@ -38,58 +38,64 @@ interface VoiceStudioProps {
 
 export function VoiceStudio({ initialTab = 'stt' }: VoiceStudioProps) {
   const [activeTab, setActiveTab] = useState<'stt' | 'tts'>(initialTab);
-  
+
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6">
       <div className="max-w-6xl mx-auto py-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
+          className="mb-8"
         >
-          <div className="cut-card cut-border bg-graphite/60 p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 cut-card bg-peacock/20 flex items-center justify-center">
-                <Languages className="w-5 h-5 text-peacock" />
-              </div>
-              <Badge variant="peacock">भाषण Studio — Voice AI</Badge>
+          <div className="cut-card cut-border bg-graphite/40 p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 -mr-16 -mt-16 opacity-5 pointer-events-none">
+              <Mandala size="md" />
             </div>
-            <h1 className="text-2xl font-display text-chalk">Voice Studio</h1>
-            <p className="text-sm text-silver mt-1">
-              Speech-to-Text and Text-to-Speech powered by Sarvam AI — India's voice AI.
-            </p>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 cut-card bg-peacock/10 flex items-center justify-center border border-peacock/20">
+                  <Languages className="w-5 h-5 text-peacock" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-display font-bold text-white tracking-tight">भाषण Studio</h1>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-peacock font-bold">Vedic Voice Protocol</p>
+                </div>
+              </div>
+              <p className="text-sm text-silver max-w-xl leading-relaxed">
+                Experience high-fidelity speech synthesis and recognition optimized for the Indian linguistic landscape.
+                Powered by Sarvam AI — the soul of India's voice.
+              </p>
+            </div>
           </div>
         </motion.div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setActiveTab('stt')}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all ${
-              activeTab === 'stt'
-                ? 'bg-peacock text-void'
-                : 'bg-slate text-silver hover:text-chalk hover:bg-smoke'
-            }`}
-          >
-            <Mic className="w-4 h-4" />
-            Speech to Text
-          </button>
-          <button
-            onClick={() => setActiveTab('tts')}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all ${
-              activeTab === 'tts'
-                ? 'bg-peacock text-void'
-                : 'bg-slate text-silver hover:text-chalk hover:bg-smoke'
-            }`}
-          >
-            <Volume2 className="w-4 h-4" />
-            Text to Speech
-          </button>
+        <div className="flex gap-3 mb-8">
+          {[
+            { id: 'stt', label: 'Speech to Text', icon: Mic },
+            { id: 'tts', label: 'Text to Speech', icon: Volume2 },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={cn(
+                "flex items-center gap-3 px-6 py-3.5 rounded-xl font-display font-bold text-sm tracking-wide transition-all cut-card",
+                activeTab === tab.id
+                  ? 'bg-peacock text-void shadow-lg shadow-peacock/20'
+                  : 'bg-slate/40 text-ash hover:text-silver hover:bg-smoke/30 border border-smoke/20'
+              )}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Content */}
-        {activeTab === 'stt' ? <STTPanel /> : <TTSPanel />}
+        <div className="relative z-10">
+          {activeTab === 'stt' ? <STTPanel /> : <TTSPanel />}
+        </div>
       </div>
     </div>
   );
@@ -166,7 +172,7 @@ function STTPanel() {
 
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
-      const mockText = language === 'hi-IN' 
+      const mockText = language === 'hi-IN'
         ? 'फेडरेटेड लर्निंग एक मशीन लर्निंग तकनीक है जो विकेंद्रीकृत डेटा का उपयोग करके मॉडल को प्रशिक्षित करती है।'
         : 'Federated Learning is a machine learning technique that trains models across decentralized data sources while keeping data local.';
       setTranscribedText(mockText);
@@ -188,21 +194,21 @@ function STTPanel() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="grid lg:grid-cols-2 gap-6"
+      className="grid lg:grid-cols-[0.9fr_1.1fr] gap-8"
     >
-      <Card variant="elevated" className="cut-card cut-border">
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-chalk flex items-center gap-2">
-            <Mic className="w-5 h-5 text-peacock" />
-            Audio Input
+      <Card className="cut-card cut-border bg-slate/40 p-6">
+        <div className="space-y-6">
+          <h3 className="text-sm font-bold text-ash uppercase tracking-widest flex items-center gap-2">
+            <Mic className="w-4 h-4 text-peacock" />
+            Vachak Source
           </h3>
 
           <div>
-            <label className="block text-sm font-medium text-silver mb-2">Language</label>
+            <label className="text-[10px] uppercase font-bold text-ash tracking-[0.2em] block mb-2">Native Language</label>
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate border border-smoke rounded-xl text-chalk"
+              className="w-full px-4 py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-sm focus:border-peacock focus:ring-1 focus:ring-peacock/20 transition-all no-scrollbar"
             >
               {languages.map(lang => (
                 <option key={lang.code} value={lang.code}>{lang.name} ({lang.native})</option>
@@ -211,33 +217,33 @@ function STTPanel() {
           </div>
 
           {!audioPreview && (
-            <div className="p-4 cut-card bg-slate border border-smoke">
-              <p className="text-sm text-silver mb-3">Record your voice</p>
+            <div className="p-5 cut-card bg-void border border-smoke/20">
+              <p className="text-xs text-ash uppercase tracking-widest font-bold mb-4">Direct Recording</p>
               {!isRecording ? (
-                <Button onClick={startRecording} className="w-full" variant="peacock">
-                  <Mic className="w-4 h-4" />
-                  Start Recording
-                </Button>
+                <SanskritButton onClick={startRecording} className="w-full text-xs" variant="primary">
+                  <Mic className="w-4 h-4 mr-2" />
+                  Initiate Capturing
+                </SanskritButton>
               ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-saffron">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-3 text-saffron py-2">
                     <span className="w-2 h-2 rounded-full bg-saffron animate-pulse" />
-                    Recording...
+                    <span className="text-xs font-bold uppercase tracking-widest">Aura Listening...</span>
                   </div>
-                  <Button onClick={stopRecording} variant="saffron" className="w-full">
-                    <Square className="w-4 h-4" />
-                    Stop
-                  </Button>
+                  <SanskritButton onClick={stopRecording} variant="outline" className="w-full text-xs border-saffron text-saffron">
+                    <Square className="w-4 h-4 mr-2" />
+                    Seal Recording
+                  </SanskritButton>
                 </div>
               )}
             </div>
           )}
 
           {!audioPreview && (
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-smoke" />
-              <span className="text-xs text-ash">OR</span>
-              <div className="flex-1 h-px bg-smoke" />
+            <div className="flex items-center gap-3 py-2">
+              <div className="flex-1 h-px bg-smoke/20" />
+              <span className="text-[10px] text-ash font-bold">OR</span>
+              <div className="flex-1 h-px bg-smoke/20" />
             </div>
           )}
 
@@ -253,67 +259,72 @@ function STTPanel() {
                 }
               }}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-smoke cut-card p-8 text-center cursor-pointer hover:border-peacock hover:bg-peacock/5 transition-all"
+              className="border border-dashed border-smoke/40 cut-card p-10 text-center cursor-pointer hover:border-peacock hover:bg-peacock/5 transition-all group"
             >
-              <Upload className="w-10 h-10 text-ash mx-auto mb-3" />
-              <p className="text-silver mb-1">Drag and drop audio</p>
-              <p className="text-xs text-ash">or click to browse</p>
+              <Upload className="w-8 h-8 text-ash group-hover:text-peacock transition-colors mx-auto mb-4" />
+              <p className="text-sm font-bold text-silver mb-1">Upload Mantra</p>
+              <p className="text-[10px] uppercase tracking-widest text-ash">Drop Audio File</p>
               <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleAudioSelect} className="hidden" />
             </div>
           ) : (
-            <div className="space-y-3">
-              <div className="p-4 cut-card bg-slate border border-smoke">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-chalk truncate">{audio?.name}</p>
-                  <Badge variant="peacock">{audio ? `${(audio.size / 1024).toFixed(0)} KB` : ''}</Badge>
+            <div className="space-y-4">
+              <div className="p-4 cut-card bg-void border border-smoke/30">
+                <div className="flex items-center justify-between mb-3 pb-3 border-b border-smoke/10">
+                  <p className="text-xs font-bold text-silver truncate max-w-[150px]">{audio?.name}</p>
+                  <Badge variant="peacock" className="text-[9px]">{audio ? `${(audio.size / 1024).toFixed(0)} KB` : ''}</Badge>
                 </div>
-                <audio src={audioPreview} controls className="w-full rounded-lg" />
+                <audio src={audioPreview} controls className="w-full rounded-lg h-10 filter invert hue-rotate-180 opacity-80" />
               </div>
-              <Button variant="secondary" onClick={() => { setAudio(null); setAudioPreview(null); }} className="w-full">
-                Remove & Record New
-              </Button>
+              <SanskritButton variant="secondary" onClick={() => { setAudio(null); setAudioPreview(null); }} className="w-full text-xs">
+                Clear Capsule
+              </SanskritButton>
             </div>
           )}
 
           {error && (
             <div className="p-3 cut-card bg-saffron/10 border border-saffron/20">
-              <p className="text-sm text-saffron">{error}</p>
+              <p className="text-xs text-saffron font-bold text-center">{error}</p>
             </div>
           )}
 
-          <Button
+          <SanskritButton
             onClick={performSTT}
             disabled={!audioPreview || isLoading}
-            loading={isLoading}
             className="w-full"
-            variant="peacock"
+            variant="primary"
           >
-            {isLoading ? 'Transcribing...' : 'Convert to Text'}
-          </Button>
+            {isLoading ? (
+              <div className="flex items-center gap-3">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Decrypting Vachak...</span>
+              </div>
+            ) : 'Realize Transcription'}
+          </SanskritButton>
         </div>
       </Card>
 
-      <Card variant="glass" className="cut-card cut-border">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-chalk">Transcribed Text</h3>
-            {transcribedText && (
-              <Badge variant="peacock">{Math.round(confidence * 100)}% confidence</Badge>
-            )}
-          </div>
+      <Card className="cut-card cut-border bg-slate/40 p-6 flex flex-col">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-sm font-bold text-ash uppercase tracking-widest">Lipi Output</h3>
+          {transcribedText && (
+            <Badge variant="peacock">{Math.round(confidence * 100)}% Satya Score</Badge>
+          )}
+        </div>
 
+        <div className="flex-1 min-h-[300px] flex flex-col">
           {transcribedText ? (
-            <>
-              <div className="bg-slate rounded-xl p-4 max-h-80 overflow-y-auto">
-                <p className="text-silver text-sm leading-relaxed whitespace-pre-wrap">{transcribedText}</p>
+            <div className="flex flex-col h-full">
+              <div className="flex-1 bg-void/50 rounded-xl p-6 border border-smoke/20 overflow-y-auto no-scrollbar">
+                <p className="text-silver text-base leading-relaxed whitespace-pre-wrap font-display">{transcribedText}</p>
               </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={copyToClipboard} className="flex-1 gap-2">
+              <div className="flex gap-3 mt-6">
+                <SanskritButton variant="secondary" onClick={copyToClipboard} className="flex-1 text-xs gap-3">
                   <Copy className="w-4 h-4" />
-                  {copied ? 'Copied!' : 'Copy Text'}
-                </Button>
-                <Button 
-                  variant="secondary"
+                  {copied ? 'Captured to Clipboard' : 'Copy Lipi'}
+                </SanskritButton>
+                <SanskritButton
+                  variant="outline"
+                  className="px-4"
                   onClick={() => {
                     const element = document.createElement('a');
                     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(transcribedText));
@@ -322,18 +333,23 @@ function STTPanel() {
                   }}
                 >
                   <Download className="w-4 h-4" />
-                </Button>
+                </SanskritButton>
               </div>
-            </>
+            </div>
           ) : isLoading ? (
-            <div className="flex flex-col items-center justify-center h-64 gap-4">
-              <Spinner size="lg" variant="peacock" />
-              <p className="text-silver">Transcribing speech...</p>
+            <div className="flex-1 flex flex-col items-center justify-center gap-6">
+              <div className="relative">
+                <Mandala className="w-24 h-24 animate-[spin_10s_linear_infinite] opacity-20" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 text-saffron animate-spin" />
+                </div>
+              </div>
+              <p className="text-[10px] uppercase font-bold text-ash tracking-[0.3em]">Decoding Sounds into Symbols</p>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center opacity-40">
               <FileAudio className="w-12 h-12 text-ash" />
-              <p className="text-sm text-ash">Upload audio or record speech to begin transcription.</p>
+              <p className="text-xs uppercase tracking-widest font-bold text-ash">Silence Awaiting Mantra</p>
             </div>
           )}
         </div>
@@ -381,116 +397,134 @@ function TTSPanel() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="grid lg:grid-cols-2 gap-6"
+      className="grid lg:grid-cols-[1fr_0.8fr] gap-8"
     >
-      <Card variant="elevated" className="cut-card cut-border">
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-chalk flex items-center gap-2">
-            <Volume2 className="w-5 h-5 text-peacock" />
-            Text Input
+      <Card className="cut-card cut-border bg-slate/40 p-6">
+        <div className="space-y-6">
+          <h3 className="text-sm font-bold text-ash uppercase tracking-widest flex items-center gap-2">
+            <Volume2 className="w-4 h-4 text-peacock" />
+            Lipi Matrix
           </h3>
 
-          <div>
-            <label className="block text-sm font-medium text-silver mb-2">Language</label>
-            <select
-              value={language}
-              onChange={(e) => { setLanguage(e.target.value); setVoice(''); }}
-              className="w-full px-4 py-2.5 bg-slate border border-smoke rounded-xl text-chalk"
-            >
-              {languages.map(lang => (
-                <option key={lang.code} value={lang.code}>{lang.name} ({lang.native})</option>
-              ))}
-            </select>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-[10px] uppercase font-bold text-ash tracking-[0.2em] block mb-2">Target Sound</label>
+              <select
+                value={language}
+                onChange={(e) => { setLanguage(e.target.value); setVoice(''); }}
+                className="w-full px-4 py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-sm"
+              >
+                {languages.map(lang => (
+                  <option key={lang.code} value={lang.code}>{lang.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-[10px] uppercase font-bold text-ash tracking-[0.2em] block mb-2">Vachak Personality</label>
+              <select
+                value={voice}
+                onChange={(e) => setVoice(e.target.value)}
+                className="w-full px-4 py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-sm"
+              >
+                {currentVoices.map(v => (
+                  <option key={v.id} value={v.id}>{v.name} ({v.gender})</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-silver mb-2">Voice</label>
-            <select
-              value={voice}
-              onChange={(e) => setVoice(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate border border-smoke rounded-xl text-chalk"
-            >
-              {currentVoices.map(v => (
-                <option key={v.id} value={v.id}>{v.name} ({v.gender})</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-silver mb-2">Text to Convert</label>
+            <label className="text-[10px] uppercase font-bold text-ash tracking-[0.2em] block mb-2">Wisdom Text</label>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Enter text to convert to speech..."
-              className="w-full px-4 py-3 bg-slate border border-smoke rounded-xl text-chalk placeholder:text-ash focus:border-peacock focus:ring-2 focus:ring-peacock-10 transition-all resize-none"
-              rows={8}
+              placeholder="Enter text to manifest into sound waves..."
+              className="w-full px-5 py-4 bg-void border border-smoke/30 rounded-xl text-chalk placeholder:text-ash/40 text-sm focus:border-peacock focus:ring-1 focus:ring-peacock/20 transition-all resize-none font-display min-h-[200px]"
             />
-            <p className="text-xs text-ash mt-1">{text.length} characters</p>
+            <div className="flex justify-between mt-2">
+              <span className="text-[9px] text-ash font-mono uppercase">{text.length} Aksharas</span>
+            </div>
           </div>
 
-          <Button
+          <SanskritButton
             onClick={handleGenerate}
             disabled={!text.trim() || isLoading}
-            loading={isLoading}
             className="w-full"
-            variant="peacock"
+            variant="primary"
           >
-            {isLoading ? 'Generating...' : 'Generate Speech'}
-          </Button>
+            {isLoading ? 'Manifesting Sound...' : 'Realize Vachak'}
+          </SanskritButton>
         </div>
       </Card>
 
-      <Card variant="glass" className="cut-card cut-border">
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-chalk flex items-center gap-2">
-            <Volume2 className="w-5 h-5 text-saffron" />
-            Audio Output
-          </h3>
+      <Card className="cut-card cut-border bg-slate/40 p-6 flex flex-col">
+        <h3 className="text-sm font-bold text-ash uppercase tracking-widest mb-6 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-gold" />
+          Sound Manifestation
+        </h3>
 
+        <div className="flex-1 flex flex-col items-center justify-center">
           {audioUrl ? (
-            <>
-              <div className="bg-slate rounded-xl p-4">
+            <div className="w-full space-y-8">
+              <div className="bg-void/60 border border-smoke/20 rounded-2xl p-6 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-saffron/5 via-transparent to-gold/5" />
                 <audio
                   ref={audioRef}
                   src={audioUrl}
                   onPlay={() => setIsPlaying(true)}
                   onPause={() => setIsPlaying(false)}
                   onEnded={() => setIsPlaying(false)}
-                  className="w-full"
-                  controls
+                  className="hidden"
                 />
+
+                <div className="flex flex-col items-center gap-6 relative z-10">
+                  <div className="w-20 h-20 rounded-full bg-saffron/10 flex items-center justify-center border border-saffron/20 group-hover:scale-105 transition-transform">
+                    {isPlaying ? <Volume2 className="w-8 h-8 text-saffron animate-pulse" /> : <Play className="w-8 h-8 text-saffron ml-1" />}
+                  </div>
+
+                  <div className="w-full h-1 bg-smoke/20 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-saffron"
+                      animate={{ width: isPlaying ? '100%' : '0%' }}
+                      transition={{ duration: 10, ease: "linear" }}
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={togglePlay} className="flex-1 gap-2">
-                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  {isPlaying ? 'Pause' : 'Play'}
-                </Button>
-                <Button 
-                  variant="secondary"
+
+              <div className="flex gap-4">
+                <SanskritButton variant="primary" onClick={togglePlay} className="flex-1 text-xs">
+                  {isPlaying ? 'Seal Sound' : 'Release Mantra'}
+                </SanskritButton>
+                <SanskritButton
+                  variant="outline"
+                  className="px-6"
                   onClick={() => {
                     const element = document.createElement('a');
                     element.setAttribute('href', audioUrl);
-                    element.setAttribute('download', 'arros-speech.wav');
+                    element.setAttribute('download', 'arros-vachak.wav');
                     element.click();
                   }}
                 >
                   <Download className="w-4 h-4" />
-                </Button>
+                </SanskritButton>
               </div>
-              <div className="p-3 cut-card bg-slate/70 border border-smoke/50">
-                <p className="text-xs text-ash mb-2">Preview</p>
-                <p className="text-sm text-silver line-clamp-3">{text}</p>
-              </div>
-            </>
+            </div>
           ) : isLoading ? (
-            <div className="flex flex-col items-center justify-center h-64 gap-4">
-              <Spinner size="lg" variant="saffron" />
-              <p className="text-silver">Generating speech...</p>
+            <div className="flex flex-col items-center justify-center gap-6">
+              <div className="relative">
+                <Mandala className="w-24 h-24 animate-[spin_80s_linear_infinite] opacity-10 text-gold" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-3 h-3 bg-saffron rounded-full animate-ping" />
+                </div>
+              </div>
+              <p className="text-[10px] uppercase font-bold text-ash tracking-[0.3em]">Manifesting Voice from Void</p>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
+            <div className="flex flex-col items-center justify-center gap-4 text-center opacity-40">
               <Sparkles className="w-12 h-12 text-gold" />
-              <p className="text-sm text-ash">Enter text to generate audio output.</p>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-ash">Ready for Manifestation</p>
             </div>
           )}
         </div>
@@ -498,3 +532,27 @@ function TTSPanel() {
     </motion.div>
   );
 }
+
+const Loader2 = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M12 2v4" />
+    <path d="M12 18v4" />
+    <path d="M4.93 4.93l2.83 2.83" />
+    <path d="M16.24 16.24l2.83 2.83" />
+    <path d="M2 12h4" />
+    <path d="M18 12h4" />
+    <path d="M4.93 19.07l2.83-2.83" />
+    <path d="M16.24 7.76l2.83-2.83" />
+  </svg>
+);

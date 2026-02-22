@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import multer from 'multer';
@@ -23,13 +23,44 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-app.use(cors());
+const corsOrigin = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost'];
+
+app.use(cors({
+  origin: corsOrigin,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(generalLimiter);
 
 app.get('/health', async (req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const dbStatus = await checkDatabaseHealth();
+  const redisStatus = cacheService.getStatus();
+  
+  const isHealthy = dbStatus && redisStatus;
+  
+  res.status(isHealthy ? 200 : 503).json({ 
+    status: isHealthy ? 'ok' : 'degraded',
+    timestamp: new Date().toISOString(),
+    services: {
+      database: dbStatus ? 'connected' : 'disconnected',
+      redis: redisStatus ? 'connected' : 'disconnected',
+    }
+  });
 });
+
+async function checkDatabaseHealth(): Promise<boolean> {
+  try {
+    const { prisma } = await import('./services/prisma');
+    await prisma.$queryRaw`SELECT 1`;
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 app.use('/api', researchLimiter, apiRoutes);
 app.use('/api/auth', authLimiter);

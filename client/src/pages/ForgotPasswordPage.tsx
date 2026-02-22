@@ -1,80 +1,136 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Mail, ShieldCheck } from 'lucide-react';
-import { Button, Card, Badge } from '../components/ui';
+import { motion } from 'framer-motion';
+import { Brain, ArrowRight, Mail, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Button, Card, Badge, SanskritButton, Mandala, cn } from '../components/ui';
+
+function GridBackground() {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
+      <div className="absolute inset-0 grid-pattern opacity-30 shadow-[inset_0_0_150px_rgba(9,10,15,1)]" />
+      <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-saffron/5 to-transparent" />
+      <div className="absolute bottom-0 right-0 w-1/2 h-full bg-gradient-to-l from-peacock/5 to-transparent" />
+
+      {/* Decorative lines */}
+      <div className="absolute left-[20%] top-0 bottom-0 w-px bg-smoke/10 hidden lg:block" />
+      <div className="absolute right-[20%] top-0 bottom-0 w-px bg-smoke/10 hidden lg:block" />
+    </div>
+  );
+}
 
 export function ForgotPasswordPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSent, setIsSent] = useState(false);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      navigate('/app');
-    }, 700);
+      setIsSent(true);
+      // In a real app we'd wait for user to click link, but here we just show success
+    }, 1200);
   };
 
   return (
-    <div className="min-h-screen bg-void relative overflow-hidden">
+    <div className="min-h-screen bg-void relative overflow-hidden font-body selection:bg-gold selection:text-void">
       <div className="noise-overlay" />
-      <div className="absolute inset-0 grid-pattern opacity-30" />
-      <div className="absolute -top-24 right-20 w-[420px] h-[420px] bg-flame/10 rounded-full blur-[170px]" />
+      <GridBackground />
 
-      <div className="min-h-screen flex items-center justify-center px-6 py-16">
-        <Card variant="elevated" className="w-full max-w-lg cut-card cut-border relative overflow-hidden">
-          <div className="absolute -bottom-24 left-0 w-[260px] h-[260px] bg-electric/10 rounded-full blur-[120px]" />
-          <div className="relative">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 cut-card bg-flame flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-void" />
+      {/* Floating Mandala */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-[0.03] pointer-events-none">
+        <Mandala size="lg" className="animate-[spin_60s_linear_infinite]" />
+      </div>
+
+      <div className="min-h-screen flex items-center justify-center px-6 py-16 relative z-10">
+        <div className="w-full max-w-[440px] perspective-1000">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Card className="p-8 pb-10 bg-graphite/40 backdrop-blur-2xl border-smoke/30 cut-card relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-32 h-32 -ml-16 -mt-16 opacity-10 pointer-events-none">
+                <Mandala size="md" />
               </div>
-              <div>
-                <Badge variant="warning" className="mb-2">Reset access</Badge>
-                <h1 className="text-2xl font-display text-chalk">Recover your workspace</h1>
-              </div>
-            </div>
 
-            <p className="text-sm text-silver mb-6">
-              Enter your email and we will send a secure access link. You will be redirected to the main app once verified.
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="cut-card cut-border bg-slate/70 p-4">
-                <label className="text-xs text-ash uppercase tracking-[0.2em]">Work email</label>
-                <div className="mt-2 flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-ash" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="you@company.com"
-                    className="flex-1 bg-transparent border-none text-chalk placeholder:text-ash focus:outline-none"
-                  />
+              <div className="relative mb-8 text-center">
+                <div className="w-16 h-16 cut-card bg-void border border-smoke/30 mx-auto flex items-center justify-center mb-6">
+                  <RefreshCw className={cn("w-7 h-7 text-gold", isLoading && "animate-spin")} />
                 </div>
+                <h1 className="text-2xl font-display font-bold text-white tracking-tight mb-2">Recover Access</h1>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-gold font-bold">Lipi Restoration Protocol</p>
               </div>
-              <div className="cut-card bg-graphite/70 p-4">
-                <div className="flex items-center gap-2 text-xs text-ash uppercase tracking-[0.2em]">
-                  <ShieldCheck className="w-4 h-4 text-electric" />
-                  Security check
-                </div>
-                <p className="text-sm text-silver mt-2">Verification is required before redirecting to the main app.</p>
-              </div>
-              <Button type="submit" variant="electric" size="lg" className="w-full gap-2" loading={isLoading}>
-                Send access link
-                <ArrowRight className="w-5 h-5" />
-              </Button>
-            </form>
 
-            <div className="mt-6 text-sm text-ash">
-              Remembered your password?{' '}
-              <Link to="/signin" className="text-chalk hover:text-electric transition-colors">
-                Back to sign in
-              </Link>
-            </div>
-          </div>
-        </Card>
+              {isSent ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-6"
+                >
+                  <div className="w-12 h-12 rounded-full bg-peacock/10 border border-peacock/30 flex items-center justify-center mx-auto mb-4">
+                    <ShieldCheck className="w-6 h-6 text-peacock" />
+                  </div>
+                  <h3 className="text-white font-bold mb-2">Restoration Link Sent</h3>
+                  <p className="text-sm text-silver leading-relaxed mb-8 px-4">
+                    If an account exists for that identity, a secure restoration sutra has been sent to your inbox.
+                  </p>
+                  <SanskritButton variant="secondary" className="w-full" onClick={() => navigate('/signin')}>
+                    Return to Sanctuary
+                  </SanskritButton>
+                </motion.div>
+              ) : (
+                <>
+                  <p className="text-xs text-silver leading-relaxed mb-8 text-center px-4">
+                    Enter the email associated with your research vault below. We will send you a secure link to reset your Secret Sutra.
+                  </p>
+
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-ash tracking-[0.2em] ml-1">Lipi Identity (Email)</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                          <Mail className="w-4 h-4 text-ash group-focus-within:text-gold transition-colors" />
+                        </div>
+                        <input
+                          type="email"
+                          required
+                          placeholder="scholar@nexus.edu"
+                          className="w-full bg-void/50 border border-smoke/30 rounded-xl px-12 py-3.5 text-chalk placeholder:text-ash/40 focus:outline-none focus:border-gold/50 transition-all font-body text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <SanskritButton type="submit" variant="primary" className="w-full h-14" disabled={isLoading}>
+                      {isLoading ? 'Processing...' : 'Send Restoration Link'}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </SanskritButton>
+                  </form>
+                </>
+              )}
+
+              <div className="mt-10 text-center">
+                <Link to="/signin" className="text-[10px] uppercase font-bold text-ash hover:text-white transition-colors tracking-[0.2em] flex items-center justify-center gap-2">
+                  <ArrowRight className="w-3 h-3 rotate-180" />
+                  Back to Sanctuary
+                </Link>
+              </div>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="mt-8 text-center"
+          >
+            <p className="text-[10px] uppercase tracking-[0.4em] text-ash/40 font-bold">Secure Verification Active</p>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
 }
+
+export default ForgotPasswordPage;

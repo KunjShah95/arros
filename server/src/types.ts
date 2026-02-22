@@ -20,7 +20,7 @@ export interface SubTask {
   toolStrategy: ToolStrategy;
 }
 
-export type AgentType = 'planner' | 'research' | 'critic' | 'synthesizer' | 'memory' | 'action' | 'meta';
+export type AgentType = 'planner' | 'research' | 'critic' | 'synthesizer' | 'memory' | 'action' | 'meta' | 'queryRefiner' | 'citationManager' | 'factChecker' | 'comparer' | 'debate';
 
 export interface ToolStrategy {
   primary: string[];
@@ -104,13 +104,17 @@ export interface SynthesisResult {
   citations?: AcademicCitation[];
   verifiedSources?: number;
   contradictionsFound?: number;
+  lineage?: { finding: string; sourceIndices: number[] }[];
 }
 
 export interface ActionItem {
-  type: 'prd' | 'architecture' | 'ticket' | 'code' | 'decision';
+  id?: string;
+  type: 'prd' | 'architecture' | 'ticket' | 'code' | 'decision' | 'connector';
   title: string;
   description: string;
   priority: 'low' | 'medium' | 'high';
+  status?: 'pending' | 'completed' | 'failed';
+  integrationId?: string;
 }
 
 export interface MemoryItem {
@@ -122,7 +126,7 @@ export interface MemoryItem {
 }
 
 export interface EvaluationResult {
-  type: 'hallucination' | 'completeness' | 'agreement' | 'bias';
+  type: 'hallucination' | 'completeness' | 'agreement' | 'bias' | 'meta';
   score: number;
   details: Record<string, unknown>;
   passed: boolean;
@@ -138,6 +142,13 @@ export interface AgentOutput {
   tokens: number;
   startedAt: Date;
   completedAt?: Date;
+}
+
+export interface Integration {
+  id: string;
+  name: 'notion' | 'github' | 'zotero' | 'slack';
+  connected: boolean;
+  config?: Record<string, unknown>;
 }
 
 export interface SessionContext {

@@ -1,5 +1,6 @@
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { motion } from 'framer-motion';
 
 export function cn(...inputs: (string | undefined | null | boolean | Record<string, unknown>)[]) {
   return twMerge(clsx(inputs));
@@ -28,9 +29,9 @@ export function Button({
     transition-all duration-200 ease-out
     focus:outline-none focus-visible:ring-2 focus-visible:ring-peacock focus-visible:ring-offset-2 focus-visible:ring-offset-void
     disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
-    cut-card
+    cut-card relative overflow-hidden
   `;
-  
+
   const variants = {
     primary: `
       bg-saffron text-void hover:bg-saffron-light 
@@ -69,7 +70,7 @@ export function Button({
       active:translate-y-0
     `,
   };
-  
+
   const sizes = {
     sm: 'px-3 py-2 text-sm rounded-lg gap-1.5',
     md: 'px-5 py-3 text-sm rounded-xl gap-2',
@@ -89,6 +90,13 @@ export function Button({
         </svg>
       ) : icon ? icon : null}
       {children}
+
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100"
+        initial={{ x: "-100%" }}
+        whileHover={{ x: "100%" }}
+        transition={{ duration: 0.5 }}
+      />
     </button>
   );
 }
@@ -132,6 +140,36 @@ export function Input({ className, label, error, icon, ...props }: InputProps) {
   );
 }
 
+/* ===== TEXTAREA ===== */
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string;
+  error?: string;
+}
+
+export function Textarea({ className, label, error, ...props }: TextareaProps) {
+  return (
+    <div className="w-full">
+      {label && (
+        <label className="block text-sm font-medium text-silver mb-2 tracking-wide">
+          {label}
+        </label>
+      )}
+      <textarea
+        className={cn(
+          'w-full px-4 py-3 bg-slate border border-smoke rounded-xl min-h-[120px]',
+          'text-chalk placeholder:text-ash',
+          'focus:outline-none focus:border-saffron focus:ring-2 focus:ring-saffron-10',
+          'transition-all duration-200 resize-y',
+          error ? 'border-error focus:border-error focus:ring-error-10' : '',
+          className
+        )}
+        {...props}
+      />
+      {error && <p className="mt-2 text-sm text-error">{error}</p>}
+    </div>
+  );
+}
+
 /* ===== CARD ===== */
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'elevated' | 'glass';
@@ -160,14 +198,41 @@ export function Card({ className, variant = 'default', hover = false, children, 
   );
 }
 
+/* ===== CARD HEADER ===== */
+export function CardHeader({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn('pb-4', className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+/* ===== CARD TITLE ===== */
+export function CardTitle({ className, children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h3 className={cn('text-xl font-semibold text-chalk', className)} {...props}>
+      {children}
+    </h3>
+  );
+}
+
+/* ===== CARD CONTENT ===== */
+export function CardContent({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn('', className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
 /* ===== BADGE ===== */
-export function Badge({ 
-  className, 
+export function Badge({
+  className,
   variant = 'default',
-  children 
-}: { 
-  className?: string; 
-  variant?: 'default' | 'success' | 'warning' | 'error' | 'peacock' | 'saffron' | 'gold' | 'indus' | 'electric' | 'flame';
+  children
+}: {
+  className?: string;
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'peacock' | 'saffron' | 'gold' | 'indus' | 'electric' | 'flame' | 'silver';
   children: React.ReactNode;
 }) {
   const variants: Record<string, string> = {
@@ -181,6 +246,7 @@ export function Badge({
     indus: 'bg-indus/10 text-indus border border-indus/20',
     electric: 'bg-peacock/10 text-peacock border border-peacock/20',
     flame: 'bg-saffron/10 text-saffron border border-saffron/20',
+    silver: 'bg-ash/10 text-ash border border-ash/20',
   };
 
   return (
@@ -195,18 +261,20 @@ export function Badge({
 }
 
 /* ===== PROGRESS BAR ===== */
-export function ProgressBar({ progress, variant = 'saffron' }: { progress: number; variant?: 'saffron' | 'peacock' | 'gold' }) {
+export function ProgressBar({ progress, variant = 'saffron', className }: { progress: number; variant?: 'saffron' | 'peacock' | 'gold', className?: string }) {
   const colors = {
-    saffron: 'bg-gradient-to-r from-saffron to-saffron-light',
+    saffron: 'bg-gradient-to-r from-saffron to-vibrant',
     peacock: 'bg-gradient-to-r from-peacock to-peacock-light',
-    gold: 'bg-gradient-to-r from-gold to-gold-light',
+    gold: 'bg-gradient-to-r from-gold to-saffron',
   };
 
   return (
-    <div className="w-full h-1.5 bg-slate rounded-full overflow-hidden">
-      <div 
-        className={cn('h-full rounded-full transition-all duration-700 ease-out', colors[variant])}
-        style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+    <div className={cn("w-full h-1.5 bg-slate rounded-full overflow-hidden", className)}>
+      <motion.div
+        className={cn('h-full rounded-full', colors[variant])}
+        initial={{ width: 0 }}
+        animate={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
       />
     </div>
   );
@@ -219,7 +287,7 @@ export function Spinner({ size = 'md', variant = 'saffron' }: { size?: 'sm' | 'm
     md: 'h-6 w-6',
     lg: 'h-10 w-10',
   };
-  
+
   const colors = {
     saffron: 'text-saffron',
     peacock: 'text-peacock',
@@ -235,13 +303,13 @@ export function Spinner({ size = 'md', variant = 'saffron' }: { size?: 'sm' | 'm
 }
 
 /* ===== AVATAR ===== */
-export function Avatar({ 
-  src, 
-  fallback, 
+export function Avatar({
+  src,
+  fallback,
   size = 'md',
-  className 
-}: { 
-  src?: string; 
+  className
+}: {
+  src?: string;
   fallback?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -254,10 +322,10 @@ export function Avatar({
 
   if (src) {
     return (
-      <img 
-        src={src} 
+      <img
+        src={src}
         alt={fallback}
-        className={cn('rounded-full object-cover', sizes[size], className)} 
+        className={cn('rounded-full object-cover', sizes[size], className)}
       />
     );
   }
@@ -326,7 +394,7 @@ interface ToggleProps {
 
 export function Toggle({ checked, onChange, label }: ToggleProps) {
   return (
-    <label className="flex items-center gap-3 cursor-pointer">
+    <label className="flex items-center gap-3 cursor-pointer group">
       <button
         type="button"
         onClick={() => onChange(!checked)}
@@ -335,14 +403,13 @@ export function Toggle({ checked, onChange, label }: ToggleProps) {
           checked ? 'bg-peacock' : 'bg-smoke'
         )}
       >
-        <span
-          className={cn(
-            'absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200',
-            checked && 'translate-x-6'
-          )}
+        <motion.span
+          className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-md"
+          animate={{ x: checked ? 24 : 0 }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
         />
       </button>
-      {label && <span className="text-sm text-silver">{label}</span>}
+      {label && <span className="text-sm text-silver group-hover:text-chalk transition-colors">{label}</span>}
     </label>
   );
 }
@@ -354,7 +421,7 @@ export function Mandala({ className, size = 'md' }: { className?: string; size?:
     md: 'w-32 h-32',
     lg: 'w-48 h-48',
   };
-  
+
   return (
     <div className={cn('relative', sizes[size], className)}>
       <svg viewBox="0 0 100 100" className="w-full h-full opacity-20">
@@ -388,5 +455,79 @@ export function DivyaSparkle({ className }: { className?: string }) {
     >
       <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
     </svg>
+  );
+}
+
+/* ===== SANSKRIT BUTTON ===== */
+interface SanskritButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+}
+
+export function SanskritButton({
+  className,
+  variant = 'primary',
+  children,
+  ...props
+}: SanskritButtonProps) {
+  return (
+    <button
+      className={cn(
+        'relative px-8 py-4 rounded-xl font-display font-bold transition-all duration-300',
+        'hover:-translate-y-1 active:translate-y-0 active:scale-95',
+        'cut-card cut-border',
+        variant === 'primary'
+          ? 'bg-gradient-to-r from-saffron to-gold text-void shadow-xl shadow-saffron/20'
+          : variant === 'outline'
+            ? 'bg-transparent text-saffron border-saffron/40 hover:border-saffron'
+            : variant === 'ghost'
+              ? 'bg-transparent text-silver hover:text-chalk hover:bg-smoke/30'
+              : 'bg-graphite text-chalk border border-smoke hover:border-ash',
+        className
+      )}
+      {...props}
+    >
+      <span className="relative z-10">{children}</span>
+      <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-300" />
+    </button>
+  );
+}
+
+/* ===== HOVER CARD ===== */
+interface HoverCardProps {
+  children: React.ReactNode;
+  className?: string;
+  gradient?: string;
+}
+
+export function HoverCard({ children, className, gradient = "from-saffron/20 to-peacock/20" }: HoverCardProps) {
+  return (
+    <motion.div
+      className={cn('relative group', className)}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div className={cn(
+        'absolute -inset-px rounded-2xl bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm',
+        gradient
+      )} />
+      <div className="relative">
+        {children}
+      </div>
+    </motion.div>
+  );
+}
+
+/* ===== SPOTLIGHT ===== */
+interface SpotlightProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export function Spotlight({ children, className }: SpotlightProps) {
+  return (
+    <div className={cn('relative group', className)}>
+      <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-saffron/10 via-gold/10 to-peacock/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-md" />
+      {children}
+    </div>
   );
 }
