@@ -18,6 +18,9 @@ import { KnowledgeGraphPage } from './pages/KnowledgeGraphPage';
 import { StudyOSPage } from './pages/StudyOSPage';
 import { LearningOSPage } from './pages/LearningOSPage';
 import { LearningOS2Page } from './pages/LearningOS2Page';
+import { FlashcardsPage } from './pages/FlashcardsPage';
+import { MediaResearchPage } from './pages/MediaResearchPage';
+import { XPDashboardPage } from './pages/XPDashboardPage';
 import { researchApi } from './services/api';
 import type { ResearchResponse, AgentTask, Source } from './types';
 
@@ -130,6 +133,12 @@ function AppLayout() {
         return <LearningOSPage />;
       case 'learningos2':
         return <LearningOS2Page />;
+      case 'flashcards':
+        return <FlashcardsPage />;
+      case 'media':
+        return <MediaResearchPage />;
+      case 'xp':
+        return <XPDashboardPage />;
       default:
         return null;
     }

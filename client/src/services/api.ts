@@ -510,4 +510,102 @@ export const lmsApi = {
   },
 };
 
+// Brain — Human Cognitive Architecture API
+export const brainApi = {
+  /** Get the current cognitive state of the AI brain for a user */
+  getBrainState: async (userId: string) => {
+    const response = await api.get('/brain/state', { params: { userId } });
+    return response.data;
+  },
+
+  /** Trigger offline memory consolidation (equivalent to sleep/REM) */
+  sleep: async (userId: string) => {
+    const response = await api.post('/brain/sleep', { userId });
+    return response.data;
+  },
+
+  /** Get what topics the brain is currently most curious about */
+  getCuriosities: async (userId: string) => {
+    const response = await api.get('/brain/curiosities', { params: { userId } });
+    return response.data;
+  },
+
+  /** Get brain module architecture metadata */
+  getConfig: async () => {
+    const response = await api.get('/brain/config');
+    return response.data;
+  },
+};
+
+// Flashcard / Spaced Repetition API
+export const flashcardApi = {
+  getDueCards: async (limit = 20) => {
+    const r = await api.get('/flashcards/due', { params: { limit } });
+    return r.data;
+  },
+  getAllCards: async (topic?: string) => {
+    const r = await api.get('/flashcards', { params: topic ? { topic } : {} });
+    return r.data;
+  },
+  getStats: async () => {
+    const r = await api.get('/flashcards/stats');
+    return r.data;
+  },
+  submitReview: async (cardId: string, quality: number, responseTimeMs: number) => {
+    const r = await api.post('/flashcards/review', { cardId, quality, responseTimeMs });
+    return r.data;
+  },
+  generateFromSession: async (sessionId: string, topic?: string) => {
+    const r = await api.post('/flashcards/generate', { sessionId, topic });
+    return r.data;
+  },
+  deleteCard: async (id: string) => {
+    const r = await api.delete(`/flashcards/${id}`);
+    return r.data;
+  },
+};
+
+// Media Research API (PDF & YouTube)
+export const mediaApi = {
+  analyzePDF: async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const r = await api.post('/media/pdf', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return r.data;
+  },
+  analyzeYouTube: async (url: string) => {
+    const r = await api.post('/media/youtube', { url });
+    return r.data;
+  },
+};
+
+// XP & Gamification API
+export const xpApi = {
+  getProfile: async () => {
+    const r = await api.get('/xp/profile');
+    return r.data;
+  },
+  awardXP: async (action: string, metadata?: Record<string, any>) => {
+    const r = await api.post('/xp/award', { action, metadata });
+    return r.data;
+  },
+};
+
+// Night Research Scheduler API
+export const nightApi = {
+  getDigest: async () => {
+    const r = await api.get('/night/digest');
+    return r.data;
+  },
+  getPastDigests: async (days = 7) => {
+    const r = await api.get('/night/digests', { params: { days } });
+    return r.data;
+  },
+  triggerManual: async () => {
+    const r = await api.post('/night/run');
+    return r.data;
+  },
+};
+
 export default api;
+

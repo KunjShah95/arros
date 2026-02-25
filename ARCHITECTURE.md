@@ -1,6 +1,236 @@
-# ARROS Architecture
+# ARROS — Human Brain Architecture
 
-## System Overview
+---
+
+## 🧠 Human Cognitive Architecture (v2.0)
+
+ARROS now operates with a **full human-like cognitive architecture** — designed after neuroscience research on how the human brain thinks, feels, decides, and learns. Every research query is processed through the same mechanisms a human mind uses.
+
+---
+
+## Cognitive Modules Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    Human Brain Cognitive Architecture                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                         ┌──────────────────┐
+                         │   User Query     │
+                         └────────┬─────────┘
+                                  │
+              ┌───────────────────┼───────────────────┐
+              ▼                   ▼                   ▼
+    ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+    │ IntuitionEngine │ │  WorkingMemory  │ │  CuriosityEngine│
+    │ (Basal Ganglia) │ │ (Dorsolat. PFC) │ │ (Nucleus Acc.)  │
+    │  System 1 Fast  │ │  Context Buffer │ │  Interest Drive │
+    └────────┬────────┘ └────────┬────────┘ └────────┬────────┘
+             │                   │                   │
+             └───────────────────┼───────────────────┘
+                                  │
+                                  ▼
+                    ┌─────────────────────────┐
+                    │      CognitiveCore      │
+                    │   (Prefrontal Cortex)   │
+                    │ • Executive function    │
+                    │ • Deliberate reasoning  │
+                    │ • System 2 thinking     │
+                    │ • Decision integration  │
+                    └────────────┬────────────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              ▼                  ▼                  ▼
+   ┌──────────────────┐ ┌───────────────┐ ┌────────────────────┐
+   │  EmotionalEngine │ │SelfAwareness  │ │  DreamConsolidator │
+   │  (Limbic System) │ │  (ACC + Meta) │ │  (Hippocampus/REM) │
+   │ • Emotional state│ │ • Bias detect │ │ • Memory compress  │
+   │ • Somatic markers│ │ • Self-correct│ │ • Insight extract  │
+   │ • Motivation     │ │ • Self-reflect│ │ • Pattern abstract │
+   └──────────────────┘ └───────────────┘ └────────────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │   Research Pipeline      │
+                    │ (Agent Fleet Execution) │
+                    └────────────┬────────────┘
+                                 │
+                    ┌────────────┴────────────┐
+                    ▼                         ▼
+         ┌──────────────────┐      ┌──────────────────┐
+         │  Synthesis Agent │      │   Memory Update  │
+         │  (Knowledge out) │      │  (Learning loop) │
+         └──────────────────┘      └──────────────────┘
+```
+
+---
+
+## Module Descriptions
+
+### 🧠 CognitiveCore — Prefrontal Cortex Analog
+**File:** `server/src/agents/cognitiveCore.ts`
+
+The central executive. Coordinates all cognitive subsystems and implements:
+- **Dual Process Theory**: Chooses between fast System 1 and slow System 2 thinking
+- **Attentional spotlight**: Focuses on one primary concern at a time
+- **Cognitive load tracking**: Monitors mental effort and fatigue
+- **Somatic marker integration**: Combines emotional gut-feelings with rational analysis
+- **Reasoning chain construction**: Transparent, auditable thought process
+
+Processing Modes:
+| Mode | Trigger | Description |
+|------|---------|-------------|
+| `fast_intuitive` | High intuition confidence | Trust pattern recognition, minimal deliberation |
+| `slow_deliberate` | Complex or uncertain queries | Full rational analysis, check assumptions |
+| `creative` | Novel, high-curiosity queries | Exploratory thinking, wider hypothesis space |
+| `critical` | Anxiety/fear state + uncertainty | Extra-careful, maximum verification |
+
+---
+
+### ❤️ EmotionalEngine — Limbic System Analog
+**File:** `server/src/agents/emotionalEngine.ts`
+
+Emotions are not decorative — they serve critical cognitive functions. Implements:
+- **Plutchik's Wheel**: 8 primary emotions + secondary blends
+- **Russell's Circumplex**: Arousal (calm↔excited) × Valence (negative↔positive) space
+- **Damasio's Somatic Markers**: Past emotional outcomes bias future similar decisions
+- **Emotional inertia**: Emotions transition gradually (35% blend rate per update)
+- **Homeostatic regulation**: System naturally drifts toward resting calm state
+
+Emotional states visible to UI:
+```
+🔍 Curious and engaged        (anticipation, medium arousal)
+⚡ Enthusiastic and energized  (joy, high arousal)
+⚠️ Proceeding carefully        (fear, low-medium arousal)
+😰 Cautious and alert          (fear, high arousal)
+✅ Confident and satisfied      (joy, low arousal)
+✨ Filled with wonder           (surprise, high positive)
+😤 Frustrated with obstacles    (anger, medium arousal)
+🤔 Uncertain and questioning    (sadness/fear blend)
+```
+
+---
+
+### ⚡ IntuitionEngine — System 1 / Basal Ganglia Analog
+**File:** `server/src/agents/intuitionEngine.ts`
+
+Fast, automatic, unconscious pattern recognition. Fires FIRST — before deliberate reasoning:
+- **Recognition-Primed Decisions (Klein)**: Matches query to recognized patterns
+- **Domain expertise library**: Pre-calibrated patterns for academia, engineering, analysis, news
+- **Online learning**: Reinforcement from outcomes — successful patterns strengthen
+- **Confidence calibration**: Track & adjust for over/underconfidence per domain
+
+Recognized domains and confidence levels update after every session.
+
+---
+
+### 💭 WorkingMemory — Dorsolateral PFC Analog
+**File:** `server/src/agents/workingMemory.ts`
+
+Active context buffer. Implements **Baddeley's Multi-Component Model**:
+- **Capacity**: 9 slots maximum (Miller's Law: 7 ± 2)
+- **Decay**: Ebbinghaus forgetting curve — items fade over time
+- **Rehearsal**: Accessed items are reinforced (importance boost)
+- **Chunking**: Related items grouped into single units (more efficient storage)
+- **Attentional focus**: One item highlighted as primary (consciousness spotlight)
+- **Eviction**: Least-important non-focused item dropped when at capacity
+- **Consolidation**: On session end, high-importance & high-access items transferred to long-term
+
+---
+
+### 🔍 CuriosityEngine — Dopaminergic Reward / Nucleus Accumbens Analog
+**File:** `server/src/agents/curiosityEngine.ts`
+
+Self-directed learning drive. Implements **Loewenstein's Information Gap Theory**:
+- **Novelty detection**: How unfamiliar is this topic? (inverse of exploration depth)
+- **Complexity estimation**: More complex = more interesting (Berlyne arousal theory)
+- **Optimal stimulation**: Curiosity peaks at medium knowledge level (inverted-U)
+- **Spontaneous question generation**: Generates "what does this make me wonder?" questions
+- **Exploration path suggestion**: Recommends next topics based on knowledge gaps
+- **Open question accumulation**: Maintains list of unresolved intellectual tensions
+
+---
+
+### 🪞 SelfAwarenessModule — Anterior Cingulate Cortex Analog
+**File:** `server/src/agents/selfAwareness.ts`
+
+Error monitoring and metacognition. Implements **Flavell's Metacognition Theory**:
+
+Detects these cognitive biases in real-time:
+| Bias | Detection Method | Correction |
+|------|-----------------|------------|
+| Confirmation bias | High confidence + no alternatives | Seek disconfirming evidence |
+| Availability heuristic | Fast retrieval + high confidence on complex queries | Check base rates |
+| Dunning-Kruger | High confidence + many uncertainties | Reduce confidence, seek validation |
+| Anchoring bias | First thought dominates all subthoughts | Reset from multiple angles |
+| Recency bias | Over-reliance on recent information | Weight historical data equally |
+| Framing effect | Anxiety framing negatively | Neutral perspective reframe |
+
+Also tracks:
+- **Calibration error**: Are we systematically over or underconfident?
+- **Session fatigue**: Does error rate increase as session length grows?
+- **Self-reflection**: Generates human-readable introspective statements
+
+---
+
+### 💤 DreamConsolidator — Hippocampus / Sleep Analog
+**File:** `server/src/agents/dreamConsolidator.ts`
+
+Offline memory consolidation. Implements **Systems Consolidation Theory**:
+
+**Micro-consolidation** (after every session):
+- Store key findings in vector database with importance scoring
+- Update user interest graph
+
+**Full consolidation** (called via `/api/brain/sleep`):
+1. **Memory review**: Retrieve recent experiences from the past week
+2. **Clustering**: Group memories by theme (like REM grouping related experiences)
+3. **Pruning**: Delete weak, rarely-accessed memories (synaptic homeostasis)
+4. **Insight extraction**: Distill higher-level patterns from clusters (hippocampus → cortex)
+5. **Novel connections**: Find unexpected cross-topic links (REM creative recombination)
+6. **Knowledge graph update**: Persist consolidated understanding as graph nodes/edges
+7. **Exploration suggestions**: "What to dream about next" — topics worth deeper study
+
+---
+
+## New API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/research` | POST | Research using the Human Brain (default) |
+| `/api/brain/state` | GET | Current cognitive state snapshot |
+| `/api/brain/sleep` | POST | Run memory consolidation cycle |
+| `/api/brain/curiosities` | GET | Topics the brain is most curious about |
+| `/api/brain/config` | GET | Brain module architecture metadata |
+
+**Research request body:**
+```json
+{
+  "query": "What is quantum entanglement?",
+  "useBrain": true
+}
+```
+
+**Response now includes `brainState`:**
+```json
+{
+  "brainState": {
+    "currentEmotion": "🔍 Curious and engaged",
+    "processingMode": "slow_deliberate",
+    "cognitiveLoad": 0.62,
+    "arousalLevel": 0.45,
+    "curiosityScore": 0.81,
+    "workingMemoryLoad": 0.44,
+    "selfReflection": "Thinking clearly with no obvious biases detected",
+    "openQuestions": ["What are the practical applications?", "..."],
+    "sessionInsights": ["Successfully researched quantum physics with 87% confidence"]
+  }
+}
+```
+
+---
+
+## Original ARROS System Overview
 
 ARROS (Autonomous Research & Reasoning Operating System) is a Perplexity-inspired research platform upgraded with multi-agent coordination, persistent memory, and knowledge graph capabilities. The system behaves like a research team with analyst capabilities that plans research strategy, verifies facts, stores memory, and evolves over time.
 

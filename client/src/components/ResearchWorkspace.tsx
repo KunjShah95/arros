@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Button, Card, Badge, ProgressBar, SanskritButton, cn } from './ui';
 import { AgentTimeline } from './AgentTimeline';
+import { BrainStateHUD } from './BrainStateHUD';
 import { integrationsApi } from '../services/api';
 import type { ResearchResponse, AgentTask, Source, AcademicCitation, Integration, ActionItem } from '../types';
 
@@ -293,9 +294,15 @@ export function ResearchWorkspace({
         </div>
       </div>
 
-      {/* Agent Timeline Sidebar */}
-      <div className="w-full lg:w-72 flex-shrink-0 overflow-hidden pb-2 lg:pb-0">
-        <Card className="h-full p-4 overflow-hidden flex flex-col border-smoke/50 cut-card cut-border">
+      {/* Agent Timeline + Brain HUD Sidebar */}
+      <div className="w-full lg:w-72 flex-shrink-0 overflow-y-auto flex flex-col gap-3 pb-2 lg:pb-0">
+        {/* Brain State HUD */}
+        <BrainStateHUD
+          brainState={result?.brainState ?? null}
+          isResearching={isResearching}
+        />
+        {/* Agent Timeline */}
+        <Card className="flex-1 p-4 overflow-hidden flex flex-col border-smoke/50 cut-card cut-border">
           <AgentTimeline tasks={tasks} />
         </Card>
       </div>

@@ -47,6 +47,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const orchestrator_1 = require("../agents/orchestrator");
+const humanBrainOrchestrator_1 = require("../agents/humanBrainOrchestrator");
+const spacedRepetition_1 = require("../agents/spacedRepetition");
+const nightResearchScheduler_1 = require("../agents/nightResearchScheduler");
+const pdfResearcher_1 = require("../agents/pdfResearcher");
+const xpSystem_1 = require("../agents/xpSystem");
 const prisma_1 = require("../services/prisma");
 const sarvam_1 = require("../services/sarvam");
 const export_1 = require("../services/export");
@@ -55,27 +60,330 @@ const auth_1 = require("../middleware/auth");
 const multer_1 = __importDefault(require("multer"));
 const router = (0, express_1.Router)();
 const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+// Brain instance cache — one brain per user per server lifetime
+const brainCache = new Map();
+function getBrain(userId) {
+    if (!brainCache.has(userId)) {
+        brainCache.set(userId, new humanBrainOrchestrator_1.HumanBrainOrchestrator(userId, true));
+    }
+    return brainCache.get(userId);
+}
 router.post('/research', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { query } = req.body;
+        const { query, useBrain = true } = req.body;
         const userId = req.userId || 'guest';
         if (!query) {
             return res.status(400).json({ error: 'Query is required' });
         }
-        const orchestrator = new orchestrator_1.AgentOrchestrator(userId);
-        const result = yield orchestrator.research(query);
-        res.json(result);
+        if (useBrain) {
+            // Use the Human Brain Orchestrator for human-like cognition
+            const brain = getBrain(userId);
+            const result = yield brain.research(query);
+            res.json(result);
+        }
+        else {
+            // Fallback to standard orchestrator
+            const orchestrator = new orchestrator_1.AgentOrchestrator(userId);
+            const result = yield orchestrator.research(query);
+            res.json(result);
+        }
     }
     catch (error) {
         console.error('Research error:', error);
         res.status(500).json({ error: 'Research failed' });
     }
 }));
+// ─── Human Brain API Endpoints ────────────────────────────────────────────────
+/** GET /api/brain/state — Get current cognitive state of the brain */
+router.get('/brain/state', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const brain = getBrain(userId);
+        const state = yield brain.getBrainState();
+        res.json(state);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get brain state' });
+    }
+}));
+/** POST /api/brain/sleep — Run offline memory consolidation */
+router.post('/brain/sleep', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const brain = getBrain(userId);
+        yield brain.sleep();
+        res.json({ success: true, message: 'Memory consolidation complete — brain refreshed' });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to run consolidation' });
+    }
+}));
+/** GET /api/brain/curiosities — What the brain is most curious about */
+router.get('/brain/curiosities', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        // Curiosity state comes from active interests
+        const interests = yield prisma_1.prisma.userInterest.findMany({
+            where: { userId },
+            orderBy: { depth: 'desc' },
+            take: 10,
+        });
+        res.json({
+            topCuriosities: interests.map(i => ({
+                topic: i.topic,
+                depth: i.depth,
+                lastExplored: i.lastResearchedAt,
+                curiosityScore: Math.min(1, i.depth * 0.1),
+            }))
+        });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get curiosities' });
+    }
+}));
+/** GET /api/brain/config — Brain architecture metadata */
+router.get('/brain/config', (0, auth_1.authenticate)({ optional: true }), (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.json({
+        architecture: 'Human Brain Cognitive Architecture v1.0',
+        modules: [
+            { name: 'CognitiveCore', analog: 'Prefrontal Cortex', role: 'Executive function, decision-making, deliberate reasoning' },
+            { name: 'EmotionalEngine', analog: 'Limbic System', role: 'Emotional state tracking, somatic markers, motivation' },
+            { name: 'IntuitionEngine', analog: 'Basal Ganglia + VMPFC', role: 'Fast pattern recognition, System 1 thinking' },
+            { name: 'WorkingMemory', analog: 'Dorsolateral PFC', role: 'Active context buffer, 7±2 item capacity' },
+            { name: 'CuriosityEngine', analog: 'Nucleus Accumbens + Dopamine', role: 'Information gap detection, self-directed learning' },
+            { name: 'SelfAwarenessModule', analog: 'Anterior Cingulate Cortex', role: 'Error monitoring, metacognition, bias detection' },
+            { name: 'DreamConsolidator', analog: 'Hippocampus during sleep', role: 'Memory consolidation, insight extraction, pruning' },
+        ],
+        cognitivePrinciples: [
+            'Dual Process Theory (System 1 + System 2)',
+            'Global Workspace Theory',
+            'Predictive Processing',
+            'Somatic Marker Hypothesis (Damasio)',
+            'Information Gap Theory (Loewenstein)',
+            'Metacognition (Flavell)',
+            'Systems Consolidation Theory',
+        ],
+    });
+}));
+// ─── Spaced Repetition API ────────────────────────────────────────────────────
+/** GET /api/flashcards — Get all flashcards for user */
+router.get('/flashcards', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const { topic } = req.query;
+        const engine = new spacedRepetition_1.SpacedRepetitionEngine(userId);
+        const cards = yield engine.getAllCards();
+        const filtered = topic ? cards.filter(c => c.topic.toLowerCase().includes(topic.toLowerCase())) : cards;
+        res.json(filtered);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get flashcards' });
+    }
+}));
+/** GET /api/flashcards/due — Get cards due for review */
+router.get('/flashcards/due', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const limit = parseInt(req.query.limit) || 20;
+        const engine = new spacedRepetition_1.SpacedRepetitionEngine(userId);
+        const dueCards = yield engine.getDueCards(limit);
+        res.json(dueCards);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get due cards' });
+    }
+}));
+/** GET /api/flashcards/stats — Study statistics */
+router.get('/flashcards/stats', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const engine = new spacedRepetition_1.SpacedRepetitionEngine(userId);
+        const stats = yield engine.getStats();
+        res.json(stats);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get stats' });
+    }
+}));
+/** POST /api/flashcards/review — Submit a review result */
+router.post('/flashcards/review', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const { cardId, quality, responseTimeMs } = req.body;
+        if (!cardId || quality === undefined)
+            return res.status(400).json({ error: 'cardId and quality required' });
+        const engine = new spacedRepetition_1.SpacedRepetitionEngine(userId);
+        const updated = yield engine.processReview(cardId, quality, responseTimeMs || 5000);
+        // Award XP
+        const xp = new xpSystem_1.XPSystem(userId);
+        yield xp.awardXP('flashcard_review');
+        if (quality === 5)
+            yield xp.awardXP('perfect_recall');
+        res.json(updated);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to process review' });
+    }
+}));
+/** POST /api/flashcards/generate — Generate flashcards from a session */
+router.post('/flashcards/generate', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const userId = req.userId || 'guest';
+        const { sessionId, topic } = req.body;
+        if (!sessionId)
+            return res.status(400).json({ error: 'sessionId required' });
+        // Get the session synthesis
+        const session = yield prisma_1.prisma.session.findUnique({ where: { id: sessionId }, include: { outputs: true } });
+        if (!session)
+            return res.status(404).json({ error: 'Session not found' });
+        const synthesis = ((_b = (_a = session.outputs) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.content) ? JSON.parse(session.outputs[0].content) : null;
+        if (!synthesis)
+            return res.status(400).json({ error: 'No synthesis found for this session' });
+        const engine = new spacedRepetition_1.SpacedRepetitionEngine(userId);
+        const cards = yield engine.generateFromResearch(synthesis, topic || session.query || 'Research', sessionId);
+        res.json({ cardsGenerated: cards.length, cards });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate flashcards' });
+    }
+}));
+/** DELETE /api/flashcards/:id — Delete a flashcard */
+router.delete('/flashcards/:id', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const engine = new spacedRepetition_1.SpacedRepetitionEngine(userId);
+        yield engine.deleteCard(String(req.params.id));
+        res.json({ success: true });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to delete flashcard' });
+    }
+}));
+// ─── Night Research Scheduler API ─────────────────────────────────────────────
+/** GET /api/night/digest — Get today's morning digest */
+router.get('/night/digest', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const scheduler = new nightResearchScheduler_1.NightResearchScheduler();
+        const digest = yield scheduler.getMorningDigest(userId);
+        res.json(digest || { readyForReview: false, message: 'No digest for today yet' });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get digest' });
+    }
+}));
+/** GET /api/night/digests — Get past digests */
+router.get('/night/digests', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const days = parseInt(req.query.days) || 7;
+        const scheduler = new nightResearchScheduler_1.NightResearchScheduler();
+        const digests = yield scheduler.getPastDigests(userId, days);
+        res.json(digests);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get past digests' });
+    }
+}));
+/** POST /api/night/run — Manually trigger overnight research */
+router.post('/night/run', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const scheduler = new nightResearchScheduler_1.NightResearchScheduler();
+        const digest = yield scheduler.triggerManual(userId);
+        // Award XP for night discovery
+        const xp = new xpSystem_1.XPSystem(userId);
+        yield xp.awardXP('night_discovery');
+        res.json(digest);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to run overnight research' });
+    }
+}));
+// ─── PDF & YouTube Research API ────────────────────────────────────────────────
+/** POST /api/media/pdf — Analyze an uploaded PDF */
+const pdfUpload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
+router.post('/media/pdf', (0, auth_1.authenticate)({ optional: true }), pdfUpload.single('file'), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        if (!req.file)
+            return res.status(400).json({ error: 'No file uploaded' });
+        // Extract text from PDF buffer
+        let text = '';
+        try {
+            // Try using pdf-parse if installed
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const pdfParse = require('pdf-parse');
+            const data = yield pdfParse(req.file.buffer);
+            text = data.text;
+        }
+        catch (_a) {
+            // Fallback: treat as plain text
+            text = req.file.buffer.toString('utf-8');
+        }
+        const researcher = new pdfResearcher_1.PDFResearcher(userId);
+        const analysis = yield researcher.analyzeText(text, req.file.originalname);
+        // Award XP
+        const xp = new xpSystem_1.XPSystem(userId);
+        yield xp.awardXP('pdf_upload', { filename: req.file.originalname });
+        res.json(analysis);
+    }
+    catch (error) {
+        console.error('PDF analysis error:', error);
+        res.status(500).json({ error: 'Failed to analyze PDF' });
+    }
+}));
+/** POST /api/media/youtube — Analyze a YouTube video */
+router.post('/media/youtube', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const { url } = req.body;
+        if (!url)
+            return res.status(400).json({ error: 'YouTube URL required' });
+        const researcher = new pdfResearcher_1.YouTubeResearcher(userId);
+        const analysis = yield researcher.analyzeVideo(url);
+        // Award XP
+        const xp = new xpSystem_1.XPSystem(userId);
+        yield xp.awardXP('youtube_research', { url });
+        res.json(analysis);
+    }
+    catch (error) {
+        console.error('YouTube analysis error:', error);
+        res.status(500).json({ error: 'Failed to analyze YouTube video' });
+    }
+}));
+// ─── XP & Gamification API ─────────────────────────────────────────────────────
+/** GET /api/xp/profile — Full XP profile */
+router.get('/xp/profile', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const xp = new xpSystem_1.XPSystem(userId);
+        const profile = yield xp.getProfile();
+        res.json(profile);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get XP profile' });
+    }
+}));
+/** POST /api/xp/award — Award XP (internal, but useful for testing) */
+router.post('/xp/award', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const { action, metadata } = req.body;
+        const xp = new xpSystem_1.XPSystem(userId);
+        const result = yield xp.awardXP(action, metadata);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to award XP' });
+    }
+}));
 router.get('/session/:sessionId', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const sessionId = req.params.sessionId;
-        const orchestrator = new orchestrator_1.AgentOrchestrator(req.userId || 'guest');
-        const session = yield orchestrator.getSession(sessionId);
+        const brain = getBrain(req.userId || 'guest');
+        const session = yield brain.getSession(sessionId);
         if (!session) {
             return res.status(404).json({ error: 'Session not found' });
         }
@@ -88,8 +396,8 @@ router.get('/session/:sessionId', (0, auth_1.authenticate)({ optional: true }), 
 router.get('/sessions', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.userId || 'guest';
-        const orchestrator = new orchestrator_1.AgentOrchestrator(userId);
-        const sessions = yield orchestrator.getUserSessions();
+        const brain = getBrain(userId);
+        const sessions = yield brain.getUserSessions();
         res.json(sessions);
     }
     catch (error) {
@@ -200,9 +508,9 @@ router.post('/research/stream', (0, auth_1.authenticate)({ optional: true }), (r
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
-        const orchestrator = new orchestrator_1.AgentOrchestrator(userId);
+        const brain = getBrain(userId);
         res.write(`data: ${JSON.stringify({ type: 'started', query })}\n\n`);
-        const result = yield orchestrator.research(query);
+        const result = yield brain.research(query);
         res.write(`data: ${JSON.stringify({ type: 'completed', result })}\n\n`);
         res.end();
     }
@@ -421,6 +729,14 @@ router.get('/sarvam/languages', (req, res) => __awaiter(void 0, void 0, void 0, 
     }
 }));
 const studyOS_1 = require("../agents/studyOS");
+const conceptCoach_1 = require("../agents/conceptCoach");
+const assignmentEvaluator_1 = require("../agents/assignmentEvaluator");
+const integrity_1 = require("../agents/integrity");
+const studyPlanner_1 = require("../agents/studyPlanner");
+const codeDebugCoach_1 = require("../agents/codeDebugCoach");
+const careerNavigator_1 = require("../agents/careerNavigator");
+const confidenceBooster_1 = require("../agents/confidenceBooster");
+const fallacyDetector_1 = require("../agents/fallacyDetector");
 const uuid_1 = require("uuid");
 router.post('/studyos/exam-prep', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -936,6 +1252,959 @@ router.post('/studyos/exam/countdown', (0, auth_1.authenticate)({ optional: true
     }
     catch (error) {
         res.status(500).json({ error: 'Failed to set countdown' });
+    }
+}));
+// ============ NEW LEARNING OS MODULES ============
+// Concept Coach Agent
+router.post('/coach/explain', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { topic, level, context } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new conceptCoach_1.ConceptCoachAgent(userId);
+        const result = yield agent.explainStepwise(topic, level, context);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to explain concept' });
+    }
+}));
+router.post('/coach/hint', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { question, attemptNumber, previousAnswer, context } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new conceptCoach_1.ConceptCoachAgent(userId);
+        const result = yield agent.giveHint(question, attemptNumber, previousAnswer, context);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get hint' });
+    }
+}));
+router.get('/coach/mastery/:topic', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const topic = req.params.topic;
+        const userId = req.userId || 'guest';
+        const agent = new conceptCoach_1.ConceptCoachAgent(userId);
+        const result = yield agent.assessMastery(topic);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to assess mastery' });
+    }
+}));
+router.get('/coach/weak-topics', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const agent = new conceptCoach_1.ConceptCoachAgent(userId);
+        const result = yield agent.detectWeakTopics();
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to detect weak topics' });
+    }
+}));
+router.post('/coach/adapt-difficulty', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { correctAnswers, totalQuestions, avgResponseTime, hintsUsed } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new conceptCoach_1.ConceptCoachAgent(userId);
+        const result = yield agent.adaptDifficulty({ correctAnswers, totalQuestions, avgResponseTime, hintsUsed });
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to adapt difficulty' });
+    }
+}));
+router.get('/coach/mastery-graph', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const generator = new conceptCoach_1.MasteryGraphGenerator();
+        const result = yield generator.generateMasteryGraph(userId);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate mastery graph' });
+    }
+}));
+// Assignment Evaluator
+router.post('/evaluate/essay', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { content, rubric, assignmentType } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new assignmentEvaluator_1.AssignmentEvaluatorAgent(userId);
+        const result = yield agent.evaluateEssay(content, rubric, assignmentType);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to evaluate essay' });
+    }
+}));
+router.post('/evaluate/code', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { code, language, criteria } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new assignmentEvaluator_1.AssignmentEvaluatorAgent(userId);
+        const result = yield agent.evaluateCode(code, language, criteria);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to evaluate code' });
+    }
+}));
+router.post('/evaluate/presentation', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { slides, rubric } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new assignmentEvaluator_1.AssignmentEvaluatorAgent(userId);
+        const result = yield agent.evaluatePresentation(slides, rubric);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to evaluate presentation' });
+    }
+}));
+router.post('/evaluate/lab-report', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { content, labType } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new assignmentEvaluator_1.AssignmentEvaluatorAgent(userId);
+        const result = yield agent.evaluateLabReport(content, labType);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to evaluate lab report' });
+    }
+}));
+router.post('/evaluate/improve', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { work, workType, targetGrade } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new assignmentEvaluator_1.AssignmentEvaluatorAgent(userId);
+        const result = yield agent.suggestImprovements(work, workType, targetGrade);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to suggest improvements' });
+    }
+}));
+router.post('/evaluate/compare', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { v1, v2, workType } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new assignmentEvaluator_1.AssignmentEvaluatorAgent(userId);
+        const result = yield agent.compareVersions(v1, v2, workType);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to compare versions' });
+    }
+}));
+router.post('/evaluate/rubric', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name, type, criteria } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new assignmentEvaluator_1.AssignmentEvaluatorAgent(userId);
+        const result = yield agent.createRubric(name, type, criteria);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to create rubric' });
+    }
+}));
+router.get('/evaluate/rubrics', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { type } = req.query;
+        const userId = req.userId || 'guest';
+        const agent = new assignmentEvaluator_1.AssignmentEvaluatorAgent(userId);
+        const result = yield agent.getRubrics(type);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get rubrics' });
+    }
+}));
+// Integrity Agent
+router.post('/integrity/check', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { content } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new integrity_1.IntegrityAgent(userId);
+        const result = yield agent.checkOriginality(content);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to check originality' });
+    }
+}));
+router.post('/integrity/ai-usage', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { content } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new integrity_1.IntegrityAgent(userId);
+        const result = yield agent.detectAIUsage(content);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to detect AI usage' });
+    }
+}));
+router.post('/integrity/citations', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { content, style } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new integrity_1.IntegrityAgent(userId);
+        const result = yield agent.checkCitations(content, style);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to check citations' });
+    }
+}));
+router.post('/integrity/generate-citations', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { sources, format } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new integrity_1.IntegrityAgent(userId);
+        const result = yield agent.generateCitations(sources, format);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate citations' });
+    }
+}));
+router.post('/integrity/references', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { topic, count } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new integrity_1.IntegrityAgent(userId);
+        const result = yield agent.suggestReferences(topic, count);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to suggest references' });
+    }
+}));
+router.post('/integrity/weak-arguments', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { content } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new integrity_1.IntegrityAgent(userId);
+        const result = yield agent.detectWeakArguments(content);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to detect weak arguments' });
+    }
+}));
+// Study Planner
+router.post('/planner/generate', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { syllabusText, examDate, dailyHours, weakTopicEmphasis, priorityBased } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new studyPlanner_1.StudyPlannerAgent(userId);
+        const syllabus = yield agent.parseSyllabus(syllabusText, examDate ? new Date(examDate) : undefined);
+        const plan = yield agent.generateStudyPlan(syllabus, { dailyHours, weakTopicEmphasis, priorityBased });
+        res.json({ syllabus, plan });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate study plan' });
+    }
+}));
+router.get('/planner/readiness', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { syllabus, performanceData } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new studyPlanner_1.StudyPlannerAgent(userId);
+        const result = yield agent.calculateReadiness(syllabus, performanceData);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to calculate readiness' });
+    }
+}));
+router.get('/planner/burnout', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const agent = new studyPlanner_1.StudyPlannerAgent(userId);
+        const result = yield agent.detectBurnoutRisk(userId);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to detect burnout risk' });
+    }
+}));
+router.post('/planner/flashcards', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { syllabus, cardsPerTopic } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new studyPlanner_1.StudyPlannerAgent(userId);
+        const result = agent.generateFlashcardsFromSyllabus(syllabus, cardsPerTopic);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate flashcards' });
+    }
+}));
+// Code Debug Coach
+router.post('/debug/explain', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { code, language, error, expectedBehavior } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new codeDebugCoach_1.CodeDebugCoachAgent(userId);
+        const result = yield agent.explainDebugStepwise(code, language, error, expectedBehavior);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to explain debug' });
+    }
+}));
+router.post('/debug/analyze', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { code, language } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new codeDebugCoach_1.CodeDebugCoachAgent(userId);
+        const result = yield agent.analyzeCode(code, language);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to analyze code' });
+    }
+}));
+router.post('/debug/logic', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { code, expectedOutput, actualOutput, language } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new codeDebugCoach_1.CodeDebugCoachAgent(userId);
+        const result = yield agent.explainWhyLogicFails(code, expectedOutput, actualOutput, language);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to explain logic' });
+    }
+}));
+router.post('/debug/concepts', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { code, language, concepts } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new codeDebugCoach_1.CodeDebugCoachAgent(userId);
+        const result = yield agent.suggestConceptResources(code, language, concepts);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to suggest concepts' });
+    }
+}));
+router.post('/debug/unittest', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { code, testInput, expectedOutput, actualOutput, language } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new codeDebugCoach_1.CodeDebugCoachAgent(userId);
+        const result = yield agent.learnFromUnitTest(code, testInput, expectedOutput, actualOutput, language);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to learn from unit test' });
+    }
+}));
+router.post('/debug/exercise', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { topic, language, difficulty } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new codeDebugCoach_1.CodeDebugCoachAgent(userId);
+        const result = yield agent.createDebugExercise(topic, language, difficulty);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to create debug exercise' });
+    }
+}));
+// Career Navigator
+router.post('/career/skills', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { skills, targetRoles } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new careerNavigator_1.CareerSkillNavigatorAgent(userId);
+        const result = yield agent.mapSkills(skills, targetRoles);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to map skills' });
+    }
+}));
+router.post('/career/resume', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { resume, targetRole } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new careerNavigator_1.CareerSkillNavigatorAgent(userId);
+        const result = yield agent.reviewResume(resume, targetRole);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to review resume' });
+    }
+}));
+router.post('/career/interview', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { role, type, difficulty, questionCount } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new careerNavigator_1.CareerSkillNavigatorAgent(userId);
+        const result = yield agent.generateMockInterview(role, type, difficulty, questionCount);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate interview' });
+    }
+}));
+router.post('/career/interview/evaluate', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { question, answer } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new careerNavigator_1.CareerSkillNavigatorAgent(userId);
+        const result = yield agent.evaluateAnswer(question, answer);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to evaluate answer' });
+    }
+}));
+router.post('/career/portfolio', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { projects } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new careerNavigator_1.CareerSkillNavigatorAgent(userId);
+        const result = yield agent.reviewPortfolio(projects);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to review portfolio' });
+    }
+}));
+router.post('/career/roadmap', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { targetRole, currentSkills, timelineMonths } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new careerNavigator_1.CareerSkillNavigatorAgent(userId);
+        const result = yield agent.generateCareerRoadmap(targetRole, currentSkills, timelineMonths);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate roadmap' });
+    }
+}));
+router.get('/career/jobs', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { skills, targetRoles, location, limit } = req.query;
+        const userId = req.userId || 'guest';
+        const agent = new careerNavigator_1.CareerSkillNavigatorAgent(userId);
+        const result = yield agent.findJobMatches(skills, targetRoles, location, Number(limit) || 10);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to find jobs' });
+    }
+}));
+router.get('/career/interview-tips/:role', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const role = req.params.role;
+        const companyType = req.query.companyType || 'mid-size';
+        const userId = req.userId || 'guest';
+        const agent = new careerNavigator_1.CareerSkillNavigatorAgent(userId);
+        const result = yield agent.getInterviewTips(role, companyType);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get interview tips' });
+    }
+}));
+// Confidence Booster
+router.post('/confidence/hesitation', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { response, responseTime } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new confidenceBooster_1.ConfidenceBoosterAgent(userId);
+        const result = yield agent.detectHesitation(response, responseTime);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to detect hesitation' });
+    }
+}));
+router.post('/confidence/encourage', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { context, tone } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new confidenceBooster_1.ConfidenceBoosterAgent(userId);
+        const result = yield agent.generateEncouragement(context, tone);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate encouragement' });
+    }
+}));
+router.post('/confidence/anxiety', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { text } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new confidenceBooster_1.ConfidenceBoosterAgent(userId);
+        const result = yield agent.analyzeAnxietyFromText(text);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to analyze anxiety' });
+    }
+}));
+router.post('/confidence/stress', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { anxietyLevel, context } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new confidenceBooster_1.ConfidenceBoosterAgent(userId);
+        const result = yield agent.generateStressResponse(anxietyLevel, context);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate stress response' });
+    }
+}));
+router.get('/confidence/trend', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { period } = req.query;
+        const userId = req.userId || 'guest';
+        const agent = new confidenceBooster_1.ConfidenceBoosterAgent(userId);
+        const result = yield agent.trackConfidenceTrend(period || 'week');
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to track confidence trend' });
+    }
+}));
+// Critical Thinking / Fallacy Detector
+router.post('/thinking/fallacies', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { text } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new fallacyDetector_1.LogicalFallacyDetectorAgent(userId);
+        const result = yield agent.detectFallacies(text);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to detect fallacies' });
+    }
+}));
+router.post('/thinking/analyze', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { argument, context } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new fallacyDetector_1.LogicalFallacyDetectorAgent(userId);
+        const result = yield agent.analyzeArgument(argument, context);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to analyze argument' });
+    }
+}));
+router.post('/thinking/debate', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { yourArgument, opponentResponse, isProponent } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new fallacyDetector_1.LogicalFallacyDetectorAgent(userId);
+        const result = yield agent.evaluateDebatePerformance(yourArgument, opponentResponse, isProponent);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to evaluate debate' });
+    }
+}));
+router.post('/thinking/score', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { text } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new fallacyDetector_1.LogicalFallacyDetectorAgent(userId);
+        const result = yield agent.assessCriticalThinking(text);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to assess thinking' });
+    }
+}));
+router.post('/thinking/challenge', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { argument, count } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new fallacyDetector_1.LogicalFallacyDetectorAgent(userId);
+        const result = yield agent.generateSocraticChallenges(argument, count);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate challenges' });
+    }
+}));
+router.post('/thinking/bias', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { text } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new fallacyDetector_1.LogicalFallacyDetectorAgent(userId);
+        const result = yield agent.detectBias(text);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to detect bias' });
+    }
+}));
+router.get('/thinking/fallacy/:type', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { type } = req.params;
+        const userId = req.userId || 'guest';
+        const agent = new fallacyDetector_1.LogicalFallacyDetectorAgent(userId);
+        const result = yield agent.teachFallacy(type);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to teach fallacy' });
+    }
+}));
+// ============ QUIZ GENERATOR ============
+const quizGenerator_1 = require("../agents/quizGenerator");
+router.post('/quiz/generate', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { content, topic, questionCount, difficulty } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new quizGenerator_1.QuizGeneratorAgent(userId);
+        const result = yield agent.generateFromContent(content, topic, { questionCount, difficulty });
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate quiz' });
+    }
+}));
+router.post('/quiz/evaluate', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { quizId, answers } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new quizGenerator_1.QuizGeneratorAgent(userId);
+        const result = yield agent.evaluateQuiz(quizId, answers);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to evaluate quiz' });
+    }
+}));
+router.get('/quiz/analytics/:quizId', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const quizId = req.params.quizId;
+        const userId = req.userId || 'guest';
+        const agent = new quizGenerator_1.QuizGeneratorAgent(userId);
+        const result = yield agent.getQuizAnalytics(quizId);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get analytics' });
+    }
+}));
+// ============ LEARNING STYLE DETECTOR ============
+const learningStyleDetector_1 = require("../agents/learningStyleDetector");
+router.get('/learning-style/questionnaire', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const agent = new learningStyleDetector_1.LearningStyleDetectorAgent(userId);
+        const result = yield agent.generateQuestionnaire();
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get questionnaire' });
+    }
+}));
+router.post('/learning-style/analyze', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { responses } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new learningStyleDetector_1.LearningStyleDetectorAgent(userId);
+        const result = yield agent.analyzeResponses(responses);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to analyze learning style' });
+    }
+}));
+router.get('/learning-style/profile', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const agent = new learningStyleDetector_1.LearningStyleDetectorAgent(userId);
+        const result = yield agent.getProfile();
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get profile' });
+    }
+}));
+// ============ PREDICTIVE ANALYTICS ============
+const predictiveAnalytics_1 = require("../agents/predictiveAnalytics");
+router.post('/analytics/predict', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { topic, examDate, performanceHistory, studyHoursRemaining } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new predictiveAnalytics_1.PredictiveAnalyticsAgent(userId);
+        const result = yield agent.predictExamScore(topic, new Date(examDate), performanceHistory, studyHoursRemaining);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to predict score' });
+    }
+}));
+router.get('/analytics/patterns', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const agent = new predictiveAnalytics_1.PredictiveAnalyticsAgent(userId);
+        const result = yield agent.analyzeStudyPatterns();
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to analyze patterns' });
+    }
+}));
+router.get('/analytics/competency', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { topics } = req.query;
+        const userId = req.userId || 'guest';
+        const agent = new predictiveAnalytics_1.PredictiveAnalyticsAgent(userId);
+        const result = yield agent.getCompetencyRadar(topics);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get competency' });
+    }
+}));
+// ============ CALENDAR INTEGRATION ============
+const calendarIntegration_1 = require("../agents/calendarIntegration");
+router.post('/calendar/schedule', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { examDate, topics, dailyStudyHours } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new calendarIntegration_1.CalendarIntegrationAgent(userId);
+        const result = yield agent.generateStudySchedule(new Date(examDate), topics, dailyStudyHours);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate schedule' });
+    }
+}));
+router.get('/calendar/events', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { days } = req.query;
+        const userId = req.userId || 'guest';
+        const agent = new calendarIntegration_1.CalendarIntegrationAgent(userId);
+        const result = yield agent.getUpcomingEvents(Number(days) || 7);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get events' });
+    }
+}));
+router.get('/calendar/export', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { schedule } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new calendarIntegration_1.CalendarIntegrationAgent(userId);
+        const ics = yield agent.exportToICS(schedule);
+        res.setHeader('Content-Type', 'text/calendar');
+        res.send(ics);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to export calendar' });
+    }
+}));
+// ============ SKILL INTELLIGENCE ============
+const skillIntelligence_1 = require("../agents/skillIntelligence");
+router.post('/skills/map', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { activities } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new skillIntelligence_1.SkillIntelligenceEngine(userId);
+        const result = yield agent.buildCompetencyMap(activities);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to map skills' });
+    }
+}));
+router.get('/skills/recommendations', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const agent = new skillIntelligence_1.SkillIntelligenceEngine(userId);
+        const result = yield agent.getSkillRecommendations();
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get recommendations' });
+    }
+}));
+router.post('/skills/path', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { targetRole, currentLevel, targetLevel, skills } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new skillIntelligence_1.SkillIntelligenceEngine(userId);
+        const result = yield agent.generateLearningPath(targetRole, currentLevel, targetLevel, skills);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate path' });
+    }
+}));
+// ============ WEB SEARCH ============
+const webSearch_1 = require("../agents/webSearch");
+router.post('/search/learning', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { topic, sources, maxResults, difficulty } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new webSearch_1.WebSearchAgent(userId);
+        const result = yield agent.searchForLearningContent(topic, { sources, maxResults, difficulty });
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to search' });
+    }
+}));
+router.post('/search/summarize', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { url } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new webSearch_1.WebSearchAgent(userId);
+        const result = yield agent.summarizeContent(url);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to summarize' });
+    }
+}));
+// ============ PORTFOLIO GENERATOR ============
+const portfolioGenerator_1 = require("../agents/portfolioGenerator");
+router.post('/portfolio/generate', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userData, projectData } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new portfolioGenerator_1.PortfolioGeneratorAgent(userId);
+        const result = yield agent.generatePortfolio(userData, projectData);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate portfolio' });
+    }
+}));
+router.get('/portfolio/export/markdown', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { portfolio } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new portfolioGenerator_1.PortfolioGeneratorAgent(userId);
+        const markdown = yield agent.exportToMarkdown(portfolio);
+        res.setHeader('Content-Type', 'text/markdown');
+        res.send(markdown);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to export' });
+    }
+}));
+// ============ CERTIFICATE GENERATOR ============
+const certificateGenerator_1 = require("../agents/certificateGenerator");
+router.post('/certificate/generate', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { recipient, course } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new certificateGenerator_1.CertificateGeneratorAgent(userId);
+        const result = yield agent.generateCertificate(recipient, course);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate certificate' });
+    }
+}));
+router.get('/certificate/verify/:credentialId', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const credentialId = req.params.credentialId;
+        const userId = req.userId || 'guest';
+        const agent = new certificateGenerator_1.CertificateGeneratorAgent(userId);
+        const result = yield agent.verifyCertificate(credentialId);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to verify' });
+    }
+}));
+router.get('/certificate/html/:credentialId', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const credentialId = req.params.credentialId;
+        const userId = req.userId || 'guest';
+        const agent = new certificateGenerator_1.CertificateGeneratorAgent(userId);
+        const { certificate } = yield agent.verifyCertificate(credentialId);
+        if (certificate) {
+            const html = yield agent.generateHTML(certificate);
+            res.setHeader('Content-Type', 'text/html');
+            res.send(html);
+        }
+        else {
+            res.status(404).json({ error: 'Certificate not found' });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to generate HTML' });
+    }
+}));
+// ============ LMS CONNECTOR ============
+const lmsConnector_1 = require("../agents/lmsConnector");
+router.post('/lms/connect', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { provider, baseUrl } = req.body;
+        const userId = req.userId || 'guest';
+        const agent = new lmsConnector_1.LMSConnectorAgent(userId);
+        const result = yield agent.connect(provider, baseUrl);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to connect' });
+    }
+}));
+router.get('/lms/courses', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const agent = new lmsConnector_1.LMSConnectorAgent(userId);
+        const result = yield agent.getCourses();
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get courses' });
+    }
+}));
+router.get('/lms/assignments/:courseId', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const courseId = req.params.courseId;
+        const userId = req.userId || 'guest';
+        const agent = new lmsConnector_1.LMSConnectorAgent(userId);
+        const result = yield agent.getAssignments(courseId);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get assignments' });
+    }
+}));
+router.get('/lms/grades/:courseId', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const courseId = req.params.courseId;
+        const userId = req.userId || 'guest';
+        const agent = new lmsConnector_1.LMSConnectorAgent(userId);
+        const result = yield agent.getGrades(courseId);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get grades' });
+    }
+}));
+router.post('/lms/sync', (0, auth_1.authenticate)({ optional: true }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId || 'guest';
+        const agent = new lmsConnector_1.LMSConnectorAgent(userId);
+        const result = yield agent.syncWithLMS();
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to sync' });
     }
 }));
 exports.default = router;

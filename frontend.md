@@ -118,9 +118,7 @@ Required motion package:
 - 1 signature animation (<2s) with a name.
 - 2 supporting systems (e.g., hover + entrance, or scroll + interaction).
 
-Choreography baseline:
-
-- Hero: 0ms / 600ms ease-out
+Choreogrsk_i6pgpbip_u58xCCpLwgKFQjPBXoJ1JuR8s / 600ms ease-out
 - Subtext: +80ms / 500ms
 - CTA: +160ms / 400ms spring
 - Secondary: +50ms stagger / 300ms

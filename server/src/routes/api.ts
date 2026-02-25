@@ -1,5 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { AgentOrchestrator } from '../agents/orchestrator';
+import { HumanBrainOrchestrator } from '../agents/humanBrainOrchestrator';
+import { SpacedRepetitionEngine } from '../agents/spacedRepetition';
+import { NightResearchScheduler, nightScheduler } from '../agents/nightResearchScheduler';
+import { PDFResearcher, YouTubeResearcher } from '../agents/pdfResearcher';
+import { XPSystem } from '../agents/xpSystem';
 import { prisma } from '../services/prisma';
 import { sarvamClient } from '../services/sarvam';
 import { ExportService } from '../services/export';
@@ -10,34 +15,344 @@ import multer from 'multer';
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
+// Brain instance cache — one brain per user per server lifetime
+const brainCache = new Map<string, HumanBrainOrchestrator>();
+function getBrain(userId: string): HumanBrainOrchestrator {
+  if (!brainCache.has(userId)) {
+    brainCache.set(userId, new HumanBrainOrchestrator(userId, true));
+  }
+  return brainCache.get(userId)!;
+}
+
 interface MulterRequest extends Request {
   file?: Express.Multer.File;
 }
 
 router.post('/research', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
-    const { query } = req.body;
+    const { query, useBrain = true } = req.body;
     const userId = req.userId || 'guest';
 
     if (!query) {
       return res.status(400).json({ error: 'Query is required' });
     }
 
-    const orchestrator = new AgentOrchestrator(userId);
-    const result = await orchestrator.research(query);
-
-    res.json(result);
+    if (useBrain) {
+      // Use the Human Brain Orchestrator for human-like cognition
+      const brain = getBrain(userId);
+      const result = await brain.research(query);
+      res.json(result);
+    } else {
+      // Fallback to standard orchestrator
+      const orchestrator = new AgentOrchestrator(userId);
+      const result = await orchestrator.research(query);
+      res.json(result);
+    }
   } catch (error) {
     console.error('Research error:', error);
     res.status(500).json({ error: 'Research failed' });
   }
 });
 
+// ─── Human Brain API Endpoints ────────────────────────────────────────────────
+
+/** GET /api/brain/state — Get current cognitive state of the brain */
+router.get('/brain/state', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const brain = getBrain(userId);
+    const state = await brain.getBrainState();
+    res.json(state);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get brain state' });
+  }
+});
+
+/** POST /api/brain/sleep — Run offline memory consolidation */
+router.post('/brain/sleep', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const brain = getBrain(userId);
+    await brain.sleep();
+    res.json({ success: true, message: 'Memory consolidation complete — brain refreshed' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to run consolidation' });
+  }
+});
+
+/** GET /api/brain/curiosities — What the brain is most curious about */
+router.get('/brain/curiosities', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    // Curiosity state comes from active interests
+    const interests = await prisma.userInterest.findMany({
+      where: { userId },
+      orderBy: { depth: 'desc' },
+      take: 10,
+    });
+    res.json({
+      topCuriosities: interests.map(i => ({
+        topic: i.topic,
+        depth: i.depth,
+        lastExplored: i.lastResearchedAt,
+        curiosityScore: Math.min(1, i.depth * 0.1),
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get curiosities' });
+  }
+});
+
+/** GET /api/brain/config — Brain architecture metadata */
+router.get('/brain/config', authenticate({ optional: true }), async (_req: Request, res: Response) => {
+  res.json({
+    architecture: 'Human Brain Cognitive Architecture v1.0',
+    modules: [
+      { name: 'CognitiveCore', analog: 'Prefrontal Cortex', role: 'Executive function, decision-making, deliberate reasoning' },
+      { name: 'EmotionalEngine', analog: 'Limbic System', role: 'Emotional state tracking, somatic markers, motivation' },
+      { name: 'IntuitionEngine', analog: 'Basal Ganglia + VMPFC', role: 'Fast pattern recognition, System 1 thinking' },
+      { name: 'WorkingMemory', analog: 'Dorsolateral PFC', role: 'Active context buffer, 7±2 item capacity' },
+      { name: 'CuriosityEngine', analog: 'Nucleus Accumbens + Dopamine', role: 'Information gap detection, self-directed learning' },
+      { name: 'SelfAwarenessModule', analog: 'Anterior Cingulate Cortex', role: 'Error monitoring, metacognition, bias detection' },
+      { name: 'DreamConsolidator', analog: 'Hippocampus during sleep', role: 'Memory consolidation, insight extraction, pruning' },
+    ],
+    cognitivePrinciples: [
+      'Dual Process Theory (System 1 + System 2)',
+      'Global Workspace Theory',
+      'Predictive Processing',
+      'Somatic Marker Hypothesis (Damasio)',
+      'Information Gap Theory (Loewenstein)',
+      'Metacognition (Flavell)',
+      'Systems Consolidation Theory',
+    ],
+  });
+});
+
+// ─── Spaced Repetition API ────────────────────────────────────────────────────
+
+/** GET /api/flashcards — Get all flashcards for user */
+router.get('/flashcards', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const { topic } = req.query as { topic?: string };
+    const engine = new SpacedRepetitionEngine(userId);
+    const cards = await engine.getAllCards();
+    const filtered = topic ? cards.filter(c => c.topic.toLowerCase().includes(topic.toLowerCase())) : cards;
+    res.json(filtered);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get flashcards' });
+  }
+});
+
+/** GET /api/flashcards/due — Get cards due for review */
+router.get('/flashcards/due', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const limit = parseInt(req.query.limit as string) || 20;
+    const engine = new SpacedRepetitionEngine(userId);
+    const dueCards = await engine.getDueCards(limit);
+    res.json(dueCards);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get due cards' });
+  }
+});
+
+/** GET /api/flashcards/stats — Study statistics */
+router.get('/flashcards/stats', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const engine = new SpacedRepetitionEngine(userId);
+    const stats = await engine.getStats();
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get stats' });
+  }
+});
+
+/** POST /api/flashcards/review — Submit a review result */
+router.post('/flashcards/review', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const { cardId, quality, responseTimeMs } = req.body;
+    if (!cardId || quality === undefined) return res.status(400).json({ error: 'cardId and quality required' });
+    const engine = new SpacedRepetitionEngine(userId);
+    const updated = await engine.processReview(cardId, quality, responseTimeMs || 5000);
+    // Award XP
+    const xp = new XPSystem(userId);
+    await xp.awardXP('flashcard_review');
+    if (quality === 5) await xp.awardXP('perfect_recall');
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to process review' });
+  }
+});
+
+/** POST /api/flashcards/generate — Generate flashcards from a session */
+router.post('/flashcards/generate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const { sessionId, topic } = req.body;
+    if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
+
+    // Get the session synthesis
+    const session = await prisma.session.findUnique({ where: { id: sessionId }, include: { outputs: true } });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+
+    const synthesis = session.outputs?.[0]?.content ? JSON.parse(session.outputs[0].content as string) : null;
+    if (!synthesis) return res.status(400).json({ error: 'No synthesis found for this session' });
+
+    const engine = new SpacedRepetitionEngine(userId);
+    const cards = await engine.generateFromResearch(synthesis, topic || session.query || 'Research', sessionId);
+    res.json({ cardsGenerated: cards.length, cards });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate flashcards' });
+  }
+});
+
+/** DELETE /api/flashcards/:id — Delete a flashcard */
+router.delete('/flashcards/:id', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const engine = new SpacedRepetitionEngine(userId);
+    await engine.deleteCard(String(req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete flashcard' });
+  }
+});
+
+// ─── Night Research Scheduler API ─────────────────────────────────────────────
+
+/** GET /api/night/digest — Get today's morning digest */
+router.get('/night/digest', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const scheduler = new NightResearchScheduler();
+    const digest = await scheduler.getMorningDigest(userId);
+    res.json(digest || { readyForReview: false, message: 'No digest for today yet' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get digest' });
+  }
+});
+
+/** GET /api/night/digests — Get past digests */
+router.get('/night/digests', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const days = parseInt(req.query.days as string) || 7;
+    const scheduler = new NightResearchScheduler();
+    const digests = await scheduler.getPastDigests(userId, days);
+    res.json(digests);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get past digests' });
+  }
+});
+
+/** POST /api/night/run — Manually trigger overnight research */
+router.post('/night/run', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const scheduler = new NightResearchScheduler();
+    const digest = await scheduler.triggerManual(userId);
+    // Award XP for night discovery
+    const xp = new XPSystem(userId);
+    await xp.awardXP('night_discovery');
+    res.json(digest);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to run overnight research' });
+  }
+});
+
+// ─── PDF & YouTube Research API ────────────────────────────────────────────────
+
+/** POST /api/media/pdf — Analyze an uploaded PDF */
+const pdfUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
+
+router.post('/media/pdf', authenticate({ optional: true }), pdfUpload.single('file'), async (req: MulterRequest, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+    // Extract text from PDF buffer
+    let text = '';
+    try {
+      // Try using pdf-parse if installed
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const pdfParse = require('pdf-parse');
+      const data = await pdfParse(req.file.buffer);
+      text = data.text;
+    } catch {
+      // Fallback: treat as plain text
+      text = req.file.buffer.toString('utf-8');
+    }
+
+    const researcher = new PDFResearcher(userId);
+    const analysis = await researcher.analyzeText(text, req.file.originalname);
+
+    // Award XP
+    const xp = new XPSystem(userId);
+    await xp.awardXP('pdf_upload', { filename: req.file.originalname });
+
+    res.json(analysis);
+  } catch (error) {
+    console.error('PDF analysis error:', error);
+    res.status(500).json({ error: 'Failed to analyze PDF' });
+  }
+});
+
+/** POST /api/media/youtube — Analyze a YouTube video */
+router.post('/media/youtube', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: 'YouTube URL required' });
+
+    const researcher = new YouTubeResearcher(userId);
+    const analysis = await researcher.analyzeVideo(url);
+
+    // Award XP
+    const xp = new XPSystem(userId);
+    await xp.awardXP('youtube_research', { url });
+
+    res.json(analysis);
+  } catch (error) {
+    console.error('YouTube analysis error:', error);
+    res.status(500).json({ error: 'Failed to analyze YouTube video' });
+  }
+});
+
+// ─── XP & Gamification API ─────────────────────────────────────────────────────
+
+/** GET /api/xp/profile — Full XP profile */
+router.get('/xp/profile', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const xp = new XPSystem(userId);
+    const profile = await xp.getProfile();
+    res.json(profile);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get XP profile' });
+  }
+});
+
+/** POST /api/xp/award — Award XP (internal, but useful for testing) */
+router.post('/xp/award', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const { action, metadata } = req.body;
+    const xp = new XPSystem(userId);
+    const result = await xp.awardXP(action, metadata);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to award XP' });
+  }
+});
+
 router.get('/session/:sessionId', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
     const sessionId = req.params.sessionId as string;
-    const orchestrator = new AgentOrchestrator(req.userId || 'guest');
-    const session = await orchestrator.getSession(sessionId);
+    const brain = getBrain(req.userId || 'guest');
+    const session = await brain.getSession(sessionId);
 
     if (!session) {
       return res.status(404).json({ error: 'Session not found' });
@@ -52,10 +367,8 @@ router.get('/session/:sessionId', authenticate({ optional: true }), async (req: 
 router.get('/sessions', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
     const userId = req.userId || 'guest';
-
-    const orchestrator = new AgentOrchestrator(userId);
-    const sessions = await orchestrator.getUserSessions();
-
+    const brain = getBrain(userId);
+    const sessions = await brain.getUserSessions();
     res.json(sessions);
   } catch (error) {
     res.status(500).json({ error: 'Failed to get sessions' });
@@ -180,11 +493,11 @@ router.post('/research/stream', authenticate({ optional: true }), async (req: Re
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const orchestrator = new AgentOrchestrator(userId);
+    const brain = getBrain(userId);
 
     res.write(`data: ${JSON.stringify({ type: 'started', query })}\n\n`);
 
-    const result = await orchestrator.research(query);
+    const result = await brain.research(query);
 
     res.write(`data: ${JSON.stringify({ type: 'completed', result })}\n\n`);
     res.end();
@@ -501,7 +814,7 @@ router.post('/studyos/from-pdf', authenticate({ optional: true }), async (req: M
     }
 
     const pdfText = req.file.buffer.toString('utf-8');
-    
+
     const studyAgent = new StudyOSAgent(sessionId, userId, taskId);
     const result = await studyAgent.generateFromPDF(pdfText, title);
 
@@ -555,7 +868,7 @@ router.post('/studyos/share', authenticate({ optional: true }), async (req: Requ
 router.get('/studyos/bundle/:bundleId', async (req: Request, res: Response) => {
   try {
     const bundleId = req.params.bundleId as string;
-    
+
     const bundle = await prisma.agentOutput.findFirst({
       where: { sessionId: bundleId },
     });
@@ -769,14 +1082,14 @@ router.post('/studyos/anki/export', authenticate({ optional: true }), async (req
     const { cards, deckName, format } = req.body;
     const agent = new AnkiExportAgent();
     const deck = agent.generateAnkiDeck(cards, deckName || 'StudyOS Deck');
-    
+
     if (format === 'csv') {
       const csv = await agent.exportToCSV(deck);
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename="${deckName}.csv"`);
       return res.send(csv);
     }
-    
+
     res.json({ deck });
   } catch (error) {
     res.status(500).json({ error: 'Failed to export to Anki' });

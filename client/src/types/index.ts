@@ -101,6 +101,19 @@ export interface Evaluation {
   createdAt: string;
 }
 
+export interface BrainState {
+  isThinking: boolean;
+  currentEmotion: string;
+  processingMode: string;
+  cognitiveLoad: number;
+  arousalLevel: number;
+  curiosityScore: number;
+  workingMemoryLoad: number;
+  selfReflection: string;
+  openQuestions: string[];
+  sessionInsights: string[];
+}
+
 export interface ResearchResponse {
   sessionId: string;
   query: string;
@@ -119,6 +132,7 @@ export interface ResearchResponse {
   evaluations: Array<{ type: string; score: number; passed: boolean }>;
   totalCost: number;
   totalTime: number;
+  brainState?: BrainState;
 }
 
 export interface UserMemory {

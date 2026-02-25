@@ -37,7 +37,7 @@ export interface ResearchResult {
 
 export interface SourceResult {
   id: string;
-  type: 'web' | 'paper' | 'github' | 'blog' | 'document';
+  type: 'web' | 'paper' | 'github' | 'blog' | 'document' | 'patent' | 'video' | 'book' | 'forum' | 'news' | 'code';
   title: string;
   url: string;
   content: string;

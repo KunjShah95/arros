@@ -14,7 +14,11 @@ import {
   BookMarked,
   Sparkles,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Layers,
+  Youtube,
+  Trophy,
+  Moon,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { cn } from './ui';
@@ -34,6 +38,9 @@ const mainNavItems = [
 ];
 
 const toolsNavItems = [
+  { id: 'flashcards', icon: Layers, label: 'Flashcards' },
+  { id: 'media', icon: Youtube, label: 'Media Research' },
+  { id: 'xp', icon: Trophy, label: 'Progress & XP' },
   { id: 'voice', icon: Mic, label: 'Voice Studio' },
   { id: 'scanner', icon: Eye, label: 'Document Scanner' },
   { id: 'studyos', icon: BookMarked, label: 'StudyOS' },
@@ -48,8 +55,8 @@ export function Sidebar({ activeView, onViewChange, onNewResearch }: SidebarProp
     () => [
       { id: 'dashboard', icon: LayoutDashboard, label: 'Home' },
       { id: 'workspace', icon: Search, label: 'Research' },
-      { id: 'graph', icon: Brain, label: 'Graph' },
-      { id: 'history', icon: Clock, label: 'History' },
+      { id: 'flashcards', icon: Layers, label: 'Cards' },
+      { id: 'xp', icon: Trophy, label: 'XP' },
       { id: 'settings', icon: Settings, label: 'Settings' },
     ],
     []
