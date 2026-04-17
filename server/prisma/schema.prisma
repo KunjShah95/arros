@@ -21,19 +21,20 @@ model User {
   memories  UserMemory[]
   interests UserInterest[]
   
-  // Learning OS Relations
-  topicMasteries     TopicMastery[]
-  learningSessions   LearningSession[]
-  studyPlans         StudyPlan[]
-  burnoutIndicators  BurnoutIndicator[]
-  examPredictions    ExamPrediction[]
-  assignments        Assignment[]
-  skillProfile       SkillProfile?
-  careerRoadmaps     CareerRoadmap[]
-  confidenceProfile  ConfidenceProfile?
-  debugSessions      DebugSession[]
-  codePatterns       CodePattern[]
-  flashcardDecks     FlashcardDeck[]
+  // Learning OS Relations (commented - models in learning-os-schema.prisma, add later)
+  // topicMasteries     TopicMastery[]
+  // learningSessions   LearningSession[]
+  // studyPlans         StudyPlan[]
+  // burnoutIndicators  BurnoutIndicator[]
+  // examPredictions    ExamPrediction[]
+  // assignments        Assignment[]
+  // skillProfile       SkillProfile?
+  // careerRoadmaps     CareerRoadmap[]
+  // confidenceProfile  ConfidenceProfile?
+  // debugSessions      DebugSession[]
+  // codePatterns       CodePattern[]
+  // flashcardDecks     FlashcardDeck[]
+
 }
 
 model Session {
@@ -126,7 +127,6 @@ model UserMemory {
   user        User     @relation(fields: [userId], references: [id])
   type        String   // preference, interest, strategy, fact
   content     String
-  embedding   Unsupported("vector(1536)")? // for vector similarity search
   importance  Float    @default(0.5)
   lastUsedAt  DateTime @default(now())
   createdAt   DateTime @default(now())

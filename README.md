@@ -132,7 +132,7 @@ git clone https://github.com/yourusername/arros.git
 cd arros
 ```
 
-2. **Install dependencies**
+1. **Install dependencies**
 
 ```bash
 # Install client dependencies
@@ -144,7 +144,7 @@ cd ../server
 npm install
 ```
 
-3. **Set up environment variables**
+1. **Set up environment variables**
 
 ```bash
 # Server .env
@@ -155,7 +155,7 @@ cp server/.env.example server/.env
 cp client/.env.example client/.env
 ```
 
-4. **Set up database**
+1. **Set up database**
 
 ```bash
 cd server
@@ -163,7 +163,7 @@ npx prisma generate
 npx prisma db push
 ```
 
-5. **Start development servers**
+1. **Start development servers**
 
 ```bash
 # Terminal 1 - Server
@@ -175,7 +175,7 @@ cd client
 npm run dev
 ```
 
-6. **Open browser**
+1. **Open browser**
 
 Navigate to `http://localhost:5173`
 
@@ -251,6 +251,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "sessionId": "session_abc123",
@@ -344,7 +345,9 @@ GET /api/sarvam/languages
 ARROS uses a **5-Agent Society** that works in sequence:
 
 ### 1. Planner Agent (विभज्यते)
+
 Breaks your query into academic subtasks:
+
 - Definitions
 - Key papers
 - Applications
@@ -352,25 +355,33 @@ Breaks your query into academic subtasks:
 - Future scope
 
 ### 2. Web Research Agent (अन्वेषणं)
+
 Fetches foundational knowledge from:
+
 - Wikipedia
 - Educational blogs
 - Authoritative web sources
 
 ### 3. Scholar Agent (ग्रन्थान्वेषी)
+
 Searches academic databases:
+
 - Semantic Scholar
 - arXiv
 - IEEE Xplore
 
 ### 4. Critic/Verifier Agent (परिक्षकः)
+
 Checks:
+
 - Source reliability
 - Conflicting claims
 - Confidence scores
 
 ### 5. Synthesizer Agent (सङ्ग्राहकः)
+
 Produces final output:
+
 - Introduction
 - Concepts
 - Key findings
@@ -514,7 +525,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- 📧 Email: support@arros.ai
+- 📧 Email: <support@arros.ai>
 - 💬 Discord: [Join our community](https://discord.gg/arros)
 - 🐛 Issues: [Report bugs](https://github.com/yourusername/arros/issues)
 
