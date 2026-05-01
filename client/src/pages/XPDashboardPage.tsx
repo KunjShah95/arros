@@ -241,14 +241,14 @@ export function XPDashboardPage() {
     const earnedIds = new Set((profile?.achievements ?? []).map((a: any) => a.id));
 
     return (
-        <div className="h-full flex flex-col overflow-y-auto px-6 py-6 space-y-6">
+        <div className="h-full flex flex-col overflow-y-auto px-6 py-6 space-y-6" style={{ backgroundColor: '#FAFAFA' }}>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-chalk">Brain Progress</h1>
-                    <p className="text-sm text-ash mt-0.5">Your knowledge journey and achievements</p>
+                    <h1 className="text-2xl font-bold" style={{ color: '#1A1A1A' }}>Brain Progress</h1>
+                    <p className="text-sm mt-0.5" style={{ color: '#666' }}>Your knowledge journey and achievements</p>
                 </div>
-                <button onClick={loadData} className="text-ash hover:text-chalk transition-colors">
+                <button onClick={loadData} className="transition-colors" style={{ color: '#666' }}>
                     <RefreshCw className="w-4 h-4" />
                 </button>
             </div>

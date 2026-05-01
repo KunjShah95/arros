@@ -131,12 +131,12 @@ export function AnalyticsPage() {
   ];
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="cut-card cut-border bg-graphite/60 p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="h-full flex flex-col" style={{ backgroundColor: '#FAFAFA' }}>
+      <div className="rounded-xl p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4" style={{ backgroundColor: '#F5F5F5' }}>
         <div>
-          <Badge variant="electric" className="mb-2">Analytics</Badge>
-          <h2 className="text-2xl font-display text-chalk">Performance Studio</h2>
-          <p className="text-sm text-ash">Track velocity, accuracy, and agent efficiency.</p>
+          <Badge variant="neutral" className="mb-2">Analytics</Badge>
+          <h2 className="text-2xl font-semibold" style={{ color: '#1A1A1A' }}>Performance Studio</h2>
+          <p className="text-sm" style={{ color: '#666' }}>Track velocity, accuracy, and agent efficiency.</p>
         </div>
 
         <div className="flex items-center gap-2">

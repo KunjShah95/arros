@@ -13,7 +13,7 @@ import {
     Sparkles,
     Info
 } from 'lucide-react';
-import { Card, Button, Badge, SanskritButton, Mandala, cn } from '../components/ui';
+import { Card, Button, Badge, cn } from '../components/ui';
 import { KnowledgeGraph } from '../components/KnowledgeGraph';
 import { memoryApi } from '../services/api';
 import type { KnowledgeNode, KnowledgeEdge } from '../types';
@@ -94,7 +94,7 @@ export function KnowledgeGraphPage() {
     );
 
     return (
-        <div className="h-full flex flex-col p-6 overflow-hidden">
+        <div className="h-full flex flex-col p-6 overflow-hidden" style={{ backgroundColor: '#FAFAFA' }}>
             {/* Header Area */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -102,24 +102,24 @@ export function KnowledgeGraphPage() {
                 className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6"
             >
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 cut-card bg-gold/10 flex items-center justify-center border border-gold/20 text-gold">
+                    <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#1A1A1A', color: '#FAFAFA' }}>
                         <Network className="w-6 h-6" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-display font-bold text-white tracking-tight italic">Jnana Vriksha</h1>
-                        <p className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold">Universal Knowledge Graph</p>
+                        <h1 className="text-3xl font-semibold" style={{ color: '#1A1A1A' }}>Knowledge Graph</h1>
+                        <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: '#666' }}>Universal Knowledge Graph</p>
                     </div>
                 </div>
 
                 <div className="flex gap-3">
-                    <SanskritButton variant="outline" className="h-11 px-6 text-[10px]">
+                    <Button variant="outline" className="h-11 px-6 text-[10px]">
                         <Share2 className="w-3.5 h-3.5 mr-2" />
-                        Share Matrix
-                    </SanskritButton>
-                    <SanskritButton variant="primary" className="h-11 px-6 text-[10px]">
+                        Share
+                    </Button>
+                    <Button variant="primary" className="h-11 px-6 text-[10px]">
                         <Download className="w-3.5 h-3.5 mr-2" />
-                        Export Sutra
-                    </SanskritButton>
+                        Export
+                    </Button>
                 </div>
             </motion.div>
 
@@ -128,9 +128,8 @@ export function KnowledgeGraphPage() {
                 {/* Graph Visualization */}
                 <div className="relative flex-1 min-h-[400px]">
                     {isLoading ? (
-                        <Card className="h-full flex flex-col items-center justify-center cut-card cut-border bg-graphite/40">
-                            <Mandala className="w-16 h-16 animate-spin opacity-10 mb-4" />
-                            <span className="text-[10px] uppercase font-bold text-ash tracking-[0.3em]">Materializing Connections...</span>
+                        <Card className="h-full flex flex-col items-center justify-center" variant="elevated">
+                            <p className="text-sm" style={{ color: '#666' }}>Loading...</p>
                         </Card>
                     ) : (
                         <KnowledgeGraph
@@ -145,15 +144,16 @@ export function KnowledgeGraphPage() {
                 {/* Sidebar Info & Analysis */}
                 <div className="flex flex-col gap-6 overflow-hidden">
                     {/* Search & Filter */}
-                    <Card className="p-6 cut-card cut-border bg-slate/40 space-y-6">
+                    <Card className="p-6 space-y-6" variant="elevated">
                         <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ash group-focus-within:text-gold transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#666' }} />
                             <input
                                 type="text"
-                                placeholder="Search the Akasha..."
+                                placeholder="Search the graph..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3.5 bg-void border border-smoke/30 rounded-xl text-chalk placeholder:text-ash/40 focus:outline-none focus:border-gold/50 transition-all font-body text-sm"
+                                className="w-full pl-12 pr-4 py-3.5 rounded-xl border placeholder:text-gray-400 focus:outline-none focus:border-gray-400 text-sm"
+                                style={{ backgroundColor: '#FAFAFA', borderColor: '#E0E0E0', color: '#1A1A1A' }}
                             />
                         </div>
 
@@ -161,7 +161,7 @@ export function KnowledgeGraphPage() {
                             {['Concept', 'Fact', 'Entity', 'Claim'].map(type => (
                                 <Badge
                                     key={type}
-                                    variant={type.toLowerCase() as any}
+                                    variant="neutral"
                                     className="px-3 py-1 cursor-pointer transition-transform hover:scale-105"
                                 >
                                     {type}
@@ -179,41 +179,39 @@ export function KnowledgeGraphPage() {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: 20 }}
                             >
-                                <Card className="p-6 cut-card border-gold/40 bg-gold/5 relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                                        <Zap className="w-12 h-12 text-gold" />
-                                    </div>
+                                <Card className="p-6 relative overflow-hidden group" variant="elevated">
                                     <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-10 h-10 cut-card bg-void border border-gold/30 flex items-center justify-center text-gold">
+                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#F5F5F5', border: '1px solid #E0E0E0', color: '#1A1A1A' }}>
                                             <Dna className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] uppercase font-bold text-gold tracking-widest leading-none mb-1">{selectedNode.type}</p>
-                                            <h3 className="text-lg font-display font-bold text-white group-hover:text-gold transition-colors truncate max-w-[180px]">
+                                            <p className="text-[10px] uppercase font-bold tracking-widest leading-none mb-1" style={{ color: '#666' }}>{selectedNode.type}</p>
+                                            <h3 className="text-lg font-semibold truncate max-w-[180px]" style={{ color: '#1A1A1A' }}>
                                                 {selectedNode.name}
                                             </h3>
                                         </div>
                                     </div>
-                                    <p className="text-sm text-silver leading-relaxed mb-6 font-body">
+                                    <p className="text-sm leading-relaxed mb-6" style={{ color: '#666' }}>
                                         {selectedNode.description || 'This node represents a foundational realization within your knowledge base.'}
                                     </p>
                                     <div className="flex gap-3">
-                                        <SanskritButton variant="primary" className="h-10 text-[9px] flex-1">
-                                            Deep Realization
-                                        </SanskritButton>
+                                        <Button variant="primary" className="h-10 text-[9px] flex-1">
+                                            Explore
+                                        </Button>
                                         <button
                                             onClick={() => setSelectedNode(null)}
-                                            className="px-4 py-2 cut-card bg-void text-ash text-[9px] font-bold uppercase hover:text-white transition-all"
+                                            className="px-4 py-2 rounded-lg text-[9px] font-bold uppercase hover:bg-gray-100 transition-all"
+                                            style={{ backgroundColor: '#F5F5F5', color: '#666' }}
                                         >
-                                            Dismiss
+                                            Close
                                         </button>
                                     </div>
                                 </Card>
                             </motion.div>
                         ) : (
-                            <Card className="p-10 cut-card border-smoke/10 bg-graphite/20 flex flex-col items-center justify-center text-center">
-                                <Info className="w-8 h-8 text-ash/30 mb-4" />
-                                <p className="text-xs uppercase font-bold text-ash tracking-widest">Select a node to reveal its Essence</p>
+                            <Card className="p-10 flex flex-col items-center justify-center text-center" variant="elevated">
+                                <Info className="w-8 h-8 mb-4" style={{ color: '#CCC' }} />
+                                <p className="text-xs uppercase font-bold tracking-widest" style={{ color: '#666' }}>Select a node to view details</p>
                             </Card>
                         )}
                     </AnimatePresence>
@@ -221,28 +219,25 @@ export function KnowledgeGraphPage() {
                     {/* Insights Hub */}
                     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
                         <div className="flex items-center gap-2 mb-4">
-                            <Sparkles className="w-4 h-4 text-peacock" />
-                            <h3 className="text-[10px] font-bold text-ash uppercase tracking-[0.3em]">Insights Dispatch</h3>
+                            <Sparkles className="w-4 h-4" style={{ color: '#1A1A1A' }} />
+                            <h3 className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: '#666' }}>Insights</h3>
                         </div>
                         <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pr-1">
                             {[
-                                { type: 'peacock', title: 'Dense Realization Cluster', desc: 'Your research on "Decentralized Systems" shows high synergy with "Privacy Protocols".' },
-                                { type: 'saffron', title: 'Jnana Gap Found', desc: 'Missing connections between "Vedic Ethics" and "Modern Automation". Consider bridging these.' },
-                                { type: 'gold', title: 'Contextual Evolution', desc: 'Your understanding of "Linear Algebra" has evolved into "Quantum Tensors" during the last session.' },
+                                { type: 'blue', title: 'Dense Cluster', desc: 'Your research on "Decentralized Systems" shows high synergy with "Privacy Protocols".' },
+                                { type: 'orange', title: 'Gap Found', desc: 'Missing connections between "Ethics" and "Automation".' },
+                                { type: 'green', title: 'Contextual Evolution', desc: 'Your understanding has evolved during the last session.' },
                             ].map((insight, i) => (
                                 <motion.div
                                     key={i}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.5 + (i * 0.1) }}
-                                    className={cn(
-                                        "p-4 cut-card border transition-colors",
-                                        insight.type === 'peacock' ? "bg-peacock/5 border-peacock/20" :
-                                            insight.type === 'saffron' ? "bg-saffron/5 border-saffron/20" : "bg-gold/5 border-gold/20"
-                                    )}
+                                    className="p-4 rounded-lg border transition-colors"
+                                    style={{ backgroundColor: '#F5F5F5', borderColor: '#E0E0E0' }}
                                 >
-                                    <h4 className={cn("text-xs font-bold mb-1", `text-${insight.type}`)}>{insight.title}</h4>
-                                    <p className="text-[11px] text-silver leading-relaxed">{insight.desc}</p>
+                                    <h4 className="text-xs font-bold mb-1" style={{ color: '#1A1A1A' }}>{insight.title}</h4>
+                                    <p className="text-[11px] leading-relaxed" style={{ color: '#666' }}>{insight.desc}</p>
                                 </motion.div>
                             ))}
                         </div>

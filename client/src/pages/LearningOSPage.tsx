@@ -32,7 +32,7 @@ export function LearningOSPage() {
   const [activeFeature, setActiveFeature] = useState('coach');
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar p-6 pb-20">
+    <div className="h-full overflow-y-auto no-scrollbar p-6 pb-20" style={{ backgroundColor: '#FAFAFA' }}>
       <div className="max-w-7xl mx-auto py-6">
         {/* Header */}
         <motion.div
@@ -40,10 +40,10 @@ export function LearningOSPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-display font-bold text-white mb-2">
+          <h1 className="text-4xl font-semibold mb-2" style={{ color: '#1A1A1A' }}>
             Learning OS
           </h1>
-          <p className="text-silver">Your personal AI-powered learning assistant</p>
+          <p style={{ color: '#666' }}>Your personal AI-powered learning assistant</p>
         </motion.div>
 
         {/* Feature Navigation */}
@@ -58,19 +58,19 @@ export function LearningOSPage() {
               className={cn(
                 "p-4 rounded-xl border transition-all flex flex-col items-center gap-2",
                 activeFeature === f.id
-                  ? "bg-gradient-to-br from-void to-graphite border-peacock/40 shadow-[0_0_20px_rgba(6,182,212,0.15)]"
-                  : "bg-void/40 border-smoke/10 hover:border-smoke/30"
+                  ? "border-gray-400 bg-gray-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
               )}
             >
               <div className={cn(
                 "w-10 h-10 rounded-lg flex items-center justify-center",
-                activeFeature === f.id ? "bg-peacock/20 text-peacock" : "bg-smoke/10 text-ash"
+                activeFeature === f.id ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-600"
               )}>
                 <f.icon className="w-5 h-5" />
               </div>
               <span className={cn(
                 "text-[9px] uppercase font-bold tracking-wider text-center",
-                activeFeature === f.id ? "text-white" : "text-ash"
+                activeFeature === f.id ? "text-gray-800" : "text-gray-600"
               )}>{f.label}</span>
             </motion.button>
           ))}
@@ -954,33 +954,33 @@ function LearningSidebar() {
   return (
     <div className="space-y-6">
       {/* Profile Card */}
-      <Card className="p-6 bg-graphite/40 border border-smoke/20">
+      <Card className="p-6" variant="elevated">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-peacock to-cyan-500 flex items-center justify-center text-2xl font-bold text-void">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold" style={{ backgroundColor: '#1A1A1A', color: '#FAFAFA' }}>
             {stats.level}
           </div>
           <div>
-            <p className="text-white font-bold">Level {stats.level}</p>
-            <p className="text-ash text-xs">Learning Explorer</p>
+            <p className="font-bold" style={{ color: '#1A1A1A' }}>Level {stats.level}</p>
+            <p className="text-xs" style={{ color: '#666' }}>Learning Explorer</p>
           </div>
         </div>
 
         <div className="mb-4">
-          <div className="flex justify-between text-xs mb-1">
-            <span className="text-ash">XP Progress</span>
-            <span className="text-peacock">{stats.xp}/{stats.nextLevel}</span>
+          <div className="flex justify-between text-xs mb-1" style={{ color: '#666' }}>
+            <span>XP Progress</span>
+            <span>{stats.xp}/{stats.nextLevel}</span>
           </div>
-          <ProgressBar progress={(stats.xp / stats.nextLevel) * 100} variant="peacock" className="h-2" />
+          <ProgressBar progress={(stats.xp / stats.nextLevel) * 100} variant="neutral" className="h-2" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-lg bg-void/50 text-center">
-            <p className="text-2xl font-bold text-saffron">🔥 {stats.streak}</p>
-            <p className="text-[10px] text-ash uppercase">Day Streak</p>
+          <div className="p-3 rounded-lg text-center" style={{ backgroundColor: '#F5F5F5' }}>
+            <p className="text-2xl font-bold" style={{ color: '#1A1A1A' }}>{stats.streak}</p>
+            <p className="text-[10px]" style={{ color: '#666' }}>Day Streak</p>
           </div>
-          <div className="p-3 rounded-lg bg-void/50 text-center">
-            <p className="text-2xl font-bold text-gold">⭐ 24</p>
-            <p className="text-[10px] text-ash uppercase">Badges</p>
+          <div className="p-3 rounded-lg text-center" style={{ backgroundColor: '#F5F5F5' }}>
+            <p className="text-2xl font-bold" style={{ color: '#1A1A1A' }}>24</p>
+            <p className="text-[10px]" style={{ color: '#666' }}>Badges</p>
           </div>
         </div>
       </Card>

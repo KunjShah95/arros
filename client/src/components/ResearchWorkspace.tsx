@@ -139,7 +139,7 @@ export function ResearchWorkspace({
   const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
 
   return (
-    <div className="flex h-full gap-4 md:gap-6 flex-col lg:flex-row overflow-hidden px-3 md:px-5 lg:px-6 py-3 md:py-4 aurora-surface">
+    <div className="flex h-full gap-4 md:gap-6 flex-col lg:flex-row overflow-hidden px-3 md:px-5 lg:px-6 py-3 md:py-4" style={{ backgroundColor: '#FAFAFA' }}>
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Workspace header */}

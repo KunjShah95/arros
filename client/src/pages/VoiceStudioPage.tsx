@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Mic, Upload, Copy, Download, Square, Sparkles, Volume2, Play, Pause, Languages, FileAudio } from 'lucide-react';
-import { Button, Card, Badge, Spinner, SanskritButton, Mandala, cn } from '../components/ui';
+import { Button, Card, Badge, Spinner, cn } from '../components/ui';
 
 const languages = [
   { code: 'en-IN', name: 'English', native: 'English' },
@@ -40,7 +40,7 @@ export function VoiceStudio({ initialTab = 'stt' }: VoiceStudioProps) {
   const [activeTab, setActiveTab] = useState<'stt' | 'tts'>(initialTab);
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6">
+    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6" style={{ backgroundColor: '#FAFAFA' }}>
       <div className="max-w-6xl mx-auto py-6">
         {/* Header */}
         <motion.div
@@ -48,26 +48,20 @@ export function VoiceStudio({ initialTab = 'stt' }: VoiceStudioProps) {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="cut-card cut-border bg-graphite/40 p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-48 h-48 -mr-16 -mt-16 opacity-5 pointer-events-none">
-              <Mandala size="md" />
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 cut-card bg-peacock/10 flex items-center justify-center border border-peacock/20">
-                  <Languages className="w-5 h-5 text-peacock" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-display font-bold text-white tracking-tight">भाषण Studio</h1>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-peacock font-bold">Vedic Voice Protocol</p>
-                </div>
+          <Card className="p-6" variant="elevated">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#1A1A1A', color: '#FAFAFA' }}>
+                <Languages className="w-5 h-5" />
               </div>
-              <p className="text-sm text-silver max-w-xl leading-relaxed">
-                Experience high-fidelity speech synthesis and recognition optimized for the Indian linguistic landscape.
-                Powered by Sarvam AI — the soul of India's voice.
-              </p>
+              <div>
+                <h1 className="text-2xl font-semibold" style={{ color: '#1A1A1A' }}>Voice Studio</h1>
+                <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: '#666' }}>Speech Protocol</p>
+              </div>
             </div>
-          </div>
+            <p className="text-sm" style={{ color: '#666', maxWidth: '500px' }}>
+              Experience high-fidelity speech synthesis and recognition. Powered by Sarvam AI.
+            </p>
+          </Card>
         </motion.div>
 
         {/* Tabs */}
@@ -80,10 +74,10 @@ export function VoiceStudio({ initialTab = 'stt' }: VoiceStudioProps) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                "flex items-center gap-3 px-6 py-3.5 rounded-xl font-display font-bold text-sm tracking-wide transition-all cut-card",
+                "flex items-center gap-3 px-6 py-3.5 rounded-lg font-medium text-sm transition-all",
                 activeTab === tab.id
-                  ? 'bg-peacock text-void shadow-lg shadow-peacock/20'
-                  : 'bg-slate/40 text-ash hover:text-silver hover:bg-smoke/30 border border-smoke/20'
+                  ? 'bg-gray-800 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
               )}
             >
               <tab.icon className="w-4 h-4" />
@@ -196,19 +190,20 @@ function STTPanel() {
       animate={{ opacity: 1 }}
       className="grid lg:grid-cols-[0.9fr_1.1fr] gap-8"
     >
-      <Card className="cut-card cut-border bg-slate/40 p-6">
+      <Card className="p-6" variant="elevated">
         <div className="space-y-6">
-          <h3 className="text-sm font-bold text-ash uppercase tracking-widest flex items-center gap-2">
-            <Mic className="w-4 h-4 text-peacock" />
-            Vachak Source
+          <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2" style={{ color: '#666' }}>
+            <Mic className="w-4 h-4" style={{ color: '#1A1A1A' }} />
+            Input Source
           </h3>
 
           <div>
-            <label className="text-[10px] uppercase font-bold text-ash tracking-[0.2em] block mb-2">Native Language</label>
+            <label className="text-[10px] uppercase font-bold tracking-[0.2em] block mb-2" style={{ color: '#666' }}>Language</label>
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="w-full px-4 py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-sm focus:border-peacock focus:ring-1 focus:ring-peacock/20 transition-all no-scrollbar"
+              className="w-full px-4 py-3 rounded-xl border text-sm"
+              style={{ backgroundColor: '#FAFAFA', borderColor: '#E0E0E0', color: '#1A1A1A' }}
             >
               {languages.map(lang => (
                 <option key={lang.code} value={lang.code}>{lang.name} ({lang.native})</option>
@@ -217,23 +212,23 @@ function STTPanel() {
           </div>
 
           {!audioPreview && (
-            <div className="p-5 cut-card bg-void border border-smoke/20">
-              <p className="text-xs text-ash uppercase tracking-widest font-bold mb-4">Direct Recording</p>
+            <div className="p-5 rounded-lg" style={{ backgroundColor: '#F5F5F5', border: '1px solid #E0E0E0' }}>
+              <p className="text-xs uppercase tracking-widest font-bold mb-4" style={{ color: '#666' }}>Recording</p>
               {!isRecording ? (
-                <SanskritButton onClick={startRecording} className="w-full text-xs" variant="primary">
+                <Button onClick={startRecording} className="w-full text-xs" variant="primary">
                   <Mic className="w-4 h-4 mr-2" />
-                  Initiate Capturing
-                </SanskritButton>
+                  Start Recording
+                </Button>
               ) : (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-center gap-3 text-saffron py-2">
-                    <span className="w-2 h-2 rounded-full bg-saffron animate-pulse" />
-                    <span className="text-xs font-bold uppercase tracking-widest">Aura Listening...</span>
+                  <div className="flex items-center justify-center gap-3 py-2" style={{ color: '#666' }}>
+                    <span className="w-2 h-2 rounded-full bg-gray-500 animate-pulse" />
+                    <span className="text-xs font-bold uppercase tracking-widest">Recording...</span>
                   </div>
-                  <SanskritButton onClick={stopRecording} variant="outline" className="w-full text-xs border-saffron text-saffron">
+                  <Button onClick={stopRecording} variant="outline" className="w-full text-xs">
                     <Square className="w-4 h-4 mr-2" />
-                    Seal Recording
-                  </SanskritButton>
+                    Stop
+                  </Button>
                 </div>
               )}
             </div>
@@ -241,9 +236,9 @@ function STTPanel() {
 
           {!audioPreview && (
             <div className="flex items-center gap-3 py-2">
-              <div className="flex-1 h-px bg-smoke/20" />
-              <span className="text-[10px] text-ash font-bold">OR</span>
-              <div className="flex-1 h-px bg-smoke/20" />
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-[10px] font-bold" style={{ color: '#666' }}>OR</span>
+              <div className="flex-1 h-px bg-gray-200" />
             </div>
           )}
 
@@ -259,70 +254,66 @@ function STTPanel() {
                 }
               }}
               onClick={() => fileInputRef.current?.click()}
-              className="border border-dashed border-smoke/40 cut-card p-10 text-center cursor-pointer hover:border-peacock hover:bg-peacock/5 transition-all group"
+              className="border-2 border-dashed rounded-lg p-10 text-center cursor-pointer hover:border-gray-400 transition-all"
+              style={{ borderColor: '#E0E0E0' }}
             >
-              <Upload className="w-8 h-8 text-ash group-hover:text-peacock transition-colors mx-auto mb-4" />
-              <p className="text-sm font-bold text-silver mb-1">Upload Mantra</p>
-              <p className="text-[10px] uppercase tracking-widest text-ash">Drop Audio File</p>
+              <Upload className="w-8 h-8 mx-auto mb-4" style={{ color: '#666' }} />
+              <p className="text-sm font-bold mb-1" style={{ color: '#1A1A1A' }}>Upload Audio</p>
+              <p className="text-[10px] uppercase tracking-widest" style={{ color: '#666' }}>Drop Audio File</p>
               <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleAudioSelect} className="hidden" />
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="p-4 cut-card bg-void border border-smoke/30">
-                <div className="flex items-center justify-between mb-3 pb-3 border-b border-smoke/10">
-                  <p className="text-xs font-bold text-silver truncate max-w-[150px]">{audio?.name}</p>
-                  <Badge variant="peacock" className="text-[9px]">{audio ? `${(audio.size / 1024).toFixed(0)} KB` : ''}</Badge>
+              <div className="p-4 rounded-lg" style={{ backgroundColor: '#F5F5F5', border: '1px solid #E0E0E0' }}>
+                <div className="flex items-center justify-between mb-3 pb-3 border-b" style={{ borderColor: '#E0E0E0' }}>
+                  <p className="text-xs font-bold truncate max-w-[150px]" style={{ color: '#1A1A1A' }}>{audio?.name}</p>
+                  <Badge variant="neutral" className="text-[9px]">{audio ? `${(audio.size / 1024).toFixed(0)} KB` : ''}</Badge>
                 </div>
-                <audio src={audioPreview} controls className="w-full rounded-lg h-10 filter invert hue-rotate-180 opacity-80" />
+                <audio src={audioPreview} controls className="w-full rounded-lg h-10" />
               </div>
-              <SanskritButton variant="secondary" onClick={() => { setAudio(null); setAudioPreview(null); }} className="w-full text-xs">
-                Clear Capsule
-              </SanskritButton>
+              <Button variant="secondary" onClick={() => { setAudio(null); setAudioPreview(null); }} className="w-full text-xs">
+                Clear
+              </Button>
             </div>
           )}
 
           {error && (
-            <div className="p-3 cut-card bg-saffron/10 border border-saffron/20">
-              <p className="text-xs text-saffron font-bold text-center">{error}</p>
+            <div className="p-3 rounded-lg" style={{ backgroundColor: '#FEE', border: '1px solid #FCC' }}>
+              <p className="text-xs font-bold text-center" style={{ color: '#C00' }}>{error}</p>
             </div>
           )}
 
-          <SanskritButton
+          <Button
             onClick={performSTT}
             disabled={!audioPreview || isLoading}
             className="w-full"
             variant="primary"
           >
-            {isLoading ? (
-              <div className="flex items-center gap-3">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Decrypting Vachak...</span>
-              </div>
-            ) : 'Realize Transcription'}
-          </SanskritButton>
+            {isLoading ? 'Processing...' : 'Transcribe'}
+          </Button>
         </div>
       </Card>
 
-      <Card className="cut-card cut-border bg-slate/40 p-6 flex flex-col">
+      <Card className="p-6 flex flex-col" variant="elevated">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-sm font-bold text-ash uppercase tracking-widest">Lipi Output</h3>
+          <h3 className="text-sm font-bold uppercase tracking-widest" style={{ color: '#666' }}>Output</h3>
           {transcribedText && (
-            <Badge variant="peacock">{Math.round(confidence * 100)}% Satya Score</Badge>
+            <Badge variant="success">{Math.round(confidence * 100)}%</Badge>
           )}
         </div>
 
         <div className="flex-1 min-h-[300px] flex flex-col">
           {transcribedText ? (
             <div className="flex flex-col h-full">
-              <div className="flex-1 bg-void/50 rounded-xl p-6 border border-smoke/20 overflow-y-auto no-scrollbar">
-                <p className="text-silver text-base leading-relaxed whitespace-pre-wrap font-display">{transcribedText}</p>
+              <div className="flex-1 rounded-xl p-6 border overflow-y-auto no-scrollbar" style={{ backgroundColor: '#F5F5F5', borderColor: '#E0E0E0' }}>
+                <p className="text-base leading-relaxed whitespace-pre-wrap" style={{ color: '#1A1A1A' }}>{transcribedText}</p>
               </div>
               <div className="flex gap-3 mt-6">
-                <SanskritButton variant="secondary" onClick={copyToClipboard} className="flex-1 text-xs gap-3">
+                <Button variant="secondary" onClick={copyToClipboard} className="flex-1 text-xs gap-3">
                   <Copy className="w-4 h-4" />
-                  {copied ? 'Captured to Clipboard' : 'Copy Lipi'}
-                </SanskritButton>
-                <SanskritButton
+                  {copied ? 'Copied!' : 'Copy'}
+                </Button>
+                <Button
                   variant="outline"
                   className="px-4"
                   onClick={() => {
@@ -333,23 +324,17 @@ function STTPanel() {
                   }}
                 >
                   <Download className="w-4 h-4" />
-                </SanskritButton>
+                </Button>
               </div>
             </div>
           ) : isLoading ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-6">
-              <div className="relative">
-                <Mandala className="w-24 h-24 animate-[spin_10s_linear_infinite] opacity-20" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 text-saffron animate-spin" />
-                </div>
-              </div>
-              <p className="text-[10px] uppercase font-bold text-ash tracking-[0.3em]">Decoding Sounds into Symbols</p>
+              <p className="text-xs uppercase font-bold tracking-[0.3em]" style={{ color: '#666' }}>Processing...</p>
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center opacity-40">
-              <FileAudio className="w-12 h-12 text-ash" />
-              <p className="text-xs uppercase tracking-widest font-bold text-ash">Silence Awaiting Mantra</p>
+              <FileAudio className="w-12 h-12" style={{ color: '#666' }} />
+              <p className="text-xs uppercase tracking-widest font-bold" style={{ color: '#666' }}>No Audio</p>
             </div>
           )}
         </div>

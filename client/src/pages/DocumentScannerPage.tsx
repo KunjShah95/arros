@@ -16,7 +16,7 @@ import {
   Maximize2,
   Lock
 } from 'lucide-react';
-import { Button, Card, Badge, SanskritButton, Mandala, cn } from '../components/ui';
+import { Button, Card, Badge, cn } from '../components/ui';
 
 interface ExtractedText {
   text: string;
@@ -140,7 +140,7 @@ Preliminary results show a 15% increase in efficiency when using non-Euclidean s
   };
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6 pb-20">
+    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6 pb-20" style={{ backgroundColor: '#FAFAFA' }}>
       <div className="max-w-6xl mx-auto py-6">
         {/* Header */}
         <motion.div
@@ -148,34 +148,31 @@ Preliminary results show a 15% increase in efficiency when using non-Euclidean s
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="cut-card cut-border bg-graphite/40 p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 -mr-20 -mt-20 opacity-[0.03] pointer-events-none">
-              <Mandala size="lg" />
-            </div>
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <Card className="p-8" variant="elevated">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 cut-card bg-silver/10 flex items-center justify-center border border-silver/30 text-silver">
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#1A1A1A', color: '#FAFAFA' }}>
                     <Scan className="w-6 h-6" />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-display font-bold text-white tracking-tight">Lipi Drishti</h1>
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-silver font-bold opacity-60">High-Fidelity Document Vision</p>
+                    <h1 className="text-3xl font-semibold" style={{ color: '#1A1A1A' }}>Document Scanner</h1>
+                    <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: '#666' }}>High-Fidelity Vision</p>
                   </div>
                 </div>
-                <p className="text-sm text-silver max-w-xl leading-relaxed">
-                  Transform raw granthas (records) into digital consciousness. ARROS uses advanced Sarvam AI to decode and extract wisdom with absolute precision.
+                <p className="text-sm" style={{ color: '#666', maxWidth: '400px' }}>
+                  Transform documents into digital text. ARROS uses AI to decode and extract wisdom.
                 </p>
               </div>
 
               <div className="flex gap-4">
-                <div className="text-center px-6 py-4 cut-card bg-void/50 border border-smoke/20">
-                  <p className="text-[9px] uppercase font-bold text-ash tracking-widest mb-1">Extraction Accuracy</p>
-                  <p className="text-2xl font-display font-bold text-peacock">99.2%</p>
+                <div className="text-center px-6 py-4 rounded-lg" style={{ backgroundColor: '#F5F5F5', border: '1px solid #E0E0E0' }}>
+                  <p className="text-[9px] uppercase font-bold tracking-widest mb-1" style={{ color: '#666' }}>Accuracy</p>
+                  <p className="text-2xl font-semibold" style={{ color: '#1A1A1A' }}>99.2%</p>
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         </motion.div>
 
         <div className="grid lg:grid-cols-[1fr_400px] gap-8">
@@ -191,8 +188,8 @@ Preliminary results show a 15% increase in efficiency when using non-Euclidean s
                 "relative group cursor-pointer transition-all duration-500",
                 "border-2 border-dashed rounded-2xl p-12 text-center",
                 isDragging
-                  ? "border-peacock bg-peacock/5 ring-4 ring-peacock/10"
-                  : "border-smoke/30 bg-graphite/20 hover:border-gold/40 hover:bg-gold/5"
+                  ? "border-gray-400 bg-gray-50"
+                  : "border-gray-300 bg-white hover:border-gray-400"
               )}
             >
               <input
@@ -204,23 +201,11 @@ Preliminary results show a 15% increase in efficiency when using non-Euclidean s
                 className="hidden"
               />
 
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                <div className="absolute top-4 left-4 border-l-2 border-t-2 border-gold/40 w-8 h-8" />
-                <div className="absolute top-4 right-4 border-r-2 border-t-2 border-gold/40 w-8 h-8" />
-                <div className="absolute bottom-4 left-4 border-l-2 border-b-2 border-gold/40 w-8 h-8" />
-                <div className="absolute bottom-4 right-4 border-r-2 border-b-2 border-gold/40 w-8 h-8" />
-              </div>
-
               <div className="flex flex-col items-center gap-6">
-                <div className="relative">
-                  <Mandala className="w-20 h-20 animate-[spin_40s_linear_infinite] opacity-10" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Scan className="w-8 h-8 text-gold group-hover:scale-110 transition-transform" />
-                  </div>
-                </div>
+                <Scan className="w-8 h-8 group-hover:scale-110 transition-transform" style={{ color: '#666' }} />
                 <div>
-                  <h3 className="text-xl font-display font-bold text-white mb-2 tracking-wide">Sacrifice Grantha to the Flame</h3>
-                  <p className="text-xs text-ash uppercase tracking-widest">Supports PDF, PNG, JPG — Beyond 10MB permissible</p>
+                  <h3 className="text-xl font-semibold mb-2" style={{ color: '#1A1A1A' }}>Upload Documents</h3>
+                  <p className="text-xs uppercase tracking-widest" style={{ color: '#666' }}>Supports PDF, PNG, JPG</p>
                 </div>
               </div>
             </div>
@@ -228,8 +213,8 @@ Preliminary results show a 15% increase in efficiency when using non-Euclidean s
             {/* List */}
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[10px] uppercase font-bold text-ash tracking-[0.3em]">Manifested Records</h3>
-                <Badge variant="silver">{documents.length} Items</Badge>
+                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em]" style={{ color: '#666' }}>Documents</h3>
+                <Badge variant="neutral">{documents.length} Items</Badge>
               </div>
 
               <AnimatePresence mode="popLayout">
@@ -243,49 +228,50 @@ Preliminary results show a 15% increase in efficiency when using non-Euclidean s
                   >
                     <div
                       className={cn(
-                        "group p-4 cut-card border transition-all cursor-pointer flex items-center gap-4",
+                        "group p-4 rounded-lg border transition-all cursor-pointer flex items-center gap-4",
                         selectedDoc?.id === doc.id
-                          ? "bg-peacock/10 border-peacock/40 shadow-[0_0_20px_rgba(0,168,107,0.1)]"
-                          : "bg-graphite/40 border-smoke/20 hover:border-smoke/40"
+                          ? "border-gray-400 bg-gray-50"
+                          : "border-gray-200 hover:border-gray-300"
                       )}
                       onClick={() => setSelectedDoc(doc)}
                     >
-                      <div className="w-12 h-12 cut-card bg-void border border-smoke/30 flex items-center justify-center shrink-0">
+                      <div className="w-12 h-12 rounded-lg border flex items-center justify-center shrink-0" style={{ backgroundColor: '#F5F5F5', borderColor: '#E0E0E0' }}>
                         {doc.fileType.includes('pdf') ? (
-                          <FileType className="w-5 h-5 text-saffron" />
+                          <FileType className="w-5 h-5" style={{ color: '#666' }} />
                         ) : (
-                          <Image className="w-5 h-5 text-gold" />
+                          <Image className="w-5 h-5" style={{ color: '#666' }} />
                         )}
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-display font-bold text-white truncate group-hover:text-peacock transition-colors">
+                        <p className="text-sm font-semibold truncate group-hover:text-gray-700 transition-colors" style={{ color: '#1A1A1A' }}>
                           {doc.fileName}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[10px] text-ash uppercase tracking-widest">{formatFileSize(doc.fileSize)}</span>
-                          <span className="w-1 h-1 rounded-full bg-smoke/30" />
-                          <span className="text-[10px] text-ash uppercase tracking-widest">{doc.uploadedAt.toLocaleTimeString()}</span>
+                          <span className="text-[10px] uppercase tracking-widest" style={{ color: '#666' }}>{formatFileSize(doc.fileSize)}</span>
+                          <span className="w-1 h-1 rounded-full bg-gray-300" />
+                          <span className="text-[10px] uppercase tracking-widest" style={{ color: '#666' }}>{doc.uploadedAt.toLocaleTimeString()}</span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-3">
                         {doc.status === 'processing' ? (
-                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-void border border-saffron/30">
-                            <div className="w-2 h-2 rounded-full bg-saffron animate-pulse" />
-                            <span className="text-[9px] font-bold text-saffron uppercase tracking-widest">Decoding...</span>
+                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: '#F5F5F5', border: '1px solid #E0E0E0' }}>
+                            <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: '#666' }}>Processing...</span>
                           </div>
                         ) : doc.status === 'completed' ? (
-                          <div className="w-8 h-8 rounded-full bg-peacock/20 flex items-center justify-center text-peacock border border-peacock/30">
-                            <CheckCircle className="w-4 h-4" />
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#E8F5E9', border: '1px solid #C8E6C9' }}>
+                            <CheckCircle className="w-4 h-4" style={{ color: '#4CAF50' }} />
                           </div>
                         ) : (
-                          <AlertCircle className="w-6 h-6 text-saffron" />
+                          <AlertCircle className="w-6 h-6" style={{ color: '#F57C00' }} />
                         )}
 
                         <button
                           onClick={(e) => { e.stopPropagation(); deleteDocument(doc.id); }}
-                          className="w-10 h-10 flex items-center justify-center text-ash hover:text-saffron transition-colors"
+                          className="w-10 h-10 flex items-center justify-center transition-colors"
+                          style={{ color: '#666' }}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -297,8 +283,8 @@ Preliminary results show a 15% increase in efficiency when using non-Euclidean s
 
               {documents.length === 0 && (
                 <div className="py-20 flex flex-col items-center text-center opacity-30">
-                  <FileText className="w-12 h-12 mb-4" />
-                  <p className="text-xs uppercase font-bold tracking-[0.2em]">Record Ledger Vacant</p>
+                  <FileText className="w-12 h-12 mb-4" style={{ color: '#666' }} />
+                  <p className="text-xs uppercase font-bold tracking-[0.2em]" style={{ color: '#666' }}>No Documents</p>
                 </div>
               )}
             </div>
@@ -315,39 +301,36 @@ Preliminary results show a 15% increase in efficiency when using non-Euclidean s
                   exit={{ opacity: 0, scale: 0.95 }}
                   className="sticky top-6 flex flex-col gap-6"
                 >
-                  <Card className="p-6 cut-card border-peacock/30 bg-peacock/5 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 opacity-10">
-                      <Mandala size="sm" />
-                    </div>
-                    <div className="relative z-10 space-y-6">
+                  <Card className="p-6 relative overflow-hidden" variant="elevated">
+                    <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-display font-bold text-white italic">Extracted Aksharas</h3>
-                        <Badge variant="peacock">{Math.round(selectedDoc.extractedText.confidence * 100)}% RELIABLE</Badge>
+                        <h3 className="text-lg font-semibold" style={{ color: '#1A1A1A' }}>Extracted Text</h3>
+                        <Badge variant="success">{Math.round(selectedDoc.extractedText.confidence * 100)}%</Badge>
                       </div>
 
-                      <div className="bg-void/60 border border-smoke/10 rounded-xl p-5 min-h-[300px] max-h-[500px] overflow-y-auto custom-scrollbar">
-                        <p className="text-sm text-silver leading-relaxed font-body whitespace-pre-wrap selection:bg-peacock/30">
+                      <div className="rounded-xl p-5 min-h-[300px] max-h-[500px] overflow-y-auto" style={{ backgroundColor: '#F5F5F5', border: '1px solid #E0E0E0' }}>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: '#1A1A1A' }}>
                           {selectedDoc.extractedText.text}
                         </p>
                       </div>
 
                       <div className="flex gap-3">
-                        <SanskritButton variant="outline" className="flex-1 text-[9px]" onClick={() => copyExtractedText(selectedDoc.extractedText!.text)}>
+                        <Button variant="outline" className="flex-1 text-[9px]" onClick={() => copyExtractedText(selectedDoc.extractedText!.text)}>
                           <Copy className="w-3.5 h-3.5 mr-2" />
-                          Copy Essence
-                        </SanskritButton>
-                        <SanskritButton variant="outline" className="flex-1 text-[9px]" onClick={() => downloadExtractedText(selectedDoc.extractedText!.text, selectedDoc.fileName)}>
+                          Copy
+                        </Button>
+                        <Button variant="outline" className="flex-1 text-[9px]" onClick={() => downloadExtractedText(selectedDoc.extractedText!.text, selectedDoc.fileName)}>
                           <Download className="w-3.5 h-3.5 mr-2" />
-                          JSON Archive
-                        </SanskritButton>
+                          Download
+                        </Button>
                       </div>
 
-                      <div className="pt-6 border-t border-smoke/10">
-                        <SanskritButton className="w-full h-12 text-[10px] gap-3" variant="primary">
+                      <div className="pt-6 border-t" style={{ borderColor: '#E0E0E0' }}>
+                        <Button className="w-full h-12 text-[10px] gap-3" variant="primary">
                           <Sparkles className="w-4 h-4" />
-                          Initiate Research From Grantha
+                          Research from Document
                           <ArrowRight className="w-4 h-4" />
-                        </SanskritButton>
+                        </Button>
                       </div>
                     </div>
                   </Card>
@@ -373,9 +356,9 @@ Preliminary results show a 15% increase in efficiency when using non-Euclidean s
                   <p className="text-[10px] uppercase font-bold text-ash tracking-[0.3em]">Decoding Sacred Geometry...</p>
                 </motion.div>
               ) : (
-                <div className="py-40 flex flex-col items-center justify-center text-center opacity-20 border-2 border-dashed border-smoke/30 rounded-2xl">
-                  <Eye className="w-12 h-12 mb-4" />
-                  <p className="text-[10px] uppercase font-bold tracking-[0.2em]">Focus on a Record to View</p>
+                <div className="py-40 flex flex-col items-center justify-center text-center opacity-20 border-2 border-dashed border-gray-200 rounded-2xl">
+                  <Eye className="w-12 h-12 mb-4" style={{ color: '#666' }} />
+                  <p className="text-[10px] uppercase font-bold tracking-[0.2em]" style={{ color: '#666' }}>Select a Document</p>
                 </div>
               )}
             </AnimatePresence>

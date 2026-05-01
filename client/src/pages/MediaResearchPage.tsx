@@ -463,11 +463,11 @@ export function MediaResearchPage() {
     };
 
     return (
-        <div className="h-full flex flex-col overflow-y-auto px-6 py-6 space-y-6">
+        <div className="h-full flex flex-col overflow-y-auto px-6 py-6 space-y-6" style={{ backgroundColor: '#FAFAFA' }}>
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-chalk">Media Research</h1>
-                <p className="text-sm text-ash mt-0.5">Let your brain analyze PDFs and YouTube videos</p>
+                <h1 className="text-2xl font-bold" style={{ color: '#1A1A1A' }}>Media Research</h1>
+                <p className="text-sm mt-0.5" style={{ color: '#666' }}>Let your brain analyze PDFs and YouTube videos</p>
             </div>
 
             {/* Tabs */}
