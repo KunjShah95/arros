@@ -68,9 +68,11 @@ ARROS now operates with a **full human-like cognitive architecture** — designe
 ## Module Descriptions
 
 ### 🧠 CognitiveCore — Prefrontal Cortex Analog
+
 **File:** `server/src/agents/cognitiveCore.ts`
 
 The central executive. Coordinates all cognitive subsystems and implements:
+
 - **Dual Process Theory**: Chooses between fast System 1 and slow System 2 thinking
 - **Attentional spotlight**: Focuses on one primary concern at a time
 - **Cognitive load tracking**: Monitors mental effort and fatigue
@@ -78,6 +80,7 @@ The central executive. Coordinates all cognitive subsystems and implements:
 - **Reasoning chain construction**: Transparent, auditable thought process
 
 Processing Modes:
+
 | Mode | Trigger | Description |
 |------|---------|-------------|
 | `fast_intuitive` | High intuition confidence | Trust pattern recognition, minimal deliberation |
@@ -88,9 +91,11 @@ Processing Modes:
 ---
 
 ### ❤️ EmotionalEngine — Limbic System Analog
+
 **File:** `server/src/agents/emotionalEngine.ts`
 
 Emotions are not decorative — they serve critical cognitive functions. Implements:
+
 - **Plutchik's Wheel**: 8 primary emotions + secondary blends
 - **Russell's Circumplex**: Arousal (calm↔excited) × Valence (negative↔positive) space
 - **Damasio's Somatic Markers**: Past emotional outcomes bias future similar decisions
@@ -98,6 +103,7 @@ Emotions are not decorative — they serve critical cognitive functions. Impleme
 - **Homeostatic regulation**: System naturally drifts toward resting calm state
 
 Emotional states visible to UI:
+
 ```
 🔍 Curious and engaged        (anticipation, medium arousal)
 ⚡ Enthusiastic and energized  (joy, high arousal)
@@ -112,9 +118,11 @@ Emotional states visible to UI:
 ---
 
 ### ⚡ IntuitionEngine — System 1 / Basal Ganglia Analog
+
 **File:** `server/src/agents/intuitionEngine.ts`
 
 Fast, automatic, unconscious pattern recognition. Fires FIRST — before deliberate reasoning:
+
 - **Recognition-Primed Decisions (Klein)**: Matches query to recognized patterns
 - **Domain expertise library**: Pre-calibrated patterns for academia, engineering, analysis, news
 - **Online learning**: Reinforcement from outcomes — successful patterns strengthen
@@ -125,9 +133,11 @@ Recognized domains and confidence levels update after every session.
 ---
 
 ### 💭 WorkingMemory — Dorsolateral PFC Analog
+
 **File:** `server/src/agents/workingMemory.ts`
 
 Active context buffer. Implements **Baddeley's Multi-Component Model**:
+
 - **Capacity**: 9 slots maximum (Miller's Law: 7 ± 2)
 - **Decay**: Ebbinghaus forgetting curve — items fade over time
 - **Rehearsal**: Accessed items are reinforced (importance boost)
@@ -139,9 +149,11 @@ Active context buffer. Implements **Baddeley's Multi-Component Model**:
 ---
 
 ### 🔍 CuriosityEngine — Dopaminergic Reward / Nucleus Accumbens Analog
+
 **File:** `server/src/agents/curiosityEngine.ts`
 
 Self-directed learning drive. Implements **Loewenstein's Information Gap Theory**:
+
 - **Novelty detection**: How unfamiliar is this topic? (inverse of exploration depth)
 - **Complexity estimation**: More complex = more interesting (Berlyne arousal theory)
 - **Optimal stimulation**: Curiosity peaks at medium knowledge level (inverted-U)
@@ -152,11 +164,13 @@ Self-directed learning drive. Implements **Loewenstein's Information Gap Theory*
 ---
 
 ### 🪞 SelfAwarenessModule — Anterior Cingulate Cortex Analog
+
 **File:** `server/src/agents/selfAwareness.ts`
 
 Error monitoring and metacognition. Implements **Flavell's Metacognition Theory**:
 
 Detects these cognitive biases in real-time:
+
 | Bias | Detection Method | Correction |
 |------|-----------------|------------|
 | Confirmation bias | High confidence + no alternatives | Seek disconfirming evidence |
@@ -167,6 +181,7 @@ Detects these cognitive biases in real-time:
 | Framing effect | Anxiety framing negatively | Neutral perspective reframe |
 
 Also tracks:
+
 - **Calibration error**: Are we systematically over or underconfident?
 - **Session fatigue**: Does error rate increase as session length grows?
 - **Self-reflection**: Generates human-readable introspective statements
@@ -174,15 +189,18 @@ Also tracks:
 ---
 
 ### 💤 DreamConsolidator — Hippocampus / Sleep Analog
+
 **File:** `server/src/agents/dreamConsolidator.ts`
 
 Offline memory consolidation. Implements **Systems Consolidation Theory**:
 
 **Micro-consolidation** (after every session):
+
 - Store key findings in vector database with importance scoring
 - Update user interest graph
 
 **Full consolidation** (called via `/api/brain/sleep`):
+
 1. **Memory review**: Retrieve recent experiences from the past week
 2. **Clustering**: Group memories by theme (like REM grouping related experiences)
 3. **Pruning**: Delete weak, rarely-accessed memories (synaptic homeostasis)
@@ -204,6 +222,7 @@ Offline memory consolidation. Implements **Systems Consolidation Theory**:
 | `/api/brain/config` | GET | Brain module architecture metadata |
 
 **Research request body:**
+
 ```json
 {
   "query": "What is quantum entanglement?",
@@ -212,6 +231,7 @@ Offline memory consolidation. Implements **Systems Consolidation Theory**:
 ```
 
 **Response now includes `brainState`:**
+
 ```json
 {
   "brainState": {
@@ -656,6 +676,7 @@ The orchestrator implements a self-evaluation loop:
    - If failed → Refine query and retry (max 3 times)
 
 **Retry Context:**
+
 ```typescript
 const refinedQuery = `${query} (Focus on: ${evaluation.recommendations?.join(', ') || 'accuracy and depth'})`;
 return this.research(refinedQuery, attempt + 1);
@@ -722,22 +743,26 @@ class ToolExecutor {
 ### Key Models
 
 #### Session
+
 - Tracks complete research sessions
 - Contains all tasks, sources, citations
 - Status: active, completed, failed
 
 #### AgentTask
+
 - Individual agent execution record
 - Type: planner, research, critic, synthesizer, memory, action, meta
 - Status: pending, running, completed, failed
 - Tracks cost and tokens
 
 #### Source
+
 - Research source with reliability and bias scores
 - Types: web, paper, github, blog, document
 - Stores raw content for citation
 
 #### KnowledgeNode / KnowledgeEdge
+
 - Persistent knowledge graph
 - Nodes: entities, concepts, facts, claims
 - Edges: relates_to, supports, contradicts, part_of, causes

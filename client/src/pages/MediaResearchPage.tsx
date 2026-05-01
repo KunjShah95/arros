@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     FileText, Youtube, Upload, X, Brain, CheckCircle2,
     BookOpen, Lightbulb, HelpCircle, Zap, ExternalLink,
-    ChevronDown, ChevronUp, AlertCircle, Loader2,
+    ChevronDown, ChevronUp, AlertCircle, Loader2, Download,
 } from 'lucide-react';
 import { cn } from '../components/ui';
 
@@ -47,12 +47,27 @@ async function generateFlashcards(sessionId: string, topic: string) {
     return r.json();
 }
 
+async function generateQuizFromMedia(mediaAnalysis: any, questionCount = 10) {
+    const r = await fetch(`${API}/quiz/from-media`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mediaAnalysis, questionCount }),
+    });
+    return r.json();
+}
+
 // ─── ResultView ───────────────────────────────────────────────────────────────
 
 function ResultView({ result, onGenerateFlashcards }: { result: any; onGenerateFlashcards: () => void }) {
     const [showQuestions, setShowQuestions] = useState(false);
     const [flashcardsGenerated, setFlashcardsGenerated] = useState(false);
+    const [quizGenerated, setQuizGenerated] = useState(false);
+    const [quiz, setQuiz] = useState<any>(null);
     const [generating, setGenerating] = useState(false);
+    const [generatingQuiz, setGeneratingQuiz] = useState(false);
+    const [currentQuestion, setCurrentQuestion] = useState(0);
+    const [answers, setAnswers] = useState<Record<number, number>>({});
+    const [showResults, setShowResults] = useState(false);
 
     const handleGenerate = async () => {
         setGenerating(true);
@@ -63,6 +78,75 @@ function ResultView({ result, onGenerateFlashcards }: { result: any; onGenerateF
             console.error(e);
         }
         setGenerating(false);
+    };
+
+    const handleGenerateQuiz = async () => {
+        setGeneratingQuiz(true);
+        try {
+            const res = await generateQuizFromMedia(result);
+            setQuiz(res.quiz);
+            setQuizGenerated(true);
+        } catch (e) {
+            console.error(e);
+        }
+        setGeneratingQuiz(false);
+    };
+
+    const handleAnswer = (optionIndex: number) => {
+        setAnswers({ ...answers, [currentQuestion]: optionIndex });
+    };
+
+    const nextQuestion = () => {
+        if (currentQuestion < (quiz?.questions?.length || 0) - 1) {
+            setCurrentQuestion(currentQuestion + 1);
+        }
+    };
+
+    const prevQuestion = () => {
+        if (currentQuestion > 0) {
+            setCurrentQuestion(currentQuestion - 1);
+        }
+    };
+
+    const submitQuiz = () => {
+        setShowResults(true);
+    };
+
+    const score = quiz?.questions?.reduce((acc: number, q: any, i: number) => 
+        answers[i] === q.correctAnswer ? acc + 1 : acc, 0) || 0;
+
+    const handleExport = async (format: 'markdown' | 'html') => {
+        try {
+            const response = await fetch(`${API}/media/export`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: {
+                        title: result.title,
+                        summary: result.summary,
+                        keyFindings: result.keyFindings,
+                        keyTakeaways: result.keyTakeaways,
+                        questions: result.questions,
+                        topics: result.topics,
+                        mediaType: result.mediaType,
+                        wordCount: result.wordCount,
+                    },
+                    format,
+                    title: result.title,
+                }),
+            });
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${result.title.replace(/[^a-z0-9]/gi, '_')}.${format === 'html' ? 'html' : 'md'}`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error('Export failed:', e);
+        }
     };
 
     const confidencePct = Math.round(result.confidence * 100);
@@ -195,6 +279,136 @@ function ResultView({ result, onGenerateFlashcards }: { result: any; onGenerateF
                         {generating ? 'Generating...' : 'Generate Flashcards'}
                     </button>
                 )}
+            </div>
+
+            {/* Generate Quiz CTA */}
+            <div className="cut-card bg-saffron/5 border border-saffron/30 p-5 flex items-center justify-between gap-4">
+                <div>
+                    <p className="text-sm font-medium text-chalk">Generate Quiz from this Content</p>
+                    <p className="text-xs text-ash mt-0.5">Test your understanding with multiple choice questions</p>
+                </div>
+                {quizGenerated ? (
+                    <div className="flex items-center gap-2 text-peacock text-sm">
+                        <CheckCircle2 className="w-5 h-5" />
+                        Quiz Ready!
+                    </div>
+                ) : (
+                    <button
+                        onClick={handleGenerateQuiz}
+                        disabled={generatingQuiz}
+                        className="cut-card bg-saffron/20 border border-saffron/40 text-saffron px-5 py-2.5 text-sm font-medium hover:bg-saffron/30 transition-all flex items-center gap-2 disabled:opacity-50"
+                    >
+                        {generatingQuiz ? <Loader2 className="w-4 h-4 animate-spin" /> : <HelpCircle className="w-4 h-4" />}
+                        {generatingQuiz ? 'Generating...' : 'Generate Quiz'}
+                    </button>
+                )}
+            </div>
+
+            {/* Quiz Display */}
+            {quiz && (
+                <div className="cut-card border border-saffron/40 p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-bold text-chalk">{quiz.title}</h3>
+                        <span className="text-xs text-ash">{quiz.questions?.length || 0} questions</span>
+                    </div>
+
+                    {!showResults ? (
+                        <>
+                            <div className="space-y-3">
+                                <p className="text-sm text-silver">
+                                    <span className="text-saffron font-medium">Q{currentQuestion + 1}:</span>{' '}
+                                    {quiz.questions?.[currentQuestion]?.question}
+                                </p>
+                                <div className="space-y-2">
+                                    {quiz.questions?.[currentQuestion]?.options?.map((opt: string, i: number) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => handleAnswer(i)}
+                                            className={`w-full text-left p-3 text-sm cut-card border transition-all ${
+                                                answers[currentQuestion] === i
+                                                    ? 'border-saffron/50 bg-saffron/10 text-chalk'
+                                                    : 'border-smoke/30 text-silver hover:border-saffron/30'
+                                            }`}
+                                        >
+                                            <span className="text-saffron mr-2">{String.fromCharCode(65 + i)}.</span>
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-4">
+                                <button
+                                    onClick={prevQuestion}
+                                    disabled={currentQuestion === 0}
+                                    className="text-sm text-ash hover:text-chalk disabled:opacity-40"
+                                >
+                                    ← Previous
+                                </button>
+                                <span className="text-xs text-ash">
+                                    {currentQuestion + 1} / {quiz.questions?.length || 0}
+                                </span>
+                                {currentQuestion < (quiz.questions?.length || 0) - 1 ? (
+                                    <button
+                                        onClick={nextQuestion}
+                                        className="text-sm text-peacock hover:text-chalk"
+                                    >
+                                        Next →
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={submitQuiz}
+                                        className="cut-card bg-peacock/20 border border-peacock/40 text-peacock px-4 py-2 text-sm font-medium"
+                                    >
+                                        Submit Quiz
+                                    </button>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="cut-card bg-graphite/50 border border-smoke/30 p-5 text-center">
+                            <h4 className="text-xl font-bold text-chalk mb-2">Quiz Complete!</h4>
+                            <p className="text-3xl font-bold text-saffron mb-4">
+                                {score} / {quiz.questions?.length}
+                            </p>
+                            <p className="text-sm text-ash mb-4">
+                                {score >= quiz.questions?.length * 0.7
+                                    ? 'Great job! You have a solid understanding.'
+                                    : 'Keep studying! Review the content and try again.'}
+                            </p>
+                            <button
+                                onClick={() => { setShowResults(false); setAnswers({}); setCurrentQuestion(0); }}
+                                className="text-sm text-peacock hover:text-chalk"
+                            >
+                                Retake Quiz
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Export Options */}
+            <div className="cut-card border border-smoke/40 p-5">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-ash mb-3 flex items-center gap-2">
+                    <Download className="w-3 h-3" />
+                    Export Research
+                </div>
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => handleExport('markdown')}
+                        className="cut-card bg-graphite/50 border border-smoke/40 text-silver px-4 py-2 text-sm hover:border-peacock/40 hover:text-chalk transition-all flex items-center gap-2"
+                    >
+                        <FileText className="w-4 h-4" />
+                        Markdown (.md)
+                    </button>
+                    <button
+                        onClick={() => handleExport('html')}
+                        className="cut-card bg-graphite/50 border border-smoke/40 text-silver px-4 py-2 text-sm hover:border-peacock/40 hover:text-chalk transition-all flex items-center gap-2"
+                    >
+                        <FileText className="w-4 h-4" />
+                        HTML (.html)
+                    </button>
+                </div>
             </div>
         </motion.div>
     );

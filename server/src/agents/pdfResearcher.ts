@@ -107,6 +107,21 @@ Return as JSON.`,
                     query: `PDF Analysis: ${filename}`,
                     title: parsed.title,
                     status: 'completed',
+                    outputs: {
+                        create: {
+                            taskId: 'media_analysis',
+                            type: 'media_analysis',
+                            content: {
+                                summary: parsed.summary,
+                                keyFindings: parsed.keyFindings,
+                                keyTakeaways: parsed.keyTakeaways,
+                                questions: parsed.questions,
+                                topics: parsed.topics,
+                                difficulty: parsed.difficulty,
+                            },
+                            confidence: parsed.confidence,
+                        },
+                    },
                 },
             });
 
@@ -256,6 +271,21 @@ Return as JSON.`,
                     query: `YouTube: ${youtubeUrl}`,
                     title: parsed.title,
                     status: 'completed',
+                    outputs: {
+                        create: {
+                            taskId: 'media_analysis',
+                            type: 'media_analysis',
+                            content: {
+                                summary: parsed.summary,
+                                keyFindings: parsed.keyFindings,
+                                keyTakeaways: parsed.keyTakeaways,
+                                questions: parsed.questions,
+                                topics: parsed.topics,
+                                difficulty: parsed.difficulty,
+                            },
+                            confidence: parsed.confidence,
+                        },
+                    },
                 },
             });
 

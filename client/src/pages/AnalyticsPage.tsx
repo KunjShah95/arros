@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Clock,
@@ -12,43 +12,32 @@ import {
   ArrowDownRight,
   Target,
   Database,
+  Flame,
+  TrendingUp,
+  Zap,
 } from 'lucide-react';
 import { Card, Button, Badge } from '../components/ui';
 
-const stats = [
-  {
-    label: 'Total Research',
-    value: '247',
-    change: '+12%',
-    trend: 'up',
-    icon: Search,
-    color: 'flame',
-  },
-  {
-    label: 'Hours Saved',
-    value: '48.5',
-    change: '+23%',
-    trend: 'up',
-    icon: Clock,
-    color: 'electric',
-  },
-  {
-    label: 'Sources Verified',
-    value: '1,842',
-    change: '+8%',
-    trend: 'up',
-    icon: Database,
-    color: 'mint',
-  },
-  {
-    label: 'Accuracy Rate',
-    value: '94.2%',
-    change: '+2.1%',
-    trend: 'up',
-    icon: Target,
-    color: 'flame',
-  },
-];
+const API = import.meta.env.VITE_API_URL || '/api';
+
+interface StudyStats {
+  streak: { current: number; longest: number };
+  summary: {
+    totalSessions: number;
+    sessionsThisPeriod: number;
+    flashcardReviews: number;
+    quizAttempts: number;
+    totalXP: number;
+    level: number;
+  };
+  weakTopics: { topic: string; errorRate: number; priority: string }[];
+}
+
+const defaultStats: StudyStats = {
+  streak: { current: 0, longest: 0 },
+  summary: { totalSessions: 0, sessionsThisPeriod: 0, flashcardReviews: 0, quizAttempts: 0, totalXP: 0, level: 1 },
+  weakTopics: [],
+};
 
 const weeklyData = [
   { day: 'Mon', research: 12, sources: 48, time: 2.4 },
@@ -92,6 +81,54 @@ const timeRanges = [
 
 export function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('7d');
+  const [studyStats, setStudyStats] = useState<StudyStats>(defaultStats);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
+    fetch(`${API}/study/stats?days=${days}`)
+      .then(res => res.json())
+      .then(data => {
+        setStudyStats(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [timeRange]);
+
+  const stats = [
+    {
+      label: 'Study Streak',
+      value: studyStats.streak.current,
+      change: studyStats.streak.longest > 0 ? `${studyStats.streak.longest} best` : 'Start today!',
+      trend: studyStats.streak.current > 0 ? 'up' : 'down',
+      icon: Flame,
+      color: 'saffron',
+    },
+    {
+      label: 'Sessions',
+      value: studyStats.summary.sessionsThisPeriod,
+      change: '+12%',
+      trend: 'up',
+      icon: Search,
+      color: 'flame',
+    },
+    {
+      label: 'Flashcards',
+      value: studyStats.summary.flashcardReviews,
+      change: '+23%',
+      trend: 'up',
+      icon: Database,
+      color: 'electric',
+    },
+    {
+      label: 'Total XP',
+      value: studyStats.summary.totalXP.toLocaleString(),
+      change: `Level ${studyStats.summary.level}`,
+      trend: 'up',
+      icon: Zap,
+      color: 'mint',
+    },
+  ];
 
   return (
     <div className="h-full flex flex-col">

@@ -221,6 +221,104 @@ router.delete('/flashcards/:id', authenticate({ optional: true }), async (req: R
   }
 });
 
+// ─── Quiz Generation API ────────────────────────────────────────────────────────
+
+/** POST /api/quiz/generate — Generate quiz from content or session */
+router.post('/quiz/generate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const { sessionId, content, topic, questionCount, difficulty } = req.body;
+
+    let quizContent = '';
+    let quizTopic = topic || 'General';
+
+    if (sessionId) {
+      const session = await prisma.session.findUnique({ 
+        where: { id: sessionId },
+        include: { outputs: true }
+      });
+      if (!session) return res.status(404).json({ error: 'Session not found' });
+      
+      const output = session.outputs?.[0]?.content;
+      if (output && typeof output === 'object') {
+        const out = output as any;
+        quizContent = out.summary || out.keyFindings?.join('\n') || JSON.stringify(out);
+        quizTopic = out.topics?.[0] || session.title || topic || 'Research';
+      } else {
+        quizContent = session.query || '';
+      }
+    } else if (content) {
+      quizContent = content;
+    } else {
+      return res.status(400).json({ error: 'sessionId or content required' });
+    }
+
+    const quizAgent = new QuizGeneratorAgent(userId);
+    const quiz = await quizAgent.generateFromContent(quizContent, quizTopic, {
+      questionCount: questionCount || 10,
+      difficulty: difficulty || 'mixed',
+    });
+
+    res.json({ quiz });
+  } catch (error) {
+    console.error('Quiz generation error:', error);
+    res.status(500).json({ error: 'Failed to generate quiz' });
+  }
+});
+
+/** POST /api/quiz/from-media — Generate quiz directly from media analysis result */
+router.post('/quiz/from-media', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const { mediaAnalysis, questionCount, difficulty } = req.body;
+
+    if (!mediaAnalysis) {
+      return res.status(400).json({ error: 'mediaAnalysis required' });
+    }
+
+    const combinedContent = [
+      mediaAnalysis.summary,
+      ...(mediaAnalysis.keyFindings || []),
+      ...(mediaAnalysis.keyTakeaways || [])
+    ].join('\n\n');
+
+    const quizAgent = new QuizGeneratorAgent(userId);
+    const quiz = await quizAgent.generateFromContent(
+      combinedContent,
+      mediaAnalysis.topics?.[0] || mediaAnalysis.title || 'Media Analysis',
+      {
+        questionCount: questionCount || 10,
+        difficulty: difficulty || 'mixed',
+      }
+    );
+
+    res.json({ quiz });
+  } catch (error) {
+    console.error('Quiz from media error:', error);
+    res.status(500).json({ error: 'Failed to generate quiz from media' });
+  }
+});
+
+/** POST /api/quiz/evaluate — Evaluate quiz answers */
+router.post('/quiz/evaluate', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const { quizId, answers } = req.body;
+
+    if (!quizId || !answers) {
+      return res.status(400).json({ error: 'quizId and answers required' });
+    }
+
+    const quizAgent = new QuizGeneratorAgent(userId);
+    const attempt = await quizAgent.evaluateQuiz(quizId, answers);
+
+    res.json({ attempt });
+  } catch (error) {
+    console.error('Quiz evaluation error:', error);
+    res.status(500).json({ error: 'Failed to evaluate quiz' });
+  }
+});
+
 // ─── Night Research Scheduler API ─────────────────────────────────────────────
 
 /** GET /api/night/digest — Get today's morning digest */
@@ -461,6 +559,73 @@ router.get('/research/export/:sessionId', authenticate({ optional: true }), asyn
   }
 });
 
+// ─── Export API ──────────────────────────────────────────────────────────────────
+
+/** GET /api/media/export/:sessionId — Export media analysis as markdown/html */
+router.get('/media/export/:sessionId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const sessionId = req.params.sessionId as string;
+    const format = req.query.format as string || 'markdown';
+
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: { outputs: true },
+    });
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    const output = session.outputs?.[0]?.content;
+    if (!output || typeof output !== 'object') {
+      return res.status(404).json({ error: 'Analysis output not found' });
+    }
+
+    const analysis = output as any;
+
+    if (format === 'html') {
+      const html = ExportService.toHTML(analysis);
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `attachment; filename="${session.title || 'research'}.html"`);
+      res.send(html);
+    } else {
+      const markdown = ExportService.toMarkdownFromMedia(analysis);
+      res.setHeader('Content-Type', 'text/markdown');
+      res.setHeader('Content-Disposition', `attachment; filename="${session.title || 'research'}.md"`);
+      res.send(markdown);
+    }
+  } catch (error) {
+    console.error('Media export error:', error);
+    res.status(500).json({ error: 'Export failed' });
+  }
+});
+
+/** POST /api/media/export — Export provided content */
+router.post('/media/export', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { content, format, title } = req.body;
+
+    if (!content) {
+      return res.status(400).json({ error: 'Content required' });
+    }
+
+    if (format === 'html') {
+      const html = ExportService.toHTML(content);
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `attachment; filename="${title || 'research'}.html"`);
+      res.send(html);
+    } else {
+      const markdown = ExportService.toMarkdownFromMedia(content);
+      res.setHeader('Content-Type', 'text/markdown');
+      res.setHeader('Content-Disposition', `attachment; filename="${title || 'research'}.md"`);
+      res.send(markdown);
+    }
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json({ error: 'Export failed' });
+  }
+});
+
 router.get('/integrations', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
     const integrations = await IntegrationService.getIntegrations(req.userId || 'guest');
@@ -578,6 +743,212 @@ router.get('/analytics/usage', authenticate({ optional: true }), async (req: Req
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get analytics' });
+  }
+});
+
+// ─── Study Analytics API ────────────────────────────────────────────────────────
+
+/** GET /api/study/stats — Get study statistics and streak info */
+router.get('/study/stats', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const days = parseInt(req.query.days as string) || 30;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // Get XP profile for streak info
+    const xpSystem = new XPSystem(userId);
+    const profile = await xpSystem.getProfile();
+
+    // Get sessions count
+    const sessionsCount = await prisma.session.count({
+      where: { userId, createdAt: { gte: startDate }, status: 'completed' },
+    });
+
+    // Get flashcards reviewed (from memory type)
+    const flashcardReviews = await prisma.userMemory.count({
+      where: { userId, type: 'flashcard_review', createdAt: { gte: startDate } },
+    });
+
+    // Get quiz attempts
+    const quizOutputs = await prisma.agentOutput.findMany({
+      where: { 
+        sessionId: { startsWith: 'quiz_' },
+        type: 'quiz_attempt' as any,
+        createdAt: { gte: startDate },
+      },
+    });
+
+    // Calculate daily activity
+    const dailyActivity: Record<string, { sessions: number; xp: number }> = {};
+    const allSessions = await prisma.session.findMany({
+      where: { userId, createdAt: { gte: startDate } },
+      select: { createdAt: true, id: true },
+    });
+    
+    for (const s of allSessions) {
+      const day = s.createdAt.toISOString().split('T')[0];
+      dailyActivity[day] = dailyActivity[day] || { sessions: 0, xp: 0 };
+      dailyActivity[day].sessions++;
+    }
+
+    // Get weak topics from concept coach if available
+    const conceptCoach = await import('../agents/conceptCoach');
+    let weakTopics: { topic: string; errorRate: number; priority: string }[] = [];
+    try {
+      const cc = new conceptCoach.ConceptCoachAgent(userId);
+      const weakResult = await cc.detectWeakTopics();
+      weakTopics = weakResult.slice(0, 5).map(w => ({ 
+        topic: w.topic, 
+        errorRate: w.errorRate, 
+        priority: w.priority 
+      }));
+    } catch {}
+
+    res.json({
+      streak: {
+        current: profile.streakDays,
+        longest: profile.longestStreak,
+        lastActive: profile.streakDays > 0 ? new Date().toISOString() : null,
+      },
+      period: { days, startDate, endDate: new Date() },
+      summary: {
+        totalSessions: sessionsCount,
+        sessionsThisPeriod: allSessions.length,
+        flashcardReviews,
+        quizAttempts: quizOutputs.length,
+        totalXP: profile.totalXP,
+        level: profile.level,
+      },
+      dailyActivity,
+      weakTopics,
+    });
+  } catch (error) {
+    console.error('Study stats error:', error);
+    res.status(500).json({ error: 'Failed to get study stats' });
+  }
+});
+
+/** GET /api/study/weak-topics — Get topics that need more study */
+router.get('/study/weak-topics', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+
+    const conceptCoach = await import('../agents/conceptCoach');
+    const cc = new conceptCoach.ConceptCoachAgent(userId);
+    const weakResult = await cc.detectWeakTopics();
+    
+    res.json(weakResult);
+  } catch (error) {
+    console.error('Weak topics error:', error);
+    res.status(500).json({ error: 'Failed to get weak topics' });
+  }
+});
+
+/** GET /api/study/revision-priority — Get priority revision list based on weak topics */
+router.get('/study/revision-priority', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+
+    // Get weak topics
+    const conceptCoach = await import('../agents/conceptCoach');
+    const cc = new conceptCoach.ConceptCoachAgent(userId);
+    const weakTopics = await cc.detectWeakTopics();
+
+    // Get due flashcards
+    const engine = new SpacedRepetitionEngine(userId);
+    const dueCards = await engine.getDueCards(20);
+
+    // Combine into priority list
+    const revisionItems: Array<{
+      type: 'flashcard' | 'weak_topic';
+      topic: string;
+      priority: number;
+      itemsDue?: number;
+      errorRate?: number;
+    }> = [];
+
+    // Add weak topics with their error rates
+    weakTopics.slice(0, 5).forEach((wt, idx) => {
+      revisionItems.push({
+        type: 'weak_topic',
+        topic: wt.topic,
+        priority: idx + 1,
+        errorRate: wt.errorRate,
+      });
+    });
+
+    // Group due cards by topic
+    const cardsByTopic: Record<string, number> = {};
+    dueCards.forEach(card => {
+      cardsByTopic[card.topic] = (cardsByTopic[card.topic] || 0) + 1;
+    });
+
+    // Add topics with due cards
+    Object.entries(cardsByTopic).forEach(([topic, count]) => {
+      const existing = revisionItems.find(r => r.topic.toLowerCase() === topic.toLowerCase());
+      if (existing) {
+        existing.itemsDue = count;
+      } else {
+        revisionItems.push({
+          type: 'flashcard',
+          topic,
+          priority: revisionItems.length + 1,
+          itemsDue: count,
+        });
+      }
+    });
+
+    // Sort by priority
+    revisionItems.sort((a, b) => a.priority - b.priority);
+
+    res.json({
+      totalItems: revisionItems.length,
+      recommendedOrder: revisionItems,
+      summary: {
+        weakTopicsCount: weakTopics.length,
+        flashcardsDue: dueCards.length,
+      },
+    });
+  } catch (error) {
+    console.error('Revision priority error:', error);
+    res.status(500).json({ error: 'Failed to get revision priority' });
+  }
+});
+
+/** GET /api/study/search — Search sessions */
+router.get('/study/search', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const { q, limit = 20 } = req.query;
+
+    if (!q) {
+      return res.status(400).json({ error: 'Search query required' });
+    }
+
+    const sessions = await prisma.session.findMany({
+      where: {
+        userId,
+        OR: [
+          { title: { contains: q as string, mode: 'insensitive' } },
+          { query: { contains: q as string, mode: 'insensitive' } },
+        ],
+      },
+      orderBy: { createdAt: 'desc' },
+      take: Number(limit),
+      select: {
+        id: true,
+        title: true,
+        query: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    res.json({ results: sessions, count: sessions.length });
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Failed to search sessions' });
   }
 });
 
@@ -1314,6 +1685,162 @@ router.post('/studyos/exam/countdown', authenticate({ optional: true }), async (
   }
 });
 
+// ─── Voice Command Processing ──────────────────────────────────────────────────
+
+/** POST /api/voice/command — Process voice command for study actions */
+router.post('/voice/command', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId || 'guest';
+    const { command, context } = req.body;
+
+    if (!command) {
+      return res.status(400).json({ error: 'command is required' });
+    }
+
+    const commandLower = command.toLowerCase();
+    
+    let action: string;
+    let params: Record<string, any> = {};
+
+    // Parse study commands
+    if (commandLower.includes('flashcard') || commandLower.includes('create card') || commandLower.includes('make card')) {
+      action = 'create_flashcard';
+      const topicMatch = command.match(/(?:about|on|for)\s+([a-zA-Z\s]+?)(?:\s|$)/);
+      params.topic = topicMatch ? topicMatch[1].trim() : context?.topic || 'General';
+    } else if (commandLower.includes('quiz') || commandLower.includes('test') || commandLower.includes('exam')) {
+      action = 'generate_quiz';
+      params.topic = context?.topic || 'General';
+    } else if (commandLower.includes('summarize') || commandLower.includes('summary')) {
+      action = 'summarize';
+      params.content = context?.content || '';
+    } else if (commandLower.includes('study') || commandLower.includes('review')) {
+      action = 'start_study_session';
+      params.topic = context?.topic || 'General';
+    } else if (commandLower.includes('repeat') || commandLower.includes('read') || commandLower.includes('speak')) {
+      action = 'read_aloud';
+      params.text = context?.text || '';
+    } else if (commandLower.includes('next') || commandLower.includes('show')) {
+      action = 'next_item';
+    } else {
+      action = 'unknown';
+    }
+
+    // Execute action based on parsed command
+    let result: any = { action, parsed: true };
+
+    switch (action) {
+      case 'create_flashcard': {
+        const engine = new SpacedRepetitionEngine(userId);
+        result.cards = await engine.generateFromResearch(
+          { keyFindings: [command], summary: command },
+          params.topic,
+          `voice_${Date.now()}`
+        );
+        result.message = `Created ${result.cards.length} flashcard(s) for "${params.topic}"`;
+        break;
+      }
+      case 'generate_quiz': {
+        const quizAgent = new QuizGeneratorAgent(userId);
+        const quiz = await quizAgent.generateFromContent(
+          context?.content || `Study material on ${params.topic}`,
+          params.topic,
+          { questionCount: 5 }
+        );
+        result.quiz = quiz;
+        result.message = `Generated quiz with ${quiz.questions.length} questions on "${params.topic}"`;
+        break;
+      }
+      case 'read_aloud': {
+        const sarvamTTS = await import('../services/sarvam');
+        const ttsResult = await sarvamTTS.sarvamClient.textToSpeech({
+          text: params.text || context?.text || 'No text provided',
+          language: context?.language || 'en-IN',
+          voice: context?.voice || 'anushka',
+        });
+        result.audioUrl = ttsResult.audioUrl;
+        result.message = 'Generated audio for read-aloud';
+        break;
+      }
+      case 'start_study_session': {
+        const engine = new SpacedRepetitionEngine(userId);
+        const dueCards = await engine.getDueCards(10);
+        result.dueCards = dueCards;
+        result.message = `Found ${dueCards.length} cards due for review`;
+        break;
+      }
+      case 'summarize':
+        result.message = 'Use /api/media/pdf or /api/media/youtube to get summaries';
+        break;
+      case 'next_item':
+        result.message = 'Use /api/flashcards/due to get next card';
+        break;
+      default:
+        result.message = 'Command not recognized. Try: "create flashcard", "generate quiz", "read aloud", or "start study session"';
+    }
+
+    // Award XP for voice command usage
+    if (action !== 'unknown') {
+      const xp = new XPSystem(userId);
+      await xp.awardXP('voice_command');
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Voice command error:', error);
+    res.status(500).json({ error: 'Failed to process voice command' });
+  }
+});
+
+/** POST /api/voice/read-aloud — Convert text to speech for study */
+router.post('/voice/read-aloud', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { text, language, voice } = req.body;
+
+    if (!text) {
+      return res.status(400).json({ error: 'text is required' });
+    }
+
+    const result = await sarvamClient.textToSpeech({
+      text,
+      language: language || 'en-IN',
+      voice: voice || 'anushka',
+    });
+
+    res.json({ audioUrl: result.audioUrl, text });
+  } catch (error) {
+    console.error('Read aloud error:', error);
+    res.status(500).json({ error: 'Failed to generate audio' });
+  }
+});
+
+/** GET /api/voice/flashcards/read/:cardId — Read a flashcard aloud */
+router.get('/voice/flashcards/read/:cardId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const cardId = req.params.cardId;
+    const { language } = req.query;
+
+    const engine = new SpacedRepetitionEngine(req.userId || 'guest');
+    const allCards = await engine.getAllCards();
+    const card = allCards.find(c => c.id === cardId);
+
+    if (!card) {
+      return res.status(404).json({ error: 'Card not found' });
+    }
+
+    const textToRead = `${card.front}. ${card.back}`;
+    const result = await sarvamClient.textToSpeech({
+      text: textToRead,
+      language: language as string || 'en-IN',
+      voice: 'anushka',
+    });
+
+    res.json({ audioUrl: result.audioUrl, front: card.front, back: card.back });
+  } catch (error) {
+    console.error('Flashcard TTS error:', error);
+    res.status(500).json({ error: 'Failed to read flashcard' });
+  }
+});
+
 // ============ NEW LEARNING OS MODULES ============
 
 // Concept Coach Agent
@@ -1930,6 +2457,7 @@ router.get('/thinking/fallacy/:type', authenticate({ optional: true }), async (r
 
 // ============ QUIZ GENERATOR ============
 import { QuizGeneratorAgent, QuizBankAgent } from '../agents/quizGenerator';
+import { QuizGeneratorAgent as QuizAgent } from '../agents/quizGenerator';
 
 router.post('/quiz/generate', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {

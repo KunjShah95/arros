@@ -5,7 +5,8 @@ import {
   Sparkles, CircleHelp, Compass, TrendingUp, Calendar, Search,
   BookOpen, Award, Link2, Clock, CheckCircle, AlertCircle,
   Video, ExternalLink, Download, Copy, Send, Loader2,
-  GraduationCap, BarChart2, Users, Layers, Fingerprint
+  GraduationCap, BarChart2, Users, Layers, Fingerprint,
+  AlarmClock, ClipboardList, UserPlus, MessageCircle
 } from 'lucide-react';
 import {
   Card, Button, Input, Badge, ProgressBar, cn
@@ -17,6 +18,9 @@ import {
 
 const features2 = [
   { id: 'quiz', icon: CircleHelp, label: 'Quiz Generator', color: 'from-blue to-cyan' },
+  { id: 'mockexam', icon: ClipboardList, label: 'Mock Exam', color: 'from-red to-orange' },
+  { id: 'examcountdown', icon: AlarmClock, label: 'Exam Countdown', color: 'from-pink to-rose' },
+  { id: 'studyroom', icon: Users, label: 'Study Room', color: 'from-cyan to-blue' },
   { id: 'style', icon: Fingerprint, label: 'Learning Style', color: 'from-purple to-pink' },
   { id: 'analytics', icon: TrendingUp, label: 'Predictive Analytics', color: 'from-green to-emerald' },
   { id: 'calendar', icon: Calendar, label: 'Calendar', color: 'from-orange to-amber' },
@@ -89,6 +93,9 @@ export function LearningOS2Page() {
 function FeaturePanel2({ featureId }: { featureId: string }) {
   switch (featureId) {
     case 'quiz': return <QuizGeneratorPanel />;
+    case 'mockexam': return <MockExamPanel />;
+    case 'examcountdown': return <ExamCountdownPanel />;
+    case 'studyroom': return <StudyRoomPanel />;
     case 'style': return <LearningStylePanel />;
     case 'analytics': return <PredictiveAnalyticsPanel />;
     case 'calendar': return <CalendarPanel />;
@@ -619,6 +626,319 @@ function LearningSidebar2() {
           ))}
         </div>
       </Card>
+    </div>
+  );
+}
+
+// ─── Mock Exam Panel ───────────────────────────────────────────────────────────
+
+function MockExamPanel() {
+  const [topic, setTopic] = useState('');
+  const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [exam, setExam] = useState<any>(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleGenerate = async () => {
+    if (!topic || !content) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/studyos/mock-exam`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, content, options: { questionCount: 10, difficulty: 'mixed' } }),
+      });
+      const data = await res.json();
+      setExam(data.exam);
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
+  };
+
+  const score = exam?.questions?.reduce((acc: number, q: any, i: number) => 
+    answers[i] === q.correctAnswer ? acc + 1 : acc, 0) || 0;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-xl font-bold text-white mb-2">Mock Exam Generator</h3>
+        <p className="text-ash text-sm">Generate a full exam with answer key from your study material</p>
+      </div>
+
+      {!exam ? (
+        <div className="space-y-4">
+          <Input
+            placeholder="Exam topic (e.g., Biology, History)"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+          />
+          <textarea
+            className="w-full bg-graphite/50 border border-smoke/40 text-silver px-4 py-3 rounded-lg text-sm focus:outline-none focus:border-peacock/50"
+            placeholder="Paste your study material or notes here..."
+            rows={8}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
+          <Button onClick={handleGenerate} disabled={loading || !topic || !content}>
+            {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            Generate Mock Exam
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-lg font-bold text-white">{exam.title}</h4>
+            <Button variant="ghost" size="sm" onClick={() => { setExam(null); setAnswers({}); setSubmitted(false); }}>
+              New Exam
+            </Button>
+          </div>
+
+          {!submitted ? (
+            <div className="space-y-4">
+              <div className="bg-graphite/50 border border-smoke/40 p-4 rounded-lg">
+                <p className="text-saffron font-medium mb-2">Question {currentQuestion + 1} of {exam.questions?.length}</p>
+                <p className="text-white mb-4">{exam.questions?.[currentQuestion]?.question}</p>
+                <div className="space-y-2">
+                  {exam.questions?.[currentQuestion]?.options?.map((opt: string, i: number) => (
+                    <button
+                      key={i}
+                      onClick={() => setAnswers({ ...answers, [currentQuestion]: i })}
+                      className={`w-full text-left p-3 text-sm rounded-lg border transition-all ${
+                        answers[currentQuestion] === i
+                          ? 'border-saffron/50 bg-saffron/10 text-white'
+                          : 'border-smoke/30 text-silver hover:border-saffron/30'
+                      }`}
+                    >
+                      {String.fromCharCode(65 + i)}. {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-between">
+                <Button variant="ghost" disabled={currentQuestion === 0} onClick={() => setCurrentQuestion(c => c - 1)}>
+                  Previous
+                </Button>
+                {currentQuestion < (exam.questions?.length || 0) - 1 ? (
+                  <Button onClick={() => setCurrentQuestion(c => c + 1)}>Next</Button>
+                ) : (
+                  <Button onClick={() => setSubmitted(true)}>Submit Exam</Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-graphite/50 border border-smoke/40 p-6 rounded-lg text-center">
+              <h4 className="text-2xl font-bold text-white mb-2">Exam Complete!</h4>
+              <p className="text-3xl font-bold text-saffron mb-4">{score} / {exam.questions?.length}</p>
+              <p className="text-ash mb-4">
+                {score >= exam.questions?.length * 0.7 ? 'Excellent work!' : 'Keep practicing!'}
+              </p>
+              {exam.answerKey && (
+                <div className="text-left mt-4">
+                  <h5 className="text-white font-medium mb-2">Answer Key:</h5>
+                  {exam.answerKey.slice(0, 5).map((a: any, i: number) => (
+                    <p key={i} className="text-silver text-sm">
+                      {i + 1}. {a.correctAnswer}
+                    </p>
+                  ))}
+                </div>
+              )}
+              <Button className="mt-4" onClick={() => { setSubmitted(false); setAnswers({}); setCurrentQuestion(0); }}>
+                Retake Exam
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Exam Countdown Panel ───────────────────────────────────────────────────────
+
+function ExamCountdownPanel() {
+  const [exams, setExams] = useState<Array<{ id: string; name: string; date: string; subject: string }>>([]);
+  const [newExam, setNewExam] = useState({ name: '', date: '', subject: '' });
+  const [showForm, setShowForm] = useState(false);
+
+  const addExam = () => {
+    if (!newExam.name || !newExam.date) return;
+    setExams([...exams, { id: Date.now().toString(), ...newExam }]);
+    setNewExam({ name: '', date: '', subject: '' });
+    setShowForm(false);
+  };
+
+  const removeExam = (id: string) => {
+    setExams(exams.filter(e => e.id !== id));
+  };
+
+  const getCountdown = (dateStr: string) => {
+    const examDate = new Date(dateStr);
+    const now = new Date();
+    const diff = examDate.getTime() - now.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    return { days, hours, isPast: diff < 0 };
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-bold text-white mb-2">Exam Countdown</h3>
+          <p className="text-ash text-sm">Track upcoming exams and stay on schedule</p>
+        </div>
+        <Button onClick={() => setShowForm(!showForm)}>
+          {showForm ? 'Cancel' : 'Add Exam'}
+        </Button>
+      </div>
+
+      {showForm && (
+        <div className="bg-graphite/50 border border-smoke/40 p-4 rounded-lg space-y-4">
+          <Input
+            placeholder="Exam name"
+            value={newExam.name}
+            onChange={(e) => setNewExam({ ...newExam, name: e.target.value })}
+          />
+          <Input
+            placeholder="Subject"
+            value={newExam.subject}
+            onChange={(e) => setNewExam({ ...newExam, subject: e.target.value })}
+          />
+          <Input
+            type="date"
+            value={newExam.date}
+            onChange={(e) => setNewExam({ ...newExam, date: e.target.value })}
+          />
+          <Button onClick={addExam}>Save Exam</Button>
+        </div>
+      )}
+
+      {exams.length === 0 ? (
+        <div className="text-center py-12">
+          <AlarmClock className="w-12 h-12 text-ash/40 mx-auto mb-4" />
+          <p className="text-ash">No upcoming exams. Add one to start tracking!</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {exams.map((exam) => {
+            const countdown = getCountdown(exam.date);
+            return (
+              <div key={exam.id} className="bg-graphite/50 border border-smoke/40 p-4 rounded-lg flex items-center justify-between">
+                <div>
+                  <h4 className="text-white font-medium">{exam.name}</h4>
+                  <p className="text-ash text-sm">{exam.subject} · {new Date(exam.date).toLocaleDateString()}</p>
+                </div>
+                <div className="text-right">
+                  {countdown.isPast ? (
+                    <span className="text-ash">Completed</span>
+                  ) : (
+                    <>
+                      <p className="text-saffron font-bold text-xl">{countdown.days}</p>
+                      <p className="text-ash text-xs">days left</p>
+                    </>
+                  )}
+                </div>
+                <button onClick={() => removeExam(exam.id)} className="text-ash hover:text-error ml-4">
+                  ×
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Study Room Panel ───────────────────────────────────────────────────────────
+
+function StudyRoomPanel() {
+  const [rooms, setRooms] = useState<Array<{ id: string; name: string; topic: string; members: number; active: boolean }>>([
+    { id: '1', name: 'JEE Prep 2026', topic: 'Physics', members: 24, active: true },
+    { id: '2', name: 'NEET Biology', topic: 'Zoology', members: 18, active: true },
+    { id: '3', name: 'IIT Delhi Group', topic: 'Mathematics', members: 12, active: false },
+  ]);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newRoom, setNewRoom] = useState({ name: '', topic: '' });
+
+  const createRoom = async () => {
+    if (!newRoom.name || !newRoom.topic) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/studyos/room/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRoom),
+      });
+      const data = await res.json();
+      setRooms([...rooms, { id: data.id || Date.now().toString(), ...newRoom, members: 1, active: true }]);
+      setNewRoom({ name: '', topic: '' });
+      setShowCreate(false);
+    } catch {
+      setRooms([...rooms, { id: Date.now().toString(), ...newRoom, members: 1, active: true }]);
+      setNewRoom({ name: '', topic: '' });
+      setShowCreate(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-bold text-white mb-2">Study Rooms</h3>
+          <p className="text-ash text-sm">Collaborate with peers on shared study materials</p>
+        </div>
+        <Button onClick={() => setShowCreate(!showCreate)}>
+          <UserPlus className="w-4 h-4 mr-2" />
+          Create Room
+        </Button>
+      </div>
+
+      {showCreate && (
+        <div className="bg-graphite/50 border border-smoke/40 p-4 rounded-lg space-y-4">
+          <Input
+            placeholder="Room name (e.g., JEE 2026 Prep)"
+            value={newRoom.name}
+            onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
+          />
+          <Input
+            placeholder="Topic (e.g., Calculus, Organic Chemistry)"
+            value={newRoom.topic}
+            onChange={(e) => setNewRoom({ ...newRoom, topic: e.target.value })}
+          />
+          <Button onClick={createRoom}>Create Study Room</Button>
+        </div>
+      )}
+
+      <div className="grid gap-4">
+        {rooms.map((room) => (
+          <div key={room.id} className="cut-card bg-graphite/50 border border-smoke/40 p-4 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className={`w-3 h-3 rounded-full ${room.active ? 'bg-mint animate-pulse' : 'bg-ash'}`} />
+                <div>
+                  <h4 className="text-white font-medium">{room.name}</h4>
+                  <p className="text-ash text-sm">{room.topic} · {room.members} members</p>
+                </div>
+              </div>
+              <Button size="sm" variant={room.active ? 'primary' : 'ghost'}>
+                <MessageCircle className="w-4 h-4 mr-2" />
+                {room.active ? 'Join' : 'View'}
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {rooms.length === 0 && (
+        <div className="text-center py-12">
+          <Users className="w-12 h-12 text-ash/40 mx-auto mb-4" />
+          <p className="text-ash">No study rooms yet. Create one to start collaborating!</p>
+        </div>
+      )}
     </div>
   );
 }

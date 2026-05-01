@@ -89,7 +89,7 @@ export class XPSystem {
      */
     async awardXP(
         action: 'research' | 'flashcard_review' | 'perfect_recall' | 'daily_streak' |
-            'brain_sleep' | 'pdf_upload' | 'youtube_research' | 'night_discovery' | 'quiz_complete',
+            'brain_sleep' | 'pdf_upload' | 'youtube_research' | 'night_discovery' | 'quiz_complete' | 'voice_command',
         metadata?: Record<string, any>
     ): Promise<{ xpEarned: number; newAchievements: Achievement[]; levelUp: boolean; newLevel?: number }> {
         const XP_VALUES: Record<string, number> = {
@@ -102,6 +102,7 @@ export class XPSystem {
             youtube_research: 40,
             night_discovery: 60,
             quiz_complete: 35,
+            voice_command: 10,
         };
 
         const xpEarned = XP_VALUES[action] ?? 10;
