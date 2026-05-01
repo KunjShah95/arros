@@ -86,7 +86,7 @@ export function StudyOSPage() {
   };
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6 pb-20">
+    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-6 pb-20" style={{ backgroundColor: '#FAFAFA' }}>
       <div className="max-w-7xl mx-auto py-6">
         {/* Header */}
         <motion.div
@@ -95,12 +95,11 @@ export function StudyOSPage() {
           className="mb-10 text-center"
         >
           <div className="inline-block relative mb-4">
-            <Mandala className="w-20 h-20 animate-[spin_60s_linear_infinite] opacity-5 absolute inset-0 -m-0" />
-            <h1 className="text-5xl font-display font-bold text-white relative z-10 tracking-tight italic">
-              Vidya OS
+            <h1 className="text-5xl font-semibold relative z-10 tracking-tight" style={{ color: '#1A1A1A' }}>
+              Study OS
             </h1>
           </div>
-          <p className="text-[11px] uppercase tracking-[0.4em] text-saffron font-bold">The Sovereign Discipline Interface</p>
+          <p className="text-[11px] uppercase tracking-[0.4em]" style={{ color: '#666' }}>The Learning Interface</p>
         </motion.div>
 
         {/* Feature Navigation Grid */}
@@ -113,24 +112,21 @@ export function StudyOSPage() {
               transition={{ delay: idx * 0.05 }}
               onClick={() => { setActiveFeature(f.id); setResult(null); }}
               className={cn(
-                "p-4 cut-card transition-all flex flex-col items-center gap-3 border relative overflow-hidden group/btn",
+                "p-4 rounded-lg transition-all flex flex-col items-center gap-3 border relative overflow-hidden group/btn",
                 activeFeature === f.id
-                  ? "bg-gradient-to-br from-void to-graphite border-gold/40 shadow-[0_0_25px_rgba(212,175,55,0.1)]"
-                  : "bg-void/40 border-smoke/10 hover:border-smoke/30"
+                  ? "border-gray-400 bg-gray-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
               )}
             >
-              {activeFeature === f.id && (
-                <motion.div layoutId="active-nav-glow" className="absolute inset-0 bg-gold/5 pointer-events-none" />
-              )}
               <div className={cn(
                 "w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover/btn:scale-110",
-                activeFeature === f.id ? "bg-gold/20 text-gold" : "bg-smoke/10 text-ash"
+                activeFeature === f.id ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-600"
               )}>
                 <f.icon className="w-5 h-5" />
               </div>
               <span className={cn(
                 "text-[9px] uppercase font-bold tracking-widest text-center",
-                activeFeature === f.id ? "text-white" : "text-ash"
+                activeFeature === f.id ? "text-gray-800" : "text-gray-600"
               )}>{f.label}</span>
             </motion.button>
           ))}
@@ -179,50 +175,45 @@ export function StudyOSPage() {
 
           {/* Sidebar:修行 (Sadhana) Profile */}
           <div className="space-y-8">
-            <Card className="p-8 cut-card cut-border bg-graphite/40 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                <Trophy className="w-16 h-16 text-gold" />
-              </div>
-              <div className="relative z-10">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-16 h-16 cut-card border-2 border-gold/40 p-1">
-                    <div className="w-full h-full bg-gold/10 flex items-center justify-center text-gold font-display font-bold text-2xl">
-                      12
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-ash tracking-widest leading-none mb-1">Scholar Level</p>
-                    <h3 className="text-2xl font-display font-bold text-white tracking-tight">Kunj Shah</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-peacock" />
-                      <span className="text-[9px] uppercase font-bold text-peacock tracking-widest">Adept Realizer</span>
-                    </div>
+            <Card className="p-8 relative overflow-hidden" variant="elevated">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-16 h-16 rounded-lg border-2 p-1" style={{ borderColor: '#1A1A1A' }}>
+                  <div className="w-full h-full flex items-center justify-center font-bold text-2xl" style={{ backgroundColor: '#F5F5F5', color: '#1A1A1A' }}>
+                    12
                   </div>
                 </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <div className="flex justify-between text-[10px] uppercase font-bold text-ash tracking-widest mb-2">
-                      <span>Jnana XP (Progress)</span>
-                      <span className="text-gold">4,250 / 5,000</span>
-                    </div>
-                    <ProgressBar progress={85} variant="gold" className="h-2" />
+                <div>
+                  <p className="text-[10px] uppercase font-bold tracking-widest leading-none mb-1" style={{ color: '#666' }}>Level</p>
+                  <h3 className="text-2xl font-semibold" style={{ color: '#1A1A1A' }}>Kunj Shah</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-800" />
+                    <span className="text-[9px] uppercase font-bold tracking-widest" style={{ color: '#666' }}>Adept</span>
                   </div>
+                </div>
+              </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="px-4 py-3 cut-card bg-void/50 border border-smoke/10">
-                      <p className="text-[9px] uppercase font-bold text-ash tracking-widest mb-1">Consistency</p>
-                      <div className="flex items-center gap-2">
-                        <Flame className="w-4 h-4 text-saffron" />
-                        <span className="text-lg font-display font-bold text-white">14 Days</span>
-                      </div>
+              <div className="space-y-6">
+                <div>
+                  <div className="flex justify-between text-[10px] uppercase font-bold tracking-widest mb-2" style={{ color: '#666' }}>
+                    <span>Progress</span>
+                    <span>4,250 / 5,000</span>
+                  </div>
+                  <ProgressBar progress={85} variant="neutral" className="h-2" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="px-4 py-3 rounded-lg" style={{ backgroundColor: '#F5F5F5' }}>
+                    <p className="text-[9px] uppercase font-bold tracking-widest mb-1" style={{ color: '#666' }}>Streak</p>
+                    <div className="flex items-center gap-2">
+                      <Flame className="w-4 h-4" style={{ color: '#F57C00' }} />
+                      <span className="text-lg font-semibold" style={{ color: '#1A1A1A' }}>14 Days</span>
                     </div>
-                    <div className="px-4 py-3 cut-card bg-void/50 border border-smoke/10">
-                      <p className="text-[9px] uppercase font-bold text-ash tracking-widest mb-1">Realizations</p>
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-gold" />
-                        <span className="text-lg font-display font-bold text-white">128</span>
-                      </div>
+                  </div>
+                  <div className="px-4 py-3 rounded-lg" style={{ backgroundColor: '#F5F5F5' }}>
+                    <p className="text-[9px] uppercase font-bold tracking-widest mb-1" style={{ color: '#666' }}>Items</p>
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" style={{ color: '#1A1A1A' }} />
+                      <span className="text-lg font-semibold" style={{ color: '#1A1A1A' }}>128</span>
                     </div>
                   </div>
                 </div>

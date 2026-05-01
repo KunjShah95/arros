@@ -330,17 +330,18 @@ export function FlashcardsPage() {
 
     // ─── Overview Mode ────────────────────────────────────────────────────────────
     return (
-        <div className="h-full flex flex-col overflow-y-auto px-6 py-6 space-y-6">
+        <div className="h-full flex flex-col overflow-y-auto px-6 py-6 space-y-6" style={{ backgroundColor: '#FAFAFA' }}>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-chalk">Flashcard Deck</h1>
-                    <p className="text-sm text-ash mt-0.5">SM-2 spaced repetition powered by your brain</p>
+                    <h1 className="text-2xl font-bold" style={{ color: '#1A1A1A' }}>Flashcard Deck</h1>
+                    <p className="text-sm mt-0.5" style={{ color: '#666' }}>SM-2 spaced repetition powered by your brain</p>
                 </div>
                 {dueCards.length > 0 && (
                     <button
                         onClick={startStudy}
-                        className="cut-card bg-peacock/20 border border-peacock/40 text-peacock px-5 py-2.5 text-sm font-medium hover:bg-peacock/30 transition-all flex items-center gap-2"
+                        className="rounded-lg px-5 py-2.5 text-sm font-medium transition-all flex items-center gap-2"
+                        style={{ backgroundColor: '#1A1A1A', color: '#FAFAFA' }}
                     >
                         <Zap className="w-4 h-4" />
                         Study ({dueCards.length} due)

@@ -16,7 +16,7 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
-import { Card, Button, Badge, Input, SanskritButton, Mandala, cn } from '../components/ui';
+import { Card, Button, Badge, Input, cn } from '../components/ui';
 import type { Source } from '../types';
 
 const sourceTypeIcons: Record<string, React.ElementType> = {
@@ -120,7 +120,7 @@ export function SourcesPage() {
     : 0;
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-3 md:p-6 pb-24 md:pb-20 aurora-surface">
+    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth p-3 md:p-6 pb-24 md:pb-20" style={{ backgroundColor: '#FAFAFA' }}>
       <div className="max-w-6xl mx-auto py-3 md:py-6">
         {/* Header */}
         <motion.div
@@ -128,73 +128,72 @@ export function SourcesPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="cut-card cut-border glass-premium p-5 md:p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-48 h-48 -mr-16 -mt-16 opacity-5 pointer-events-none">
-              <Mandala size="md" />
-            </div>
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <Card className="p-5 md:p-6" variant="elevated">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 cut-card bg-gold/10 flex items-center justify-center border border-gold/20 text-gold">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#1A1A1A', color: '#FAFAFA' }}>
                     <BookOpen className="w-5 h-5" />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-display font-bold text-white tracking-tight">Evidence Ledger</h1>
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-gold font-bold">Verified Knowledge Sources</p>
+                    <h1 className="text-2xl font-semibold" style={{ color: '#1A1A1A' }}>Evidence Ledger</h1>
+                    <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: '#666' }}>Verified Knowledge Sources</p>
                   </div>
                 </div>
-                <p className="text-sm text-silver max-w-xl leading-relaxed">
+                <p className="text-sm" style={{ color: '#666', maxWidth: '400px' }}>
                   Every realization in ARROS is backed by verified evidence. Review the foundations of your synthesized insights.
                 </p>
               </div>
 
               <div className="flex gap-4">
                 <div className="text-center">
-                  <p className="text-[9px] uppercase font-bold text-ash tracking-widest mb-1">Satya Index</p>
-                  <p className="text-2xl font-display font-bold text-gold">{(avgReliability * 100).toFixed(0)}%</p>
+                  <p className="text-[9px] uppercase font-bold tracking-widest mb-1" style={{ color: '#666' }}>Satya Index</p>
+                  <p className="text-2xl font-semibold" style={{ color: '#1A1A1A' }}>{(avgReliability * 100).toFixed(0)}%</p>
                 </div>
-                <div className="w-px h-10 bg-smoke/20 my-auto" />
+                <div className="w-px h-10 bg-gray-200 my-auto" />
                 <div className="text-center">
-                  <p className="text-[9px] uppercase font-bold text-ash tracking-widest mb-1">Evidence Depth</p>
-                  <p className="text-2xl font-display font-bold text-peacock">{sources.length}</p>
+                  <p className="text-[9px] uppercase font-bold tracking-widest mb-1" style={{ color: '#666' }}>Evidence Depth</p>
+                  <p className="text-2xl font-semibold" style={{ color: '#1A1A1A' }}>{sources.length}</p>
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         </motion.div>
 
         {/* Filters */}
         <div className="grid lg:grid-cols-[1fr_auto_auto] gap-3 md:gap-4 mb-8">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ash group-focus-within:text-gold transition-colors" />
-            <input
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#666' }} />
+            <Input
               type="text"
               placeholder="Search across the evidence matrix..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full min-h-[44px] pl-12 pr-4 py-4 bg-slate/40 border border-smoke/30 rounded-xl text-chalk placeholder:text-ash/40 focus:outline-none focus:border-gold/50 transition-all font-body text-sm"
+              className="w-full pl-12 pr-4"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 md:px-6 min-h-[44px] py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-[10px] uppercase font-bold tracking-widest focus:border-gold/50 transition-all"
+            className="px-4 md:px-6 min-h-[44px] py-3 rounded-lg border text-sm"
+            style={{ backgroundColor: '#FAFAFA', borderColor: '#E0E0E0', color: '#1A1A1A' }}
           >
-            <option value="all">Universal Source</option>
-            <option value="web">Loka (Web)</option>
-            <option value="paper">Grantha (Papers)</option>
-            <option value="github">Kriti (Code)</option>
-            <option value="blog">Varta (Blogs)</option>
+            <option value="all">All Sources</option>
+            <option value="web">Web</option>
+            <option value="paper">Papers</option>
+            <option value="github">Code</option>
+            <option value="blog">Blogs</option>
           </select>
 
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-4 md:px-6 min-h-[44px] py-3 bg-void border border-smoke/30 rounded-xl text-chalk text-[10px] uppercase font-bold tracking-widest focus:border-gold/50 transition-all"
+            className="px-4 md:px-6 min-h-[44px] py-3 rounded-lg border text-sm"
+            style={{ backgroundColor: '#FAFAFA', borderColor: '#E0E0E0', color: '#1A1A1A' }}
           >
-            <option value="recent">Navya (Recent)</option>
-            <option value="reliability">Vishvasya (Trust)</option>
+            <option value="recent">Recent</option>
+            <option value="reliability">Trust</option>
           </select>
         </div>
 
@@ -202,14 +201,13 @@ export function SourcesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             <div className="col-span-full py-20 flex flex-col items-center justify-center gap-4">
-              <Spinner variant="gold" size="md" />
-              <p className="text-[10px] uppercase font-bold text-ash tracking-[0.3em]">Querying the Akasha...</p>
+              <p className="text-sm" style={{ color: '#666' }}>Loading sources...</p>
             </div>
           ) : filteredSources.length === 0 ? (
-            <div className="col-span-full py-20 text-center cut-card cut-border bg-graphite/20">
-              <FileText className="w-12 h-12 text-ash/30 mx-auto mb-6" />
-              <h3 className="text-xl font-display font-bold text-ash mb-2">No evidence found</h3>
-              <p className="text-sm text-ash/60">The requested knowledge capsule does not exist in our indices.</p>
+            <div className="col-span-full py-20 text-center rounded-xl" style={{ backgroundColor: '#F5F5F5' }}>
+              <FileText className="w-12 h-12 mx-auto mb-6" style={{ color: '#CCC' }} />
+              <h3 className="text-xl font-semibold mb-2" style={{ color: '#1A1A1A' }}>No evidence found</h3>
+              <p className="text-sm" style={{ color: '#666' }}>The requested knowledge capsule does not exist in our indices.</p>
             </div>
           ) : (
             filteredSources.map((source, index) => (
@@ -225,7 +223,7 @@ export function SourcesPage() {
 function SourceCard({ source, index }: { source: Source; index: number }) {
   const [copied, setCopied] = useState(false);
   const Icon = sourceTypeIcons[source.type] || Globe;
-  const colorClass = sourceTypeColors[source.type] || 'text-silver';
+  const colorClass = sourceTypeColors[source.type] || 'text-gray-500';
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(source.url);
@@ -241,55 +239,57 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
       whileHover={{ y: -5 }}
       className="group h-full"
     >
-      <Card className="p-6 cut-card border-smoke/30 bg-graphite/40 hover:border-gold/40 transition-all flex flex-col h-full">
+      <Card className="p-6 flex flex-col h-full" variant="elevated">
         <div className="flex justify-between items-start mb-4">
-          <div className={cn("w-10 h-10 cut-card bg-void border border-smoke/30 flex items-center justify-center", colorClass)}>
+          <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", colorClass)} style={{ backgroundColor: '#F5F5F5', border: '1px solid #E0E0E0' }}>
             <Icon className="w-5 h-5" />
           </div>
           <div className="flex flex-col items-end gap-1">
-            <Badge variant="gold" className="text-[9px] px-2 py-0.5">
-              {Math.round((source.reliability || 0) * 100)}% RELIABLE
+            <Badge variant="neutral" className="text-[9px] px-2 py-0.5">
+              {Math.round((source.reliability || 0) * 100)}% Reliable
             </Badge>
             {source.bias && source.bias > 0.3 && (
-              <Badge variant="saffron" className="text-[9px] px-2 py-0.5">BIAS ALERT</Badge>
+              <Badge variant="warning" className="text-[9px] px-2 py-0.5">Bias Alert</Badge>
             )}
           </div>
         </div>
 
-        <h3 className="text-base font-display font-bold text-white group-hover:text-gold transition-colors mb-2 line-clamp-2 leading-tight">
+        <h3 className="text-base font-semibold mb-2 line-clamp-2 leading-tight" style={{ color: '#1A1A1A' }}>
           {source.title}
         </h3>
 
-        <p className="text-xs text-ash font-mono truncate mb-4 opacity-60">
+        <p className="text-xs font-mono truncate mb-4" style={{ color: '#888' }}>
           {source.url.replace('https://', '')}
         </p>
 
-        <div className="bg-void/40 p-3 rounded-lg border border-smoke/10 mb-6 flex-1">
-          <p className="text-xs text-silver leading-relaxed line-clamp-3 italic">
+        <div className="p-3 rounded-lg mb-6 flex-1" style={{ backgroundColor: '#F5F5F5' }}>
+          <p className="text-xs leading-relaxed line-clamp-3" style={{ color: '#666' }}>
             "{source.content?.slice(0, 150)}..."
           </p>
         </div>
 
-        <div className="mt-auto pt-4 border-t border-smoke/10 flex items-center justify-between">
+        <div className="mt-auto pt-4 border-t flex items-center justify-between" style={{ borderColor: '#E0E0E0' }}>
           <div className="flex gap-2">
             <button
               onClick={copyToClipboard}
-              className="p-2 rounded-lg bg-void border border-smoke/30 text-ash hover:text-gold hover:border-gold/40 transition-all"
+              className="p-2 rounded-lg border transition-all"
+              style={{ borderColor: '#E0E0E0', color: '#666' }}
             >
               {copied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
             <a
               href={source.url}
               target="_blank"
-              className="p-2 rounded-lg bg-void border border-smoke/30 text-ash hover:text-peacock hover:border-peacock/40 transition-all"
+              className="p-2 rounded-lg border transition-all"
+              style={{ borderColor: '#E0E0E0', color: '#666' }}
             >
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
 
-          <SanskritButton variant="ghost" className="px-3 py-1.5 h-auto text-[9px] gap-2 border-none">
-            Explore Depth <ArrowRight className="w-3 h-3" />
-          </SanskritButton>
+          <Button variant="ghost" size="sm" className="px-3 py-1.5 h-auto text-[9px] gap-2">
+            Explore <ArrowRight className="w-3 h-3" />
+          </Button>
         </div>
       </Card>
     </motion.div>
@@ -298,9 +298,8 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
 
 const Spinner = ({ className, size = 'md', variant = 'peacock' }: { className?: string, size?: 'sm' | 'md' | 'lg', variant?: string }) => {
   const sizeClass = size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-10 h-10' : 'w-6 h-6';
-  const colorClass = variant === 'saffron' ? 'border-saffron' : variant === 'gold' ? 'border-gold' : 'border-peacock';
 
   return (
-    <div className={cn("animate-spin rounded-full border-2 border-t-transparent", sizeClass, colorClass, className)} />
+    <div className={cn("animate-spin rounded-full border-2 border-t-transparent", sizeClass, className)} style={{ borderColor: '#1A1A1A' }} />
   );
 };
