@@ -28,6 +28,92 @@ interface MulterRequest extends Request {
   file?: Express.Multer.File;
 }
 
+// ─── Authentication API ─────────────────────────────────────────────────────
+
+/** GET /api/auth/google - Redirect to Google OAuth */
+router.get('/auth/google', (req: Request, res: Response) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID || 'YOUR_CLIENT_ID_PLACEHOLDER';
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/auth/google/callback`;
+  
+  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  authUrl.searchParams.set('client_id', clientId);
+  authUrl.searchParams.set('redirect_uri', redirectUri);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('scope', 'openid email profile');
+  authUrl.searchParams.set('access_type', 'offline');
+  authUrl.searchParams.set('prompt', 'consent');
+  
+  if (clientId === 'YOUR_CLIENT_ID_PLACEHOLDER') {
+    console.warn('Google OAuth: Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables');
+  }
+  
+  res.redirect(authUrl.toString());
+});
+
+/** GET /api/auth/google/callback - Handle OAuth callback */
+router.get('/auth/google/callback', async (req: Request, res: Response) => {
+  const { code, error: oauthError } = req.query;
+  
+  if (oauthError) {
+    console.error('Google OAuth error:', oauthError);
+    return res.redirect('/signin?error=oauth_failed');
+  }
+  
+  if (!code) {
+    return res.redirect('/signin?error=no_code');
+  }
+  
+  const clientId = process.env.GOOGLE_CLIENT_ID || 'YOUR_CLIENT_ID_PLACEHOLDER';
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET || 'YOUR_CLIENT_SECRET_PLACEHOLDER';
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/auth/google/callback`;
+  
+  if (clientId === 'YOUR_CLIENT_ID_PLACEHOLDER') {
+    return res.redirect('/signin?error=oauth_not_configured');
+  }
+  
+  try {
+    const tokenUrl = new URL('https://oauth2.googleapis.com/token');
+    const tokenParams = new URLSearchParams({
+      code: code as string,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code',
+    });
+    
+    const tokenResponse = await fetch(tokenUrl.toString(), {
+      method: 'POST',
+      body: tokenParams,
+    });
+    
+    const tokens = await tokenResponse.json() as { id_token?: string; access_token?: string; error?: string };
+    
+    if (tokens.error) {
+      console.error('Token exchange error:', tokens.error);
+      return res.redirect('/signin?error=token_exchange_failed');
+    }
+    
+    res.redirect('/signin?error=oauth_not_configured');
+  } catch (err) {
+    console.error('OAuth callback error:', err);
+    res.redirect('/signin?error=oauth_failed');
+  }
+});
+
+/** GET /api/auth/session - Get current session */
+router.get('/auth/session', authenticate({ optional: true }), (req: Request, res: Response) => {
+  if (req.user) {
+    res.json({ user: req.user, authenticated: true });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
+/** POST /api/auth/logout - Logout */
+router.post('/auth/logout', authenticate({ optional: true }), (req: Request, res: Response) => {
+  res.json({ success: true });
+});
+
 router.post('/research', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
     const { query, useBrain = true } = req.body;
