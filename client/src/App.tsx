@@ -174,7 +174,6 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/landing" element={<Navigate to="/" replace />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
