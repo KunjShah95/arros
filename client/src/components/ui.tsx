@@ -8,7 +8,7 @@ export function cn(...inputs: (string | undefined | null | boolean | Record<stri
 
 /* ===== BUTTONS ===== */
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'electric' | 'saffron' | 'peacock' | 'gold';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'social';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   icon?: React.ReactNode;
@@ -25,61 +25,43 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles = `
-    inline-flex items-center justify-center font-medium min-h-[44px]
-    transition-all duration-200 ease-out
-    focus:outline-none focus-visible:ring-2 focus-visible:ring-peacock focus-visible:ring-offset-2 focus-visible:ring-offset-void
+    inline-flex items-center justify-center font-medium
+    transition-all duration-150 ease-out
+    focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2
     disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
-    cut-card relative overflow-hidden
   `;
 
   const variants = {
     primary: `
-      bg-saffron text-void hover:bg-saffron-light 
-      shadow-[0_10px_28px_rgba(255,107,53,0.28)] hover:shadow-[0_14px_32px_rgba(255,107,53,0.36)]
+      bg-[var(--color-accent)] text-white hover:opacity-90
       active:scale-[0.98]
     `,
-    saffron: `
-      bg-gradient-to-r from-saffron to-saffron-light text-void
-      hover:shadow-[0_14px_32px_rgba(255,107,53,0.34)] hover:-translate-y-0.5
-      active:translate-y-0
-    `,
-    peacock: `
-      bg-peacock text-cream
-      hover:bg-peacock-light hover:shadow-[0_14px_32px_rgba(0,168,107,0.3)] hover:-translate-y-0.5
-      active:translate-y-0
-    `,
-    gold: `
-      bg-gold text-void font-semibold
-      hover:bg-gold-light hover:shadow-[0_14px_32px_rgba(212,168,75,0.3)] hover:-translate-y-0.5
-      active:translate-y-0
-    `,
     secondary: `
-      bg-graphite text-chalk border border-smoke
-      hover:bg-smoke hover:border-ash
+      bg-transparent border border-[var(--color-border)] text-[var(--color-text-primary)]
+      hover:bg-[var(--color-bg-tertiary)]
       active:scale-[0.98]
     `,
     ghost: `
-      text-silver hover:text-chalk hover:bg-smoke/50
+      bg-transparent text-[var(--color-text-secondary)]
+      hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)]
     `,
-    danger: `
-      bg-error text-white hover:bg-red-600
-    `,
-    electric: `
-      bg-peacock text-void font-semibold
-      hover:shadow-[0_14px_32px_rgba(0,168,107,0.28)] hover:-translate-y-0.5
-      active:translate-y-0
+    social: `
+      bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text-primary)]
+      hover:bg-[var(--color-bg-tertiary)]
     `,
   };
 
   const sizes = {
-    sm: 'px-3 py-2 text-sm rounded-lg gap-1.5',
-    md: 'px-5 py-3 text-sm rounded-xl gap-2',
-    lg: 'px-8 py-4 text-base rounded-xl gap-2.5',
+    sm: 'h-8 px-3 text-xs rounded-[4px] gap-1.5',
+    md: 'h-10 px-4 text-sm rounded-[4px] gap-2',
+    lg: 'h-12 px-6 text-base rounded-[4px] gap-2.5',
   };
+
+  const textStyles = 'text-sm font-medium uppercase tracking-[0.05em]';
 
   return (
     <button
-      className={cn(baseStyles, variants[variant], sizes[size], className)}
+      className={cn(baseStyles, variants[variant], sizes[size], textStyles, className)}
       disabled={disabled || loading}
       {...props}
     >
@@ -90,13 +72,6 @@ export function Button({
         </svg>
       ) : icon ? icon : null}
       {children}
-
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100"
-        initial={{ x: "-100%" }}
-        whileHover={{ x: "100%" }}
-        transition={{ duration: 0.5 }}
-      />
     </button>
   );
 }
@@ -112,31 +87,31 @@ export function Input({ className, label, error, icon, ...props }: InputProps) {
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-silver mb-2 tracking-wide">
+        <label className="block text-[0.75rem] font-medium text-[var(--color-text-secondary)] uppercase tracking-[0.05em] mb-2">
           {label}
         </label>
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-ash">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)]">
             {icon}
           </div>
         )}
         <input
           className={cn(
-            'w-full px-4 py-3 bg-slate border border-smoke rounded-xl',
-            'min-h-[44px]',
-            'text-chalk placeholder:text-ash',
-            'focus:outline-none focus:border-saffron focus:ring-2 focus:ring-saffron-10',
-            'transition-all duration-200',
-            icon ? 'pl-11' : '',
-            error ? 'border-error focus:border-error focus:ring-error-10' : '',
+            'w-full px-4 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-[4px]',
+            'h-11',
+            'text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]',
+            'focus:outline-none focus:border-[var(--color-border-focus)]',
+            'transition-colors duration-150',
+            icon ? 'pl-10' : '',
+            error ? 'border-[var(--color-accent)]' : '',
             className
           )}
           {...props}
         />
       </div>
-      {error && <p className="mt-2 text-sm text-error">{error}</p>}
+      {error && <p className="mt-2 text-sm text-[var(--color-accent)]">{error}</p>}
     </div>
   );
 }
@@ -179,17 +154,17 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Card({ className, variant = 'default', hover = false, children, ...props }: CardProps) {
   const variants = {
-    default: 'bg-slate border border-smoke',
-    elevated: 'bg-graphite border border-smoke shadow-2xl shadow-black/30',
-    glass: 'glass border border-smoke/50',
+    default: 'bg-[var(--color-bg-secondary)] border border-[var(--color-border)]',
+    elevated: 'bg-[var(--color-bg-secondary)] border border-[var(--color-border)] shadow-[0_1px_3px_rgba(0,0,0,0.04)]',
+    glass: 'bg-[var(--color-bg-secondary)]/80 border border-[var(--color-border)] backdrop-blur-sm',
   };
 
   return (
     <div
       className={cn(
-        'rounded-2xl p-6',
+        'rounded-lg p-6',
         variants[variant],
-        hover && 'card-hover cursor-pointer',
+        hover && 'hover:shadow-[0_1px_3px_rgba(0,0,0,0.04)] cursor-pointer',
         className
       )}
       {...props}
@@ -233,22 +208,14 @@ export function Badge({
   children
 }: {
   className?: string;
-  variant?: 'default' | 'success' | 'warning' | 'error' | 'danger' | 'peacock' | 'saffron' | 'gold' | 'indus' | 'electric' | 'flame' | 'silver';
+  variant?: 'default' | 'success' | 'warning' | 'error';
   children: React.ReactNode;
 }) {
   const variants: Record<string, string> = {
-    default: 'bg-smoke text-silver border border-smoke',
-    success: 'bg-peacock/10 text-peacock border border-peacock/20',
-    warning: 'bg-marigold/10 text-marigold border border-marigold/20',
-    error: 'bg-saffron/10 text-saffron border border-saffron/20',
-    danger: 'bg-saffron/10 text-saffron border border-saffron/20',
-    peacock: 'bg-peacock/10 text-peacock border border-peacock/20',
-    saffron: 'bg-saffron/10 text-saffron border border-saffron/20',
-    gold: 'bg-gold/10 text-gold border border-gold/20',
-    indus: 'bg-indus/10 text-indus border border-indus/20',
-    electric: 'bg-peacock/10 text-peacock border border-peacock/20',
-    flame: 'bg-saffron/10 text-saffron border border-saffron/20',
-    silver: 'bg-ash/10 text-ash border border-ash/20',
+    default: 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] border border-[var(--color-border)]',
+    success: 'bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20',
+    warning: 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20',
+    error: 'bg-[var(--color-accent)]/10 text-[var(--color-accent)] border border-[var(--color-accent)]/20',
   };
 
   return (
@@ -263,17 +230,11 @@ export function Badge({
 }
 
 /* ===== PROGRESS BAR ===== */
-export function ProgressBar({ progress, variant = 'saffron', className }: { progress: number; variant?: 'saffron' | 'peacock' | 'gold', className?: string }) {
-  const colors = {
-    saffron: 'bg-gradient-to-r from-saffron to-vibrant',
-    peacock: 'bg-gradient-to-r from-peacock to-peacock-light',
-    gold: 'bg-gradient-to-r from-gold to-saffron',
-  };
-
+export function ProgressBar({ progress, className }: { progress: number; className?: string }) {
   return (
-    <div className={cn("w-full h-1.5 bg-slate rounded-full overflow-hidden", className)}>
+    <div className={cn("w-full h-1.5 bg-[var(--color-bg-tertiary)] rounded-full overflow-hidden", className)}>
       <motion.div
-        className={cn('h-full rounded-full', colors[variant])}
+        className={cn('h-full rounded-full bg-[var(--color-accent)]')}
         initial={{ width: 0 }}
         animate={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
         transition={{ duration: 0.7, ease: "easeOut" }}
@@ -283,21 +244,15 @@ export function ProgressBar({ progress, variant = 'saffron', className }: { prog
 }
 
 /* ===== SPINNER ===== */
-export function Spinner({ size = 'md', variant = 'saffron' }: { size?: 'sm' | 'md' | 'lg'; variant?: 'saffron' | 'peacock' | 'chalk' }) {
+export function Spinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const sizes = {
     sm: 'h-4 w-4',
     md: 'h-6 w-6',
     lg: 'h-10 w-10',
   };
 
-  const colors = {
-    saffron: 'text-saffron',
-    peacock: 'text-peacock',
-    chalk: 'text-chalk',
-  };
-
   return (
-    <svg className={cn('animate-spin', sizes[size], colors[variant])} fill="none" viewBox="0 0 24 24">
+    <svg className={cn('animate-spin', sizes[size])} fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>
@@ -345,7 +300,7 @@ export function Avatar({
 
 /* ===== DIVIDER ===== */
 export function Divider({ className }: { className?: string }) {
-  return <div className={cn('h-px bg-smoke', className)} />;
+  return <div className={cn('h-px bg-[var(--color-border)]', className)} />;
 }
 
 /* ===== SKELETON ===== */
@@ -419,29 +374,17 @@ export function Toggle({ checked, onChange, label }: ToggleProps) {
 /* ===== MANDALA DECORATION ===== */
 export function Mandala({ className, size = 'md' }: { className?: string; size?: 'sm' | 'md' | 'lg' }) {
   const sizes = {
-    sm: 'w-16 h-16',
-    md: 'w-32 h-32',
-    lg: 'w-48 h-48',
+    sm: 'w-8 h-8',
+    md: 'w-16 h-16',
+    lg: 'w-24 h-24',
   };
 
   return (
     <div className={cn('relative', sizes[size], className)}>
-      <svg viewBox="0 0 100 100" className="w-full h-full opacity-20">
-        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-saffron" />
-        <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-peacock" />
-        <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-gold" />
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
-          <line
-            key={angle}
-            x1="50"
-            y1="50"
-            x2={50 + 45 * Math.cos((angle * Math.PI) / 180)}
-            y2={50 + 45 * Math.sin((angle * Math.PI) / 180)}
-            stroke="currentColor"
-            strokeWidth="0.3"
-            className="text-saffron"
-          />
-        ))}
+      <svg viewBox="0 0 100 100" className="w-full h-full opacity-10">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-[var(--color-accent)]" />
+        <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-[var(--color-accent)]" />
+        <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-[var(--color-accent)]" />
       </svg>
     </div>
   );
@@ -452,7 +395,7 @@ export function DivyaSparkle({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      className={cn('w-4 h-4', className)}
+      className={cn('w-3 h-3', className)}
       fill="currentColor"
     >
       <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
@@ -474,23 +417,22 @@ export function SanskritButton({
   return (
     <button
       className={cn(
-        'relative px-8 py-4 rounded-xl font-display font-bold transition-all duration-300',
-        'min-h-[44px]',
-        'hover:-translate-y-1 active:translate-y-0 active:scale-95',
-        'cut-card cut-border',
+        'inline-flex items-center justify-center font-medium h-10 px-4 text-sm rounded-[4px]',
+        'transition-all duration-150 ease-out',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2',
+        'disabled:opacity-40 disabled:cursor-not-allowed',
         variant === 'primary'
-          ? 'bg-gradient-to-r from-saffron to-gold text-void shadow-xl shadow-saffron/20'
+          ? 'bg-[var(--color-accent)] text-white'
           : variant === 'outline'
-            ? 'bg-transparent text-saffron border-saffron/40 hover:border-saffron'
+            ? 'bg-transparent border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)]'
             : variant === 'ghost'
-              ? 'bg-transparent text-silver hover:text-chalk hover:bg-smoke/30'
-              : 'bg-graphite text-chalk border border-smoke hover:border-ash',
+              ? 'bg-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)]'
+              : 'bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)]',
         className
       )}
       {...props}
     >
-      <span className="relative z-10">{children}</span>
-      <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-300" />
+      {children}
     </button>
   );
 }
