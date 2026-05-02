@@ -1,13 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
-/* ARROS 2.0 Digital Ashram Theme */
+/* European Minimal Academia Design Tokens */
 :root {
-  /* Dark Theme - Digital Ashram Palette */
-  --color-void: #030305;
-  --color-ash: #121214;
-  --color-saffron: #ff7b00;
-  --color-sanskrit-gold: #d4af37;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  --color-bg: #FAFAF5;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F5F5F0;
+  --color-border: #E5E5E0;
+  --color-text: #1A1A1A;
+  --color-text-muted: #6B7B6B;
+  --color-accent: #C45A3B;
+  --color-accent-hover: #B36B4D;
+  --color-dark: #1A1A1A;
+}
   --color-neural-white: #e8e6e1;
   --color-cognition-cyan: #00e5c9;
   --color-warning-vermilion: #ff4d4d;
