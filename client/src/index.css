@@ -1,4 +1,45 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+/* ARROS 2.0 Digital Ashram Theme */
+:root {
+  /* Dark Theme - Digital Ashram Palette */
+  --color-void: #030305;
+  --color-ash: #121214;
+  --color-saffron: #ff7b00;
+  --color-sanskrit-gold: #d4af37;
+  --color-neural-white: #e8e6e1;
+  --color-cognition-cyan: #00e5c9;
+  --color-warning-vermilion: #ff4d4d;
+  
+  /* Typography */
+  --font-display: 'Cinzel', serif;
+  --font-interface: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* ARROS 2.0 utility classes */
+.text-void { color: var(--color-void); }
+.text-ash { color: var(--color-ash); }
+.text-saffron { color: var(--color-saffron); }
+.text-sanskrit-gold { color: var(--color-sanskrit-gold); }
+.text-neural-white { color: var(--color-neural-white); }
+.text-cognition-cyan { color: var(--color-cognition-cyan); }
+.text-warning-vermilion { color: var(--color-warning-vermilion); }
+
+.bg-void { background-color: var(--color-void); }
+.bg-ash { background-color: var(--color-ash); }
+.bg-saffron { background-color: var(--color-saffron); }
+.bg-sanskrit-gold { background-color: var(--color-sanskrit-gold); }
+.bg-neural-white { background-color: var(--color-neural-white); }
+.bg-cognition-cyan { background-color: var(--color-cognition-cyan); }
+
+.border-void { border-color: var(--color-void); }
+.border-ash { border-color: var(--color-ash); }
+.border-saffron { border-color: var(--color-saffron); }
+.border-sanskrit-gold { border-color: var(--color-sanskrit-gold); }
+.border-neural-white { border-color: var(--color-neural-white); }
+.border-cognition-cyan { border-color: var(--color-cognition-cyan); }
 
 @theme {
   /* Colors - Light Mode */
