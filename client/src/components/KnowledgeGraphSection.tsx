@@ -48,24 +48,15 @@ export function KnowledgeGraphSection() {
   }, []);
 
   return (
-    <section id="atman" className="py-24 lg:py-32 px-6 lg:px-12 bg-[#1A1A1A]">
+    <section className="py-24 lg:py-32 px-6 lg:px-12 bg-[#1A1A1A]">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-8"
-        >
-          <span className="text-xs font-mono text-[#C45A3B]">03 — Atman</span>
-        </motion.div>
-
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="font-display text-4xl lg:text-5xl font-medium text-white mb-4"
         >
-          Your Second Brain, Fully Realized.
+          See Your Knowledge Grow
         </motion.h2>
 
         <motion.p
@@ -75,7 +66,8 @@ export function KnowledgeGraphSection() {
           transition={{ delay: 0.1 }}
           className="text-[#6B7B6B] text-lg mb-8 max-w-lg"
         >
-          Every idea connected. Every source traceable. Your knowledge as you've always imagined it.
+          Every idea connects to everything else. No more isolated notes. 
+          Watch your understanding take shape.
         </motion.p>
 
         <motion.div
@@ -105,7 +97,7 @@ export function KnowledgeGraphSection() {
           transition={{ delay: 0.3 }}
           className="text-xs font-mono text-[#6B7B6B] mt-4"
         >
-          Sample: Consciousness in Artificial Systems — 47 interconnected concepts
+          Interactive demo: "Consciousness in Artificial Systems" — 47 connected concepts
         </motion.p>
       </div>
     </section>

@@ -2,11 +2,6 @@ import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 
-const SOURCES = [
-  'Rigveda', 'ArXiv', 'PubMed', 'JSTOR', 'GitHub', 'Nature', 
-  'IEEE', 'Personal Notes', 'Twitter Threads', 'Podcast Transcripts'
-];
-
 function Counter({ end, duration = 2 }: { end: number; duration?: number }) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
@@ -31,48 +26,17 @@ function Counter({ end, duration = 2 }: { end: number; duration?: number }) {
   return <span ref={ref}>{count.toLocaleString()}</span>;
 }
 
-function SourceTicker() {
-  return (
-    <div className="overflow-hidden py-4 border-y border-[#E5E5E0]">
-      <motion.div
-        className="flex whitespace-nowrap"
-        animate={{ x: [0, -50 * SOURCES.length] }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: 'linear'
-        }}
-      >
-        {[...SOURCES, ...SOURCES].map((source, i) => (
-          <span key={i} className="mx-6 text-xs font-mono text-[#6B7B6B]">
-            {source}
-          </span>
-        ))}
-      </motion.div>
-    </div>
-  );
-}
-
 export function SutrasSection() {
   return (
-    <section id="sutras" className="py-24 lg:py-32 px-6 lg:px-12 bg-[#FAFAF5]">
+    <section className="py-24 lg:py-32 px-6 lg:px-12 bg-[#FAFAF5]">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-8"
-        >
-          <span className="text-xs font-mono text-[#C45A3B]">04 — Corpus</span>
-        </motion.div>
-
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="font-display text-5xl lg:text-7xl font-medium text-[#1A1A1A] mb-8"
+          className="font-display text-5xl lg:text-7xl font-medium text-[#1A1A1A] mb-4"
         >
-          100 Million Sutras.
+          Built on 100 Million Sources
         </motion.h2>
 
         <motion.div
@@ -82,10 +46,20 @@ export function SutrasSection() {
           transition={{ delay: 0.1 }}
           className="text-5xl lg:text-8xl font-display text-[#C45A3B] mb-8"
         >
-          0 → <Counter end={100000000} />+
+          And growing: <Counter end={100000000} />+
         </motion.div>
 
-        <SourceTicker />
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+          className="text-[#6B7B6B] text-lg max-w-xl"
+        >
+          We ingest from academic papers, books, podcasts, and your personal notes. 
+          Every source normalized, every citation tracked. The Council evaluates 
+          each one for quality before adding to your knowledge base.
+        </motion.p>
       </div>
     </section>
   );

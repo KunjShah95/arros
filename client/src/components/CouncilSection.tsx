@@ -11,17 +11,8 @@ const AGENTS = [
 
 export function CouncilSection() {
   return (
-    <section id="architecture" className="py-24 lg:py-32 px-6 lg:px-12 bg-white">
+    <section id="how-it-works" className="py-24 lg:py-32 px-6 lg:px-12 bg-white">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-8"
-        >
-          <span className="text-xs font-mono text-[#C45A3B]">01 — Architecture</span>
-        </motion.div>
-
         <div className="grid lg:grid-cols-2 gap-16">
           <div>
             <motion.h2
@@ -30,7 +21,7 @@ export function CouncilSection() {
               viewport={{ once: true }}
               className="font-display text-4xl lg:text-5xl font-medium text-[#1A1A1A] mb-6"
             >
-              The 5-Agent Council
+              How It Works
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -39,10 +30,10 @@ export function CouncilSection() {
               transition={{ delay: 0.1 }}
               className="text-[#6B7B6B] text-lg leading-relaxed"
             >
-              Unlike LLMs that generate and hope, ARROS deploys five specialized agents 
-              that research, verify, and synthesize through a rigorous academic lens. 
-              Each agent holds a specific role. Together, they reach conclusions 
-              no single model can.
+              Five specialized agents work in concert: The Planner maps your research trajectory, 
+              The Scholar dives deep into academic sources, The Web Sage traverses the global 
+              knowledge network, The Critic verifies and flags bias, and The Weaver synthesizes 
+              everything into coherent insight. No more fragmented notes.
             </motion.p>
           </div>
 
