@@ -8,7 +8,7 @@ export function cn(...inputs: (string | undefined | null | boolean | Record<stri
 
 /* ===== BUTTONS ===== */
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'social';
+  variant?: 'primary' | 'default' | 'secondary' | 'outline' | 'ghost' | 'social' | 'danger' | 'saffron';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   icon?: React.ReactNode;
@@ -32,6 +32,10 @@ export function Button({
   `;
 
   const variants = {
+    default: `
+      bg-[var(--color-accent)] text-white hover:opacity-90
+      active:scale-[0.98]
+    `,
     primary: `
       bg-[var(--color-accent)] text-white hover:opacity-90
       active:scale-[0.98]
@@ -45,9 +49,22 @@ export function Button({
       bg-transparent text-[var(--color-text-secondary)]
       hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)]
     `,
+    outline: `
+      bg-transparent border border-[var(--color-border)] text-[var(--color-text-primary)]
+      hover:bg-[var(--color-bg-tertiary)]
+      active:scale-[0.98]
+    `,
     social: `
       bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text-primary)]
       hover:bg-[var(--color-bg-tertiary)]
+    `,
+    danger: `
+      bg-[var(--color-accent)] text-white hover:opacity-90
+      active:scale-[0.98]
+    `,
+    saffron: `
+      bg-saffron text-void hover:opacity-90
+      active:scale-[0.98]
     `,
   };
 
@@ -208,7 +225,7 @@ export function Badge({
   children
 }: {
   className?: string;
-  variant?: 'default' | 'success' | 'warning' | 'error';
+  variant?: 'default' | 'outline' | 'success' | 'warning' | 'error' | 'danger' | 'neutral' | 'peacock' | 'saffron' | 'electric' | 'flame' | 'gold';
   children: React.ReactNode;
 }) {
   const variants: Record<string, string> = {
@@ -216,6 +233,14 @@ export function Badge({
     success: 'bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20',
     warning: 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20',
     error: 'bg-[var(--color-accent)]/10 text-[var(--color-accent)] border border-[var(--color-accent)]/20',
+    danger: 'bg-[var(--color-accent)]/10 text-[var(--color-accent)] border border-[var(--color-accent)]/20',
+    outline: 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] border border-[var(--color-border)]',
+    neutral: 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] border border-[var(--color-border)]',
+    peacock: 'bg-peacock/10 text-peacock border border-peacock/20',
+    saffron: 'bg-saffron/10 text-saffron border border-saffron/20',
+    electric: 'bg-peacock/10 text-peacock border border-peacock/20',
+    flame: 'bg-flame/10 text-flame border border-flame/20',
+    gold: 'bg-gold/10 text-gold border border-gold/20',
   };
 
   return (
@@ -230,11 +255,20 @@ export function Badge({
 }
 
 /* ===== PROGRESS BAR ===== */
-export function ProgressBar({ progress, className }: { progress: number; className?: string }) {
+export function ProgressBar({ progress, className, variant = 'default' }: { progress: number; className?: string; variant?: 'default' | 'neutral' | 'peacock' | 'saffron' | 'electric' | 'gold' }) {
+  const variants = {
+    default: 'bg-[var(--color-accent)]',
+    neutral: 'bg-[var(--color-text-secondary)]',
+    peacock: 'bg-peacock',
+    saffron: 'bg-saffron',
+    electric: 'bg-peacock',
+    gold: 'bg-gold',
+  };
+
   return (
     <div className={cn("w-full h-1.5 bg-[var(--color-bg-tertiary)] rounded-full overflow-hidden", className)}>
       <motion.div
-        className={cn('h-full rounded-full bg-[var(--color-accent)]')}
+        className={cn('h-full rounded-full', variants[variant])}
         initial={{ width: 0 }}
         animate={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
         transition={{ duration: 0.7, ease: "easeOut" }}

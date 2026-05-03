@@ -17,6 +17,8 @@
   --color-accent-hover: #B36B4D;
   --color-dark: #1A1A1A;
 }
+
+:root {
   --color-neural-white: #e8e6e1;
   --color-cognition-cyan: #00e5c9;
   --color-warning-vermilion: #ff4d4d;

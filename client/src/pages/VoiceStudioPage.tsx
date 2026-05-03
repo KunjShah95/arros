@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Mic, Upload, Copy, Download, Square, Sparkles, Volume2, Play, Pause, Languages, FileAudio } from 'lucide-react';
-import { Button, Card, Badge, Spinner, cn } from '../components/ui';
+import { Button, Card, Badge, Spinner, SanskritButton, Mandala, cn } from '../components/ui';
 
 const languages = [
   { code: 'en-IN', name: 'English', native: 'English' },

@@ -16,7 +16,7 @@ import {
   Maximize2,
   Lock
 } from 'lucide-react';
-import { Button, Card, Badge, cn } from '../components/ui';
+import { Button, Card, Badge, Mandala, cn } from '../components/ui';
 
 interface ExtractedText {
   text: string;
