@@ -5,6 +5,8 @@ import { SpacedRepetitionEngine } from '../agents/spacedRepetition';
 import { NightResearchScheduler, nightScheduler } from '../agents/nightResearchScheduler';
 import { PDFResearcher, YouTubeResearcher } from '../agents/pdfResearcher';
 import { XPSystem } from '../agents/xpSystem';
+import { PaperGeneratorAgent } from '../agents/paperGenerator';
+import { CitationManagerAgent } from '../agents/citationManager';
 import { prisma } from '../services/prisma';
 import { sarvamClient } from '../services/sarvam';
 import { ExportService } from '../services/export';
@@ -137,6 +139,187 @@ router.post('/research', authenticate({ optional: true }), async (req: Request, 
   } catch (error) {
     console.error('Research error:', error);
     res.status(500).json({ error: 'Research failed' });
+  }
+});
+
+// ─── Academic Research API Endpoints ─────────────────────────────────────────
+
+/** POST /api/research/paper-draft - Generate IEEE paper draft */
+router.post('/research/paper-draft', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { sessionId, format = 'ieee', citationStyle = 'ieee', includeClaimMap = true } = req.body;
+    
+    if (!sessionId) {
+      return res.status(400).json({ error: 'Session ID is required' });
+    }
+
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: { sources: true, outputs: true },
+    });
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    const researchResults = session.outputs.filter(o => o.type === 'research_result');
+    const critiqueResult = session.outputs.find(o => o.type === 'critique');
+
+    const paperGenerator = new PaperGeneratorAgent(sessionId, 'paper-gen-' + Date.now());
+    
+    const paper = await paperGenerator.generatePaper(
+      researchResults.map(r => ({ sources: session.sources })),
+      critiqueResult?.content,
+      { format: format as 'ieee' | 'latex' | 'markdown', citationStyle: citationStyle as 'ieee' | 'apa' | 'bibtex', includeAppendices: true, includeClaimMap }
+    );
+
+    res.json({ paper, sessionId });
+  } catch (error) {
+    console.error('Paper draft generation error:', error);
+    res.status(500).json({ error: 'Paper draft generation failed' });
+  }
+});
+
+/** GET /api/export/bibtex/:sessionId - Export sources as BibTeX */
+router.get('/export/bibtex/:sessionId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: { sources: true },
+    });
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    const citationManager = new CitationManagerAgent(sessionId, 'bibtex-' + Date.now());
+    const sources = session.sources.map(s => ({
+      title: s.title || 'Unknown',
+      url: s.url,
+      type: s.type as any,
+      metadata: s.metadata as any,
+    }));
+
+    const result = await citationManager.manageCitations(sources, 'bibtex');
+
+    res.json({ 
+      bibtex: result.bibtexEntries?.join('\n\n') || result.bibliography,
+      citations: result.citations,
+      sessionId 
+    });
+  } catch (error) {
+    console.error('BibTeX export error:', error);
+    res.status(500).json({ error: 'BibTeX export failed' });
+  }
+});
+
+/** GET /api/export/prisma/:sessionId - Export PRISMA flowchart and audit trail */
+router.get('/export/prisma/:sessionId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+
+    const [auditTrails, sources] = await Promise.all([
+      prisma.auditTrail.findMany({ where: { sessionId }, orderBy: { createdAt: 'asc' } }),
+      prisma.source.findMany({ where: { sessionId } }),
+    ]);
+
+    const identified = sources.length;
+    const screened = auditTrails.filter(a => a.action === 'screen').length;
+    const eligible = auditTrails.filter(a => a.action === 'include').length;
+    const included = sources.length;
+
+    const paperGenerator = new PaperGeneratorAgent(sessionId, 'prisma-' + Date.now());
+    const flowchart = paperGenerator.generatePRISMAFlowchart({ identified, screened, eligible, included });
+
+    res.json({
+      flowchart,
+      auditTrail: auditTrails.map(a => ({
+        action: a.action,
+        sourceId: a.sourceId,
+        reason: a.reason,
+        timestamp: a.createdAt,
+      })),
+      counts: { identified, screened, eligible, included },
+      sessionId,
+    });
+  } catch (error) {
+    console.error('PRISMA export error:', error);
+    res.status(500).json({ error: 'PRISMA export failed' });
+  }
+});
+
+// ─── Corpus API Endpoints ──────────────────────────────────────────────────────
+
+/** POST /api/corpus - Create a new corpus */
+router.post('/corpus', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { name, description, userId } = req.body;
+
+    if (!name || !userId) {
+      return res.status(400).json({ error: 'Name and userId are required' });
+    }
+
+    const corpus = await prisma.corpus.create({
+      data: { name, description, userId },
+    });
+
+    res.json(corpus);
+  } catch (error) {
+    console.error('Corpus creation error:', error);
+    res.status(500).json({ error: 'Corpus creation failed' });
+  }
+});
+
+/** GET /api/corpus/:userId - Get all corpora for a user */
+router.get('/corpus/:userId', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    const corpora = await prisma.corpus.findMany({
+      where: { userId },
+      include: { _count: { select: { papers: true } } },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    res.json(corpora.map(c => ({
+      ...c,
+      paperCount: c._count.papers,
+    })));
+  } catch (error) {
+    console.error('Corpus fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch corpora' });
+  }
+});
+
+/** POST /api/corpus/:id/papers - Add papers to corpus */
+router.post('/corpus/:id/papers', authenticate({ optional: true }), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { papers, tags } = req.body;
+
+    if (!papers || !Array.isArray(papers)) {
+      return res.status(400).json({ error: 'Papers array is required' });
+    }
+
+    const corpusPapers = await prisma.corpusPaper.createMany({
+      data: papers.map((paper: { sourceId: string; tags?: any }) => ({
+        corpusId: id,
+        sourceId: paper.sourceId,
+        tags: tags || paper.tags,
+      })),
+    });
+
+    await prisma.corpus.update({
+      where: { id },
+      data: { updatedAt: new Date() },
+    });
+
+    res.json({ added: corpusPapers.count });
+  } catch (error) {
+    console.error('Add papers to corpus error:', error);
+    res.status(500).json({ error: 'Failed to add papers to corpus' });
   }
 });
 
