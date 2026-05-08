@@ -24,6 +24,8 @@ import {
   Hash,
   Cpu,
   Server,
+  Filter,
+  FileCheck,
 } from 'lucide-react';
 import { Button, Card, Badge, ProgressBar, SanskritButton, cn } from './ui';
 import { AgentTimeline } from './AgentTimeline';
@@ -54,9 +56,10 @@ export function ResearchWorkspace({
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [executingActionId, setExecutingActionId] = useState<string | null>(null);
   const quickPrompts = [
-    'Give me a compact lit review on multimodal RAG systems',
-    'Compare RLHF vs DPO with latest benchmarks',
-    'Create an exam-ready summary of quantum optimization methods',
+    'Literature review on attention mechanisms in LLMs',
+    'Systematic review of neural networks in healthcare',
+    'Compare transformer architectures in NLP',
+    'Survey of reinforcement learning algorithms',
   ];
 
   useEffect(() => {
@@ -172,7 +175,7 @@ export function ResearchWorkspace({
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Enter any academic topic, concept, or research question..."
+                  placeholder="Enter research topic for IEEE paper generation..."
                   className="w-full pl-11 pr-4 py-3.5 bg-graphite/80 border border-smoke rounded-xl text-chalk placeholder:text-ash text-sm focus:outline-none focus:border-peacock focus:ring-2 focus:ring-peacock/10 transition-all"
                   disabled={isResearching}
                 />
@@ -304,6 +307,49 @@ export function ResearchWorkspace({
         {/* Agent Timeline */}
         <Card className="flex-1 p-4 overflow-hidden flex flex-col border-smoke/50 cut-card cut-border">
           <AgentTimeline tasks={tasks} />
+        </Card>
+        {/* PRISMA Tracker - New Academic Feature */}
+        <Card className="p-4 border-smoke/50 cut-card cut-border">
+          <div className="flex items-center gap-2 mb-3">
+            <FileCheck className="w-4 h-4 text-peacock" />
+            <span className="text-xs font-medium text-silver uppercase tracking-wider">PRISMA Flow</span>
+          </div>
+          <div className="space-y-2">
+            {[
+              { stage: 'Identified', count: 127, color: 'bg-peacock' },
+              { stage: 'Screened', count: 45, color: 'bg-warning' },
+              { stage: 'Included', count: 12, color: 'bg-mint' },
+            ].map((item) => (
+              <div key={item.stage} className="flex items-center justify-between">
+                <span className="text-xs text-ash">{item.stage}</span>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${item.color}`} />
+                  <span className="text-xs font-medium text-chalk">{item.count}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+        {/* Export Buttons - New Academic Feature */}
+        <Card className="p-4 border-smoke/50 cut-card cut-border">
+          <div className="flex items-center gap-2 mb-3">
+            <Download className="w-4 h-4 text-gold" />
+            <span className="text-xs font-medium text-silver uppercase tracking-wider">Export</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" size="sm" className="text-[10px] h-8">
+              IEEE
+            </Button>
+            <Button variant="outline" size="sm" className="text-[10px] h-8">
+              BibTeX
+            </Button>
+            <Button variant="outline" size="sm" className="text-[10px] h-8">
+              LaTeX
+            </Button>
+            <Button variant="outline" size="sm" className="text-[10px] h-8">
+              PRISMA
+            </Button>
+          </div>
         </Card>
       </div>
     </div>
