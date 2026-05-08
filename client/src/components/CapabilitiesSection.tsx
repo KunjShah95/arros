@@ -1,13 +1,37 @@
 import { motion } from 'framer-motion';
-import { Mic, FileText, Image, Brain, Database, Link2 } from 'lucide-react';
+import { BookOpen, FileText, Scale, Clock, Link2, CheckCircle2 } from 'lucide-react';
 
 const FEATURES = [
-  { icon: Mic, title: 'Voice Input', description: 'Drop voice memos. We transcribe, timestamp, and embed them into your knowledge graph.' },
-  { icon: FileText, title: 'Document Processing', description: 'Upload PDFs or epubs. OCR and citation extraction happen in seconds.' },
-  { icon: Image, title: 'Vision Analysis', description: 'Paste images. We detect objects, extract text, read charts.' },
-  { icon: Brain, title: 'Persistent Memory', description: 'Your research lives in one place. Connected, searchable, forever.' },
-  { icon: Database, title: 'Source Tracking', description: 'Every claim traces to its origin. No more forgotten citations.' },
-  { icon: Link2, title: 'Knowledge Graph', description: 'See how your ideas connect. Visualize your thinking.' },
+  { 
+    icon: BookOpen, 
+    title: 'Paper Discovery', 
+    description: 'Enter a topic, get 100+ relevant papers auto-screened with TL;DR extraction. Stop searching manually.' 
+  },
+  { 
+    icon: FileText, 
+    title: 'IEEE Citation Generator', 
+    description: 'One-click IEEE/APA/MLA/BibTeX formatting. No more formatting headaches or missed citations.' 
+  },
+  { 
+    icon: Scale, 
+    title: 'Evidence Verification', 
+    description: 'Every claim traces to its source. Epistemic labels show if evidence is supported, inconsistent, or suggestive.' 
+  },
+  { 
+    icon: CheckCircle2, 
+    title: 'PRISMA Tracker', 
+    description: 'Systematic review documentation made simple. Auto-generate your flow diagram and audit trail.' 
+  },
+  { 
+    icon: Clock, 
+    title: 'Time Saved', 
+    description: 'Graduate students save 2+ hours per session. Focus on writing, not searching and formatting.' 
+  },
+  { 
+    icon: Link2, 
+    title: 'Zotero Integration', 
+    description: 'Sync with your existing library. Import citations and export to Overleaf in one click.' 
+  },
 ];
 
 export function CapabilitiesSection() {
@@ -18,9 +42,9 @@ export function CapabilitiesSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="font-display text-4xl lg:text-5xl font-medium text-[#1A1A1A] mb-4"
+          className="font-display text-4xl lg:text-5xl font-medium text-[#1A1A2E] mb-4"
         >
-          What You Get
+          Academic Research, Simplified
         </motion.h2>
 
         <motion.p
@@ -30,8 +54,7 @@ export function CapabilitiesSection() {
           transition={{ delay: 0.1 }}
           className="text-[#6B7B6B] text-lg mb-12 max-w-2xl"
         >
-          A second brain that actually works. Not a inbox for forgotten links, but a living 
-          knowledge system that grows with you.
+          Everything you need to write peer-reviewed papers faster. From paper discovery to citation formatting, ARROS handles the tedious work.
         </motion.p>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -42,10 +65,10 @@ export function CapabilitiesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
-              className="p-8 bg-white border border-[#E5E5E0]"
+              className="p-8 bg-white border border-[#E5E5E0] hover:border-[#2D4A6F]/30 hover:shadow-lg transition-all"
             >
-              <feature.icon className="w-6 h-6 text-[#C45A3B] mb-4" />
-              <h3 className="font-body font-semibold text-[#1A1A1A] text-lg mb-2">{feature.title}</h3>
+              <feature.icon className="w-6 h-6 text-[#2D4A6F] mb-4" />
+              <h3 className="font-body font-semibold text-[#1A1A2E] text-lg mb-2">{feature.title}</h3>
               <p className="text-sm text-[#6B7B6B] leading-relaxed">{feature.description}</p>
             </motion.div>
           ))}
