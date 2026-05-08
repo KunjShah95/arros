@@ -30,7 +30,7 @@ import {
 import { Button, Card, Badge, ProgressBar, SanskritButton, cn } from './ui';
 import { AgentTimeline } from './AgentTimeline';
 import { BrainStateHUD } from './BrainStateHUD';
-import { integrationsApi } from '../services/api';
+import { integrationsApi, academicApi } from '../services/api';
 import type { ResearchResponse, AgentTask, Source, AcademicCitation, Integration, ActionItem } from '../types';
 
 interface ResearchWorkspaceProps {
@@ -55,6 +55,7 @@ export function ResearchWorkspace({
   const [isRecording, setIsRecording] = useState(false);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [executingActionId, setExecutingActionId] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState<string | null>(null);
   const quickPrompts = [
     'Literature review on attention mechanisms in LLMs',
     'Systematic review of neural networks in healthcare',
@@ -337,16 +338,84 @@ export function ResearchWorkspace({
             <span className="text-xs font-medium text-silver uppercase tracking-wider">Export</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" size="sm" className="text-[10px] h-8">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-[10px] h-8"
+              disabled={!result?.sessionId || isExporting === 'ieee'}
+              onClick={async () => {
+                if (!result?.sessionId) return;
+                setIsExporting('ieee');
+                try {
+                  const data = await academicApi.generatePaperDraft(result.sessionId, { format: 'ieee', citationStyle: 'ieee' });
+                  const blob = new Blob([data.paper.markdown || JSON.stringify(data.paper, null, 2)], { type: 'text/markdown' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a'); a.href = url; a.download = `ARROS-Paper-${result.sessionId}.md`; a.click();
+                  URL.revokeObjectURL(url);
+                } catch (e) { console.error(e); }
+                setIsExporting(null);
+              }}
+            >
               IEEE
             </Button>
-            <Button variant="outline" size="sm" className="text-[10px] h-8">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-[10px] h-8"
+              disabled={!result?.sessionId || isExporting === 'bibtex'}
+              onClick={async () => {
+                if (!result?.sessionId) return;
+                setIsExporting('bibtex');
+                try {
+                  const data = await academicApi.exportBibTeX(result.sessionId);
+                  const blob = new Blob([data.bibtex], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a'); a.href = url; a.download = `ARROS-References-${result.sessionId}.bib`; a.click();
+                  URL.revokeObjectURL(url);
+                } catch (e) { console.error(e); }
+                setIsExporting(null);
+              }}
+            >
               BibTeX
             </Button>
-            <Button variant="outline" size="sm" className="text-[10px] h-8">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-[10px] h-8"
+              disabled={!result?.sessionId || isExporting === 'latex'}
+              onClick={async () => {
+                if (!result?.sessionId) return;
+                setIsExporting('latex');
+                try {
+                  const data = await academicApi.generatePaperDraft(result.sessionId, { format: 'latex', citationStyle: 'bibtex' });
+                  const blob = new Blob([data.paper.latex || JSON.stringify(data.paper, null, 2)], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a'); a.href = url; a.download = `ARROS-Paper-${result.sessionId}.tex`; a.click();
+                  URL.revokeObjectURL(url);
+                } catch (e) { console.error(e); }
+                setIsExporting(null);
+              }}
+            >
               LaTeX
             </Button>
-            <Button variant="outline" size="sm" className="text-[10px] h-8">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-[10px] h-8"
+              disabled={!result?.sessionId || isExporting === 'prisma'}
+              onClick={async () => {
+                if (!result?.sessionId) return;
+                setIsExporting('prisma');
+                try {
+                  const data = await academicApi.exportPRISMA(result.sessionId);
+                  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a'); a.href = url; a.download = `ARROS-PRISMA-${result.sessionId}.json`; a.click();
+                  URL.revokeObjectURL(url);
+                } catch (e) { console.error(e); }
+                setIsExporting(null);
+              }}
+            >
               PRISMA
             </Button>
           </div>

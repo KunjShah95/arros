@@ -183,7 +183,7 @@ router.post('/research/paper-draft', authenticate({ optional: true }), async (re
 /** GET /api/export/bibtex/:sessionId - Export sources as BibTeX */
 router.get('/export/bibtex/:sessionId', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
-    const { sessionId } = req.params;
+    const sessionId = String(req.params.sessionId);
 
     const session = await prisma.session.findUnique({
       where: { id: sessionId },
@@ -195,11 +195,15 @@ router.get('/export/bibtex/:sessionId', authenticate({ optional: true }), async 
     }
 
     const citationManager = new CitationManagerAgent(sessionId, 'bibtex-' + Date.now());
-    const sources = session.sources.map(s => ({
+    const sources = session.sources.map((s, index) => ({
+      id: s.id || `source-${index}`,
+      type: s.type as 'web' | 'paper' | 'github' | 'blog' | 'document' | 'patent' | 'video' | 'book' | 'forum' | 'news' | 'code',
       title: s.title || 'Unknown',
-      url: s.url,
-      type: s.type as any,
-      metadata: s.metadata as any,
+      url: s.url || '',
+      content: s.content || '',
+      reliability: 0.8,
+      bias: 0,
+      metadata: s.metadata as any || {},
     }));
 
     const result = await citationManager.manageCitations(sources, 'bibtex');
@@ -218,7 +222,7 @@ router.get('/export/bibtex/:sessionId', authenticate({ optional: true }), async 
 /** GET /api/export/prisma/:sessionId - Export PRISMA flowchart and audit trail */
 router.get('/export/prisma/:sessionId', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
-    const { sessionId } = req.params;
+    const sessionId = String(req.params.sessionId);
 
     const [auditTrails, sources] = await Promise.all([
       prisma.auditTrail.findMany({ where: { sessionId }, orderBy: { createdAt: 'asc' } }),
@@ -275,7 +279,7 @@ router.post('/corpus', authenticate({ optional: true }), async (req: Request, re
 /** GET /api/corpus/:userId - Get all corpora for a user */
 router.get('/corpus/:userId', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = String(req.params.userId);
 
     const corpora = await prisma.corpus.findMany({
       where: { userId },
@@ -296,7 +300,7 @@ router.get('/corpus/:userId', authenticate({ optional: true }), async (req: Requ
 /** POST /api/corpus/:id/papers - Add papers to corpus */
 router.post('/corpus/:id/papers', authenticate({ optional: true }), async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const corpusId = String(req.params.id);
     const { papers, tags } = req.body;
 
     if (!papers || !Array.isArray(papers)) {
@@ -305,14 +309,14 @@ router.post('/corpus/:id/papers', authenticate({ optional: true }), async (req: 
 
     const corpusPapers = await prisma.corpusPaper.createMany({
       data: papers.map((paper: { sourceId: string; tags?: any }) => ({
-        corpusId: id,
+        corpusId,
         sourceId: paper.sourceId,
         tags: tags || paper.tags,
       })),
     });
 
     await prisma.corpus.update({
-      where: { id },
+      where: { id: corpusId },
       data: { updatedAt: new Date() },
     });
 

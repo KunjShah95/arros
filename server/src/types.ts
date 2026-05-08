@@ -52,6 +52,9 @@ export interface Claim {
   evidence: string[];
   confidence: number;
   contradictedBy?: string[];
+  epistemicLabel?: 'supported' | 'inconsistent' | 'suggestive' | 'speculative' | 'unknown';
+  supportingSources?: string[];
+  contradictingSources?: string[];
 }
 
 export interface CritiqueResult {
@@ -83,6 +86,7 @@ export interface AcademicCitation {
   venue?: string;
   url?: string;
   citationText: string;
+  bibtex?: string;
 }
 
 export interface SynthesisResult {

@@ -607,5 +607,86 @@ export const nightApi = {
   },
 };
 
+// ============ Academic Research API ============
+
+export interface PaperDraftOptions {
+  format?: 'ieee' | 'latex' | 'markdown';
+  citationStyle?: 'ieee' | 'apa' | 'bibtex';
+  includeClaimMap?: boolean;
+}
+
+export interface PaperDraftResult {
+  paper: any;
+  sessionId: string;
+}
+
+export interface BibTeXResult {
+  bibtex: string;
+  citations: any[];
+  sessionId: string;
+}
+
+export interface PRISMAExportResult {
+  flowchart: string;
+  auditTrail: Array<{ action: string; sourceId: string; reason: string; timestamp: Date }>;
+  counts: { identified: number; screened: number; eligible: number; included: number };
+  sessionId: string;
+}
+
+export interface Corpus {
+  id: string;
+  name: string;
+  description: string | null;
+  userId: string;
+  paperCount?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PaperDraft {
+  title: string;
+  abstract: string;
+  sections: Array<{ heading: string; content: string }>;
+  bibliography: string;
+}
+
+export const academicApi = {
+  /** Generate an IEEE/LaTeX/Markdown paper draft from a research session */
+  generatePaperDraft: async (sessionId: string, options?: PaperDraftOptions): Promise<PaperDraftResult> => {
+    const response = await api.post('/research/paper-draft', { sessionId, ...options });
+    return response.data;
+  },
+
+  /** Export all sources from a session as BibTeX entries */
+  exportBibTeX: async (sessionId: string): Promise<BibTeXResult> => {
+    const response = await api.get(`/export/bibtex/${sessionId}`);
+    return response.data;
+  },
+
+  /** Export PRISMA flowchart and audit trail for a session */
+  exportPRISMA: async (sessionId: string): Promise<PRISMAExportResult> => {
+    const response = await api.get(`/export/prisma/${sessionId}`);
+    return response.data;
+  },
+
+  /** Create a new corpus (paper library) */
+  createCorpus: async (name: string, description: string, userId: string): Promise<Corpus> => {
+    const response = await api.post('/corpus', { name, description, userId });
+    return response.data;
+  },
+
+  /** Get all corpora for a user */
+  getCorpora: async (userId: string): Promise<Corpus[]> => {
+    const response = await api.get(`/corpus/${userId}`);
+    return response.data;
+  },
+
+  /** Add papers/sources to a corpus */
+  addPapersToCorpus: async (corpusId: string, papers: Array<{ sourceId: string; tags?: any }>, tags?: any): Promise<{ added: number }> => {
+    const response = await api.post(`/corpus/${corpusId}/papers`, { papers, tags });
+    return response.data;
+  },
+};
+
 export default api;
 
