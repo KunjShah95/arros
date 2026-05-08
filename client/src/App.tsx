@@ -21,6 +21,7 @@ import { LearningOS2Page } from './pages/LearningOS2Page';
 import { FlashcardsPage } from './pages/FlashcardsPage';
 import { MediaResearchPage } from './pages/MediaResearchPage';
 import { XPDashboardPage } from './pages/XPDashboardPage';
+import { CorpusLibraryPage } from './pages/CorpusLibraryPage';
 import { researchApi } from './services/api';
 import type { ResearchResponse, AgentTask, Source } from './types';
 
@@ -139,6 +140,8 @@ function AppLayout() {
         return <MediaResearchPage />;
       case 'xp':
         return <XPDashboardPage />;
+      case 'corpus':
+        return <CorpusLibraryPage />;
       default:
         return null;
     }
