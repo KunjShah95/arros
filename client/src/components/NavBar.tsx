@@ -14,7 +14,9 @@ export function NavBar() {
   const navLinks = [
     { label: 'How It Works', href: '#how-it-works' },
     { label: 'Features', href: '#features' },
-    { label: 'About', href: '#about' },
+    { label: 'For Students', href: '#students' },
+    { label: 'For Labs', href: '#labs' },
+    { label: 'Pricing', href: '/pricing' },
   ];
 
   const authLinks = [
@@ -32,8 +34,9 @@ export function NavBar() {
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <a href="/" className="font-display text-xl font-medium text-[#1A1A1A] tracking-tight">
+          <a href="/" className="font-display text-xl font-medium text-[#1A1A2E] tracking-tight">
             ARROS
+            <span className="text-[#2D4A6F] text-xs ml-1">Academic</span>
           </a>
 
           {/* Desktop Navigation */}
@@ -42,7 +45,7 @@ export function NavBar() {
               <a 
                 key={link.label}
                 href={link.href} 
-                className="text-sm text-[#6B7B6B] hover:text-[#1A1A1A] transition-colors"
+                className="text-sm text-[#6B7B6B] hover:text-[#1A1A2E] transition-colors"
               >
                 {link.label}
               </a>
@@ -58,8 +61,8 @@ export function NavBar() {
                 className={cn(
                   'text-sm transition-colors',
                   link.primary 
-                    ? 'bg-[#C45A3B] text-white px-6 py-2.5 hover:bg-[#B36B4D]' 
-                    : 'text-[#6B7B6B] hover:text-[#1A1A1A]'
+                    ? 'bg-[#2D4A6F] text-white px-6 py-2.5 hover:bg-[#1A1A2E]' 
+                    : 'text-[#6B7B6B] hover:text-[#1A1A2E]'
                 )}
               >
                 {link.label}
@@ -69,7 +72,7 @@ export function NavBar() {
 
           {/* Mobile Menu Button */}
           <button 
-            className="lg:hidden text-[#1A1A1A]"
+            className="lg:hidden text-[#1A1A2E]"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -90,7 +93,7 @@ export function NavBar() {
                 <a 
                   key={link.label}
                   href={link.href}
-                  className="text-sm text-[#6B7B6B] hover:text-[#1A1A1A]"
+                  className="text-sm text-[#6B7B6B] hover:text-[#1A1A2E]"
                   onClick={() => setMobileOpen(false)}
                 >
                   {link.label}
@@ -104,7 +107,7 @@ export function NavBar() {
                   className={cn(
                     'text-sm',
                     link.primary 
-                      ? 'text-[#C45A3B] font-medium' 
+                      ? 'text-[#2D4A6F] font-medium' 
                       : 'text-[#6B7B6B]'
                   )}
                   onClick={() => setMobileOpen(false)}
