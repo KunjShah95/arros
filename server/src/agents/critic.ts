@@ -4,12 +4,17 @@ import { llmService } from '../services/llm';
 import { wsService } from '../services/websocket';
 import { z } from 'zod';
 
+export type EpistemicLabel = 'supported' | 'inconsistent' | 'suggestive' | 'speculative' | 'unknown';
+
 const ClaimSchema = z.object({
   id: z.string(),
   statement: z.string(),
   evidence: z.array(z.string()),
   confidence: z.number(),
   contradictedBy: z.array(z.string()).optional(),
+  epistemicLabel: z.enum(['supported', 'inconsistent', 'suggestive', 'speculative', 'unknown']).optional(),
+  supportingSources: z.array(z.string()).optional(),
+  contradictingSources: z.array(z.string()).optional(),
 });
 
 const ContradictionSchema = z.object({
@@ -50,7 +55,7 @@ export class CriticAgent {
     }
 
     const claimsText = allClaims
-      .map((c, i) => `${i + 1}. "${c.statement}" (confidence: ${c.confidence}, source: ${c.evidence[0]})`)
+      .map((c, i) => `${i + 1}. "${c.statement}" (confidence: ${c.confidence}, sources: ${c.evidence.join(', ')})`)
       .join('\n');
 
     const sourcesText = allSources
@@ -60,25 +65,39 @@ export class CriticAgent {
     const messages = [
       {
         role: 'system' as const,
-        content: `You are a research critic agent. Verify claims, detect contradictions, and assess bias.
+        content: `You are a research critic agent for ARROS (Academic Research OS). Your role is to verify claims, detect contradictions, and assess evidence quality.
 
-Evaluate each claim based on:
-- Source reliability (0-1)
-- Internal consistency
-- Corroboration from multiple sources
-- Potential bias
+EVIDENCE GRADING:
+Label each claim with an epistemic label:
+- supported: Multiple consistent sources confirm the claim (reliability >= 0.7 from 2+ sources)
+- inconsistent: Sources show conflicting results or contradictions
+- suggestive: Single weak source (reliability < 0.7) or preliminary evidence
+- speculative: Inferred from indirect evidence, not directly stated in sources
+- unknown: No corroborating evidence found, claim appears unsupported
 
-For each claim, decide:
-- Accept if reliability >= 0.6 and confidence >= 0.5
-- Reject otherwise
+For each claim, provide:
+- epistemicLabel: The evidence quality label
+- supportingSources: Array of source IDs that support this claim
+- contradictingSources: Array of source IDs that contradict this claim
 
-For contradictions:
-- Find claims that contradict each other
-- Rate severity as low/medium/high
+CLAIM ACCEPTANCE:
+- Accept if epistemicLabel is 'supported' or 'suggestive' with reliability >= 0.6
+- Reject if epistemicLabel is 'unknown' or 'speculative' with low confidence
 
-For bias:
+CONTRADICTION DETECTION:
+- Find claims that contradict each other across different sources
+- Rate severity as low/medium/high based on number of conflicting sources
+
+BIAS DETECTION:
 - Identify potential bias in sources
-- Rate severity 0-1`,
+- Rate severity 0-1 based on bias score and source reliability
+
+Return JSON with:
+- acceptedClaims: Array of verified claims with epistemic labels
+- rejectedClaims: Array of rejected claims
+- contradictions: Array of contradictions found
+- biasIndicators: Array of potential biases
+- overallConfidence: Overall confidence score 0-1`,
       },
       {
         role: 'user' as const,
@@ -90,18 +109,18 @@ ${claimsText}
 SOURCES:
 ${sourcesText}
 
-Return JSON with:
-- acceptedClaims: Array of verified claims
-- rejectedClaims: Array of rejected claims  
-- contradictions: Array of contradictions found
-- biasIndicators: Array of potential biases
-- overallConfidence: Overall confidence score 0-1`,
+For each claim, assign:
+1. epistemicLabel (supported/inconsistent/suggestive/speculative/unknown)
+2. supportingSources (source IDs that confirm the claim)
+3. contradictingSources (source IDs that refute the claim)
+
+Return JSON with all fields.`,
       },
     ];
 
     try {
       const response = await llmService.chat(messages, {
-        maxTokens: 2000,
+        maxTokens: 3000,
         temperature: 0.3,
         model: 'gpt-4o-mini',
         responseFormat: CritiqueResultSchema,
@@ -131,6 +150,13 @@ Return JSON with:
             acceptedClaims: critique.acceptedClaims.length,
             rejectedClaims: critique.rejectedClaims.length,
             contradictions: critique.contradictions.length,
+            epistemicBreakdown: {
+              supported: critique.acceptedClaims.filter(c => c.epistemicLabel === 'supported').length,
+              inconsistent: critique.acceptedClaims.filter(c => c.epistemicLabel === 'inconsistent').length,
+              suggestive: critique.acceptedClaims.filter(c => c.epistemicLabel === 'suggestive').length,
+              speculative: critique.acceptedClaims.filter(c => c.epistemicLabel === 'speculative').length,
+              unknown: critique.acceptedClaims.filter(c => c.epistemicLabel === 'unknown').length,
+            },
           } as object,
           passed: critique.overallConfidence >= 0.7,
         },
@@ -152,13 +178,31 @@ Return JSON with:
     const biasIndicators: BiasIndicator[] = [];
 
     for (const claim of claims) {
-      const source = sources.find((s) => s.id === claim.evidence[0]);
-      const reliability = source?.reliability ?? 0.5;
+      const claimSources = sources.filter(s => claim.evidence.includes(s.id));
+      const avgReliability = claimSources.length > 0
+        ? claimSources.reduce((sum, s) => sum + (s.reliability || 0.5), 0) / claimSources.length
+        : 0.5;
 
-      if (reliability >= 0.6 && claim.confidence >= 0.5) {
-        acceptedClaims.push(claim);
+      let epistemicLabel: EpistemicLabel = 'unknown';
+      if (claimSources.length >= 2 && avgReliability >= 0.7) {
+        epistemicLabel = 'supported';
+      } else if (claimSources.length === 1 && avgReliability >= 0.6) {
+        epistemicLabel = 'suggestive';
+      } else if (avgReliability < 0.5) {
+        epistemicLabel = 'speculative';
+      }
+
+      const claimWithLabel = {
+        ...claim,
+        epistemicLabel,
+        supportingSources: claimSources.map(s => s.id),
+        contradictingSources: [] as string[],
+      };
+
+      if (epistemicLabel === 'supported' || epistemicLabel === 'suggestive') {
+        acceptedClaims.push(claimWithLabel as unknown as Claim);
       } else {
-        rejectedClaims.push(claim);
+        rejectedClaims.push(claimWithLabel as unknown as Claim);
       }
     }
 
@@ -195,7 +239,7 @@ Return JSON with:
   }
 
   private detectContradiction(claimA: Claim, claimB: Claim): Contradiction | null {
-    const negationWords = ['not', 'no', 'never', 'cannot', 'impossible', 'false'];
+    const negationWords = ['not', 'no', 'never', 'cannot', 'impossible', 'false', 'decrease', 'increase', 'higher', 'lower'];
     const statementA = claimA.statement.toLowerCase();
     const statementB = claimB.statement.toLowerCase();
 
